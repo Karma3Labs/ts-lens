@@ -1,9 +1,19 @@
-import { saveFollows, saveProfiles } from './db'
+import fs from 'fs';
+import path from 'path'
+import { getFollowees, saveFollows, saveProfiles } from './db'
 import { getFollowers, getProfilesBatch, getProfilesCount } from './graphql'
+
+
+const logLastProfile = (userId: string, totalCounts: number) => {
+	const logFile = path.join(__dirname, '..', '..', 'log.txt')
+	fs.appendFileSync(logFile, `${userId} logged ${totalCounts} followers`);
+}
 
 const main = async () => {
 	const count = await getProfilesCount()
 	let noFollowersFromNowOn = false
+	let followeesScraped = await getFollowees()
+	console.log(followeesScraped)
 
 	console.log(`Starting indexing ${count} profiles`)
 
@@ -20,11 +30,17 @@ const main = async () => {
 		}
 
 		for (const profile of profiles) {
+			if (followeesScraped.includes(profile.id)) {
+				console.log('Aready scraped', profile.id)
+				continue
+			}
 			const followers = await getFollowers(profile.id)
 			noFollowersFromNowOn = followers.length == 0 
 			await saveFollows(profile, followers)
+			console.log(profile.id, followers.length)
+			logLastProfile(profile.id, followers.length)
 		}
 	}
 }
 
-main()
+main().then(() => console.log('Done'))

@@ -46,6 +46,11 @@
   resolved "https://registry.yarnpkg.com/@types/humps/-/humps-2.0.2.tgz#6643e2beb13e0e7a22c65b2128b4315a727ecbe0"
   integrity sha512-FuyQoVNSW6mjSLxLVRq8YK1pi8P5zyL2pahEuCtMqlbmV4jyWYITz4eE2fZIErNovIfKU32tPbCl44VbOUaEiw==
 
+"@types/lodash@^4.14.191":
+  version "4.14.191"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.191.tgz#09511e7f7cba275acd8b419ddac8da9a6a79e2fa"
+  integrity sha512-BdZ5BCCvho3EIXw6wUCXHe7rS53AIDPLE+JzwgT+OsJk53oBfbSmZZ7CX4VaRoN78N+TJpFi9QPlfIVNmJYWxQ==
+
 "@types/mime@*":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-3.0.1.tgz#5f8f2bca0a5863cb69bc0b0acd88c96cb1d4ae10"

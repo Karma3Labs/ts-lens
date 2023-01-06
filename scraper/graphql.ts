@@ -1,20 +1,30 @@
 import { request, gql } from 'graphql-request'
 import { Profile } from '../types'
 import { getEnv, sleep } from '../utils';
+import { chunk }  from 'lodash'
 
 const GRAPHQL_URL = getEnv('GRAPHQL_API')
 
 const requestGQL = async (query: string, variables: object = {}) => {
-	try {
-		return await request(GRAPHQL_URL, query, variables)
-	}
-	catch (error) {
-		console.log(error)
-	}
+	while (true) {
+		try {
+			return await request(GRAPHQL_URL, query, variables)
+		}
+		catch (error: any) {
+			console.log('LALLA', error.response)
+			if (error.response.status == 429) {
+				console.log('Rate limited. Sleeping 10s')
+				await sleep(60000)
+			}
+			else {
+				console.log(error)
+			}
+		}
 
-	// Sometimes the API stucks so why not try once more.
-	await sleep(1000)
-	return await request(GRAPHQL_URL, query, variables)
+		console.log('Trying again')
+		// Sometimes the API stucks, or we get rate limited so why not try again
+		await sleep(1000)
+	}
 }
 
 /**
@@ -73,7 +83,7 @@ const getFollowersCount = async (profileId: string) => {
 	return res.followers.pageInfo.totalCount
 }
 
-const getFollowersBatch = async (profileId: string, offset: number) => {
+const getFollowersBatch = async (profileId: string, offset: number): Promise<Profile[]> => {
 	const followersQuery = gql`
 		query Followers($profileId: ProfileId!, $cursor: Cursor) {
 			followers(request: { profileId: $profileId, limit: 50, cursor: $cursor }) {
@@ -97,17 +107,26 @@ const getFollowersBatch = async (profileId: string, offset: number) => {
 	const ids = followers
 		.map((f: Record<string, any>) => f.wallet?.defaultProfile?.id)
 		.filter((f: string) => f != null)
+		.map((id: string) => { return { id } })
 
 		return ids
 }
 
 export const getFollowers = async (profileId: string): Promise<Profile[]> => {
 	const count = await getFollowersCount(profileId)
-	let promises: any = []
+	let promises: Promise<Profile[]>[] = []
 	for (let i = 0; i <= count; i += 50) {
 		promises.push(getFollowersBatch(profileId, i))
 	}
 
-	const res = await Promise.all(promises) 
-	return res.flat().map((id: string) => {return { id }})
+	const chunks = chunk(promises, 10)
+	let followers: Profile[][] = []
+
+	for (const chunk of chunks) {
+		const res = await Promise.all(chunk)
+		const profiles = res.flat()
+		followers.push(profiles)
+	}
+
+	return followers.flat()
 }
