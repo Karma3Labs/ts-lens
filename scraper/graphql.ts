@@ -24,7 +24,7 @@ const requestGQL = async (query: string, variables: object = {}) => {
 export const getProfilesCount = async () => {
 	const profilesCount = gql`
 		query ExploreProfiles {
-			exploreProfiles(request: { sortCriteria: MOST_FOLLOWERS }) {
+			exploreProfiles(request: { sortCriteria: MOST_FOLLOWERS, limit: 50 }) {
 				pageInfo {
 					totalCount
 				}

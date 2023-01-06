@@ -10,7 +10,6 @@ const main = async () => {
 	for (let i = 0; i <= count; i += 50) {
 		console.log(`Working on batch: [${i}, ${i + 50}]`)
 		const profiles = await getProfilesBatch(i)
-		console.log(`Working on batch: [${i}, ${i + 50}]`)
 		await saveProfiles(profiles)
 
 		if (noFollowersFromNowOn) {
