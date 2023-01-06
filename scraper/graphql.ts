@@ -2,6 +2,21 @@ import { request, gql } from 'graphql-request'
 import { Profile } from '../types'
 
 const GRAPHQL_URL = 'https://api-mumbai.lens.dev'
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+const requestGQL = async (query: string, variables: object = {}) => {
+	try {
+		return await request(GRAPHQL_URL, query, variables)
+	}
+	catch (error) {
+		console.log(error)
+	}
+
+	// Sometimes the API stucks so why not try once more.
+	await sleep(1000)
+	return await request(GRAPHQL_URL, query, variables)
+}
+
 /**
  * Profiles
 */
@@ -17,7 +32,7 @@ export const getProfilesCount = async () => {
 		}
 	`
 
-	const res = await request(GRAPHQL_URL, profilesCount)
+	const res = await requestGQL(profilesCount)
 	return res.exploreProfiles.pageInfo.totalCount
 }
 
@@ -34,7 +49,7 @@ export const getProfilesBatch = async (offset = 0): Promise<Profile[]> => {
 	`
 
 	const cursor = `{\"offset\": ${offset}}`
-	const res = await request(GRAPHQL_URL, profilesQuery, { cursor })
+	const res = await requestGQL(profilesQuery, { cursor })
 	const profiles = res.exploreProfiles.items
 	return profiles
 }
@@ -54,7 +69,7 @@ const getFollowersCount = async (profileId: string) => {
 		}
 	`
 
-	const res = await request(GRAPHQL_URL, followersCount, { profileId })
+	const res = await requestGQL(followersCount, { profileId })
 	return res.followers.pageInfo.totalCount
 }
 
@@ -77,7 +92,7 @@ const getFollowersBatch = async (profileId: string, offset: number) => {
 	`
 
 	const cursor = `{\"offset\": ${offset}}`
-	const res = await request(GRAPHQL_URL, followersQuery, { profileId, cursor })
+	const res = await requestGQL(followersQuery, { profileId, cursor })
 	const followers = res.followers.items
 	const ids = followers
 		.map((f: Record<string, any>) => f.wallet?.defaultProfile?.id)
