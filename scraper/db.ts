@@ -19,7 +19,7 @@ export const saveProfiles = (profiles: Profile[]) => {
 		.ignore()
 }
 
-export const saveFollows = (followee: Profile, followers: Profile[]) => {
+export const saveFollows = async (followee: Profile, followers: Profile[]) => {
 	if (followers.length == 0) {
 		return
 	}
@@ -34,7 +34,7 @@ export const saveFollows = (followee: Profile, followers: Profile[]) => {
 
 	const chunks = chunk(follows, 1000)
 	for (const chunk of chunks) {
-		return db('follows')
+		await db('follows')
 			.insert(chunk)
 			.onConflict()
 			.ignore()
