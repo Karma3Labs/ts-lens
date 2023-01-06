@@ -1,8 +1,8 @@
 import { request, gql } from 'graphql-request'
 import { Profile } from '../types'
+import { getEnv, sleep } from '../utils';
 
-const GRAPHQL_URL = 'https://api-mumbai.lens.dev'
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const GRAPHQL_URL = getEnv('GRAPHQL_API')
 
 const requestGQL = async (query: string, variables: object = {}) => {
 	try {
