@@ -4,6 +4,9 @@ import { getDB } from '../utils'
 const db = getDB()
 
 export const saveProfiles = (profiles: Profile[]) => {
+	if (profiles.length == 0) {
+		return
+	}
 	return db('profiles')
 		.insert(profiles)
 		.onConflict()
@@ -11,6 +14,10 @@ export const saveProfiles = (profiles: Profile[]) => {
 }
 
 export const saveFollows = (followee: Profile, followers: Profile[]) => {
+	if (followers.length == 0) {
+		return
+	}
+
 	const follows = followers.map((follower) => {
 		return {
 			follower: follower.id,
