@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc && cp .env dist/",
-    "scrape": "node dist/scraper/index.js"
+    "scrape": "node dist/scraper/index.js",
+    "serve": "node dist/scripts/start-server.js"
   },
   "author": "",
   "license": "ISC",

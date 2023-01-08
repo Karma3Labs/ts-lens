@@ -14,7 +14,8 @@ export const getFullProfiles = async (profileIds: string[]) => {
 		}
 	  `
 
-	return request(GRAPHQL_URL, query, { profileIds })
+	const res = await request(GRAPHQL_URL, query, { profileIds })
+	return res.profiles.items
 }
 
 getFullProfiles(['0x01'])
