@@ -4,11 +4,10 @@
  */
 exports.up = function (knex) {
 	return knex.schema.createTableIfNotExists('profiles', function (table) {
-		table.string('id').unique();
+		table.string('handle').unique();
 	}).createTableIfNotExists('follows', function (table) {
 		table.string('follower');
 		table.string('followee');
-		table.unique(['follower', 'followee'])
 	})
 };
 
@@ -17,5 +16,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-	return knex.schema.dropTable('follows').dropTable('profiles');
+	return knex.schema.dropTableIfExists('follows').dropTableIfExists('profiles');
 };
