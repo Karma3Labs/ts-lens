@@ -14,7 +14,7 @@ export const saveProfiles = (profiles: Profile[]) => {
 		return
 	}
 	return db('profiles')
-		.insert(profiles)
+		.insert(profiles.map((p) => p.handle))
 		.onConflict()
 		.ignore()
 }
@@ -26,11 +26,12 @@ export const saveFollows = async (followee: Profile, followers: Profile[]) => {
 
 	const follows = followers.map((follower) => {
 		return {
-			follower: follower.id,
-			followee: followee.id
+			follower: follower.handle,
+			followee: followee.handle
 		 }
 
 	}) as Follow[]
+	console.log(follows)
 
 	const chunks = chunk(follows, 1000)
 	for (const chunk of chunks) {

@@ -1,27 +1,26 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
-import { getFullProfiles } from './graphql'
+import { LocaltrustStrategy } from '../recommender/strategies/localtrust'
+import { PretrustStrategy } from '../recommender/strategies/pretrust'
 
 const app = express()
 const PORT = 8080
 
-export default (recommender: Recommender) => {
+export default (recommender: Recommender, pretrustStrategy: PretrustStrategy, localtrustStrategy: LocaltrustStrategy) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
-		const idRegex = /^0x([0-9A-Fa-f]+)$/
 		try {
-			const id = req.query?.id as string
-			console.log('id', id)
-			if (!idRegex.test(id)) {
-				return res.status(400).send(`Invalid ID provided: ${id}`)
-			}
-			if (!recommender.ids.includes(id)) {
-				return res.status(400).send(`ID does not exist provided: ${id}`)
+			const handle = req.query?.handle as string
+			console.log('Recommeding for handle: ', handle)
+
+			if (!recommender.handles.includes(handle)) {
+				return res.status(400).send(`Handle provided does not exist: ${handle}`)
 			}
 
-			const ids = await recommender.recommendUsers(id, 50)
-			const fullProfiles = await getFullProfiles(ids)
+			console.log(`Suggesting for handle: ${handle}`)
 
-			res.send(fullProfiles)
+			const handles = await recommender.recommend(handle, 50)
+
+			res.send(handles)
 		}
 		catch (e: unknown) {
 			if (e instanceof Error) {
@@ -33,7 +32,7 @@ export default (recommender: Recommender) => {
 
 	app.listen(PORT, async () => {
 		recommender = new Recommender()
-		await recommender.init()
+		await recommender.init(pretrustStrategy, localtrustStrategy)
 
 		console.log(`Magic is happening on port: ${PORT}`)
 	})

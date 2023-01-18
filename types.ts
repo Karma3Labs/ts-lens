@@ -1,5 +1,6 @@
 export type Profile = {
-	id: string
+	handle: string
+    id: string
 }
 
 export type Follow = {

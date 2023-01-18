@@ -11,7 +11,7 @@ const requestGQL = async (query: string, variables: object = {}) => {
 			return await request(GRAPHQL_URL, query, variables)
 		}
 		catch (error: any) {
-			console.log('LALLA', error.response)
+			console.log('ERROR', error)
 			if (error.response.status == 429) {
 				console.log('Rate limited. Sleeping 10s')
 				await sleep(60000)
@@ -34,7 +34,7 @@ const requestGQL = async (query: string, variables: object = {}) => {
 export const getProfilesCount = async () => {
 	const profilesCount = gql`
 		query ExploreProfiles {
-			exploreProfiles(request: { sortCriteria: MOST_FOLLOWERS, limit: 50 }) {
+			exploreProfiles(request: { sortCriteria: LATEST_CREATED, limit: 50 }) {
 				pageInfo {
 					totalCount
 				}
@@ -53,6 +53,7 @@ export const getProfilesBatch = async (offset = 0): Promise<Profile[]> => {
 			exploreProfiles(request: { sortCriteria: MOST_FOLLOWERS, cursor: $cursor }) {
 				items {
 					id
+					handle
 				}
 			}
 		}
@@ -91,6 +92,7 @@ const getFollowersBatch = async (profileId: string, offset: number): Promise<Pro
 					wallet {
 						defaultProfile {
 							id
+							handle
 						}
 					}
 				}
@@ -104,12 +106,16 @@ const getFollowersBatch = async (profileId: string, offset: number): Promise<Pro
 	const cursor = `{\"offset\": ${offset}}`
 	const res = await requestGQL(followersQuery, { profileId, cursor })
 	const followers = res.followers.items
-	const ids = followers
-		.map((f: Record<string, any>) => f.wallet?.defaultProfile?.id)
-		.filter((f: string) => f != null)
-		.map((id: string) => { return { id } })
+	const followerProfiles = followers
+		.map((f: Record<string, any>) => { 
+			return {
+				id: f.wallet?.defaultProfile?.id,
+				handle: f.wallet?.defaultProfile?.handle
+			} as Profile
+		})
+		.filter((f: Profile) => f.id != null)
 
-		return ids
+		return followerProfiles
 }
 
 export const getFollowers = async (profileId: string): Promise<Profile[]> => {
