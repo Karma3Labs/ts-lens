@@ -1,5 +1,3 @@
-const { drop } = require("lodash");
-
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
