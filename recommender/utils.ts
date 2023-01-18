@@ -20,6 +20,7 @@ export const getGraphFromFollowsTable = async () => {
  * (i.e. the followees with the most followers). 
 */
 export const getAllFollows = async (): Promise<Follow[]> => {
+	// const TOP_USERS = 80
 	const db = getDB()
 
 	return db('follows')
@@ -31,12 +32,26 @@ export const getAllFollows = async (): Promise<Follow[]> => {
 				.orderByRaw('count(follower) desc')
 				.limit(80)
 		})
+
+	// const res = await db.raw(`
+	// 	WITH data AS (
+	// 		SELECT follower, followee, p.num_followers,
+	// 		rank() over (PARTITION BY followee ORDER BY num_followers DESC) as rank
+	// 		FROM follows f
+	// 		JOIN popularity p
+	// 		ON f.follower = p.user
+	// 	)
+	// 	SELECT follower, followee, rank
+	// 	FROM data
+	// 	WHERE rank <= ${TOP_USERS}
+	// `)
+	// return res.rows
 }
 
-export const getFollowersOfId = async (id: string): Promise<Set<string>> => {
+export const getFollowsOfHandle = async (handle: string): Promise<Set<string>> => {
 	const db = getDB()
 	const follows = await db('follows')
-		.where('followee', id)
+		.where('followee', handle)
 		.select()
 
 	return new Set(follows.map((f: Follow) => f.follower))
