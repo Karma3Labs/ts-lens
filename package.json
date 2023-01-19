@@ -7,7 +7,8 @@
     "build": "tsc && cp .env dist/",
     "scrape": "node dist/scraper/index.js",
     "populate": "node dist/scraper/index.js",
-    "serve": "node dist/scripts/start-server.js"
+    "serve": "yarn build && node dist/scripts/startServer.js",
+    "get_global_trust": "yarn build && node dist/scripts/getGlobalTrust.js"
   },
   "author": "",
   "license": "ISC",

@@ -23,6 +23,13 @@ Here's a typescript wrapper of the [Eigentrust Basic API](https://k3l.io/docs/ap
 - Run `yarn serve --pretrust <your_strategy>`
 - The server will start on port 8080. Call the API with: `curl 'http://localhost:8080/suggest?handle=katemoss.lens'`
 
+## Generating global trust values in CSV
+
+- For generating all global trust values in a CSV, just run `yarn get_global_trust`.
+- The script will generate a `globaltrust.csv` file in the root directory of the project.
+- Feel free to adjust the pretrust strategy using the `--pretrust` argument. Note that since the eigentrust calculation will be done once, the pretrust strategy should not be personalized.
+- For more info run `yarn get_global_trust --help`
+
 ## Manual scraping
 
 - If you don't want to use the existing data from the provided docker file, you can scrape the lens data on your own by calling `yarn scrape`. Note that the data scraping procedure might take up to 12 hours.

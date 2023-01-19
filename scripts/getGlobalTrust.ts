@@ -51,7 +51,10 @@ const main = async () => {
 
 	let csv = 'handle,globalTrust\n'
 	csv += globalTrust.map((gt) => `${gt.i},${gt.v}`).join('\n')
-	fs.writeFileSync(path.join(__dirname, '../globaltrust.csv'), csv)
+	fs.writeFileSync(path.join(__dirname, '../../globaltrust.csv'), csv)
+
+	console.log('Done! (see globaltrust.csv)')
+	process.exit()
 }
 
 main()

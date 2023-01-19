@@ -59,13 +59,9 @@ export default class Recommender {
 		const convertedPretrust = this.convertPretrustToIds(pretrust)
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
-		console.log('generating localtrust')
 		const localtrust = await this.localtrustPicker(this.follows)
-		console.log('asserting localtrust correct')
-
 		// Omit for now, since it is time consuming
 		// this.assertLocaltrustIsCorrect(localtrust, this.handles)
-
 		const convertedLocaltrust = this.convertLocaltrustToIds(localtrust)
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 
