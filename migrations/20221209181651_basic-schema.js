@@ -3,12 +3,34 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-	return knex.schema.createTableIfNotExists('profiles', function (table) {
-		table.string('handle').unique();
-	}).createTableIfNotExists('follows', function (table) {
-		table.string('follower');
-		table.string('followee');
+	return knex.schema.createTable("profiles", table => {
+		table.integer("profile_id").notNullable();
+		table.string("handle");
+		table.specificType('followings', 'text ARRAY').nullable();
+		table.datetime("created_at");
 	})
+		.createTable("posts", table => {
+			table.text("id").primary();
+			table.integer("pub_id");
+			table.integer("from_profile");
+			table.datetime('timestamp');
+		})
+		.createTable("comments", table => {
+			table.text("id").primary();
+			table.integer('pub_id');
+			table.integer("from_profile");
+			table.integer("profile_id_pointed");
+			table.integer("pub_id_pointed");
+			table.datetime("timestamp");
+		})
+		.createTable("mirrors", table => {
+			table.text("id").primary();
+			table.integer('pub_id');
+			table.integer("from_profile");
+			table.integer("profile_id_pointed");
+			table.integer("pub_id_pointed");
+			table.datetime("timestamp");
+		})
 };
 
 /**
@@ -16,5 +38,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-	return knex.schema.dropTableIfExists('follows').dropTableIfExists('profiles');
+	return knex.schema.dropTableIfExists('posts').dropTableIfExists('comments').dropTableIfExists('mirrors').dropTableIfExists('profiles');
 };
