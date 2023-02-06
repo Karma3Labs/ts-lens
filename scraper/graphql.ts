@@ -1,7 +1,6 @@
 import { request, gql } from 'graphql-request'
 import { Post, Profile } from '../types'
-import { getEnv, sleep } from '../utils';
-import { chunk }  from 'lodash'
+import { sleep } from '../utils';
 
 const GRAPHQL_URL = 'https://api.thegraph.com/subgraphs/name/rtomas/lens-subgraph'
 
@@ -27,10 +26,6 @@ const requestGQL = async (query: string, variables: object = {}) => {
 	}
 }
 
-/**
- * Profiles
-*/
-
 export const getStats = async () => {
 	const profilesCount = gql`
 		query stats {
@@ -43,12 +38,16 @@ export const getStats = async () => {
 		}
 	`
 
+	/**
+	 * Profiles
+	*/
+
 	const res = await requestGQL(profilesCount)
 	return { 
 		totalProfiles: +res.stats[0].totalProfiles,
 		totalPosts: +res.stats[0].totalPosts,
 		totalMirror: +res.stats[0].totalMirror,
-		totaalComments: +res.stats[0].totalComments,
+		totalComments: +res.stats[0].totalComments,
 	}
 }
 
@@ -100,7 +99,7 @@ export const getProfilesBatch = async (skip = 0, first = 100): Promise<Profile[]
 	return profiles
 }
 
-const getPostsBatch = async (skip: number, first = 100): Promise<Post[]> => {
+export const getPostsBatch = async (skip: number, first = 100): Promise<Post[]> => {
 	const postsQuery = gql`
 		query Posts($first: Int, $skip: Int) {
 			posts(first: $first, skip: $skip) {
@@ -127,7 +126,7 @@ const getPostsBatch = async (skip: number, first = 100): Promise<Post[]> => {
 	return posts
 }
 
-const getCommentsBatch = async (skip: number, first = 100): Promise<Comment[]> => {
+export const getCommentsBatch = async (skip: number, first = 100): Promise<Comment[]> => {
 	const commentsQuery = gql`
 		query Comments($first: Int, $skip: Int) {
 			comments(first: $first, skip: $skip) {
@@ -158,7 +157,7 @@ const getCommentsBatch = async (skip: number, first = 100): Promise<Comment[]> =
 	return comments
 }
 
-const getMirrorsBatch = async (skip: number, first = 100): Promise<Comment[]> => {
+export const getMirrorsBatch = async (skip: number, first = 100): Promise<Comment[]> => {
 	const mirrorsQuery = gql`
 		query Mirrors($first: Int, $skip: Int) {
 			mirrors(first: $first, skip: $skip) {
@@ -188,5 +187,3 @@ const getMirrorsBatch = async (skip: number, first = 100): Promise<Comment[]> =>
 
 	return mirrors
 }
-
-getMirrorsBatch(0).then(console.log)

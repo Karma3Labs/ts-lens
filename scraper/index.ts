@@ -1,46 +1,50 @@
-import fs from 'fs';
-import path from 'path'
-import { getFollowees, saveFollows, saveProfiles } from './db'
-import { getFollowers, getProfilesBatch, getProfilesCount } from './graphql'
-
-
-const logLastProfile = (userId: string, totalCounts: number) => {
-	const logFile = path.join(__dirname, '..', '..', 'log.txt')
-	fs.appendFileSync(logFile, `${userId} logged ${totalCounts} followers`);
-}
+import { saveComments, saveMirrors, savePosts, saveProfiles } from './db'
+import { getProfilesBatch, getPostsBatch, getCommentsBatch, getMirrorsBatch, getStats } from './graphql'
 
 const main = async () => {
-	const count = await getProfilesCount()
-	let noFollowersFromNowOn = false
-	let followeesScraped = await getFollowees()
-	console.log(followeesScraped)
+	const stats = await getStats()
+	const BATCH_SIZE = 100
 
-	console.log(`Starting indexing ${count} profiles`)
+	let profiles = []
+	let posts = []
+	let comments = []
+	let mirrors = []
 
-	for (let i = 0; i <= count; i += 50) {
-		console.log(`Working on batch: [${i}, ${i + 50}]`)
-		const profiles = await getProfilesBatch(i)
+	let offset = 0
+	do {
+		console.log("[PROFILES] Batch", offset, offset + BATCH_SIZE, "of", stats.totalProfiles)
+		profiles = await getProfilesBatch(offset, BATCH_SIZE)
 		await saveProfiles(profiles)
-
-		if (noFollowersFromNowOn) {
-			// Since we're sorting by followers desc, once we find the first user with no followers
-			// all profiles from now on, will not have any followers
-			console.log("No followers from now on");
-			continue
-		}
-
-		for (const profile of profiles) {
-			if (followeesScraped.includes(profile.id)) {
-				console.log('Aready scraped', profile.id)
-				continue
-			}
-			const followers = await getFollowers(profile.id)
-			noFollowersFromNowOn = followers.length == 0 
-			await saveFollows(profile, followers)
-			console.log(profile.id, followers.length)
-			logLastProfile(profile.id, followers.length)
-		}
+		offset += BATCH_SIZE
 	}
+	while (profiles.length == BATCH_SIZE)
+
+	offset = 0
+	do {
+		console.log("[POSTS] Batch", offset, offset + BATCH_SIZE, "of", stats.totalPosts)
+		posts = await getPostsBatch(offset, BATCH_SIZE)
+		await savePosts(posts)
+		offset += BATCH_SIZE
+	}
+	while (posts.length == BATCH_SIZE)
+
+	offset = 0
+	do {
+		console.log("[COMMENTS] Batch", offset, offset + BATCH_SIZE, "of", stats.totalComments)
+		comments = await getCommentsBatch(offset, BATCH_SIZE)
+		await saveComments(comments)
+		offset += BATCH_SIZE
+	}
+	while (comments.length == BATCH_SIZE)
+
+	offset = 0
+	do {
+		console.log("[COMMENTS] Batch", offset, offset + BATCH_SIZE, "of", stats.totalMirror)
+		mirrors = await getMirrorsBatch(offset, BATCH_SIZE)
+		await saveMirrors(mirrors)
+		offset += BATCH_SIZE
+	}
+	while (mirrors.length == BATCH_SIZE)
 }
 
 main().then(() => console.log('Done'))

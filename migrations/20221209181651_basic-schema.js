@@ -4,7 +4,7 @@
  */
 exports.up = function (knex) {
 	return knex.schema.createTable("profiles", table => {
-		table.integer("profile_id").notNullable();
+		table.integer("id").primary();
 		table.string("handle");
 		table.specificType('followings', 'text ARRAY').nullable();
 		table.datetime("created_at");

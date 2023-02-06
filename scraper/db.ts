@@ -1,43 +1,48 @@
 import { chunk } from 'lodash'
-import { Follow, Profile } from '../types'
+import { Post, Profile } from '../types'
 import { getDB } from '../utils'
 
 const db = getDB()
-
-export const getFollowees = async (): Promise<string[]> => {
-	const records = await db.select('followee').distinctOn('followee').from('follows')
-	return records.map((f: { followee: string }) => f.followee)
-}
-
 export const saveProfiles = (profiles: Profile[]) => {
 	if (profiles.length == 0) {
 		return
 	}
+
 	return db('profiles')
-		.insert(profiles.map((p) => p.handle))
+		.insert(profiles)
 		.onConflict()
 		.ignore()
 }
 
-export const saveFollows = async (followee: Profile, followers: Profile[]) => {
-	if (followers.length == 0) {
+export const savePosts = (posts: Post[]) => {
+	if (posts.length == 0) {
 		return
 	}
 
-	const follows = followers.map((follower) => {
-		return {
-			follower: follower.handle,
-			followee: followee.handle
-		 }
+	return db('posts')
+		.insert(posts)
+		.onConflict()
+		.ignore()
+}
 
-	}) as Follow[]
-	console.log(follows)
-
-	const chunks = chunk(follows, 1000)
-	for (const chunk of chunks) {
-		await db('follows')
-			.insert(chunk)
-			.onConflict()
-			.ignore()
+export const saveComments = (comments: Comment[]) => {
+	if (comments.length == 0) {
+		return
 	}
+
+	return db('comments')
+		.insert(comments)
+		.onConflict()
+		.ignore()
+}
+
+export const saveMirrors = (mirrors: Comment[]) => {
+	if (mirrors.length == 0) {
+		return
+	}
+
+	return db('mirrors')
+		.insert(mirrors)
+		.onConflict()
+		.ignore()
 }

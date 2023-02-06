@@ -1,4 +1,4 @@
-import { AdjacencyMap, Follow }  from '../types'
+import { AdjacencyMap,  }  from '../types'
 import { getDB } from "../utils" 
 
 export const getGraphFromFollowsTable = async () => {
