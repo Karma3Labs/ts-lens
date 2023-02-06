@@ -1,11 +1,32 @@
 export type Profile = {
+	id: number
 	handle: string
-    id: string
+	followings: number[]
+	createdAt: number
 }
 
-export type Follow = {
-	follower: string
-	followee: string
+export type Post = {
+	id: string,
+	pubId: number
+	fromProfile: number
+	timestamp: Date
+}
+
+export type Comment = {
+	id: string,
+	pubId: number
+	fromProfile: number
+	profileIdPointed: number
+	pubIdPointed: number
+	timestamp: Date
+}
+
+export type Mirror = {
+	id: string,
+	pubId: number
+	fromProfile: number
+	profileIdPointed: number
+	timestamp: Date
 }
 
 export type EthAddress = string

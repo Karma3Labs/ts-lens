@@ -1,9 +1,9 @@
 import { request, gql } from 'graphql-request'
-import { Profile } from '../types'
+import { Post, Profile } from '../types'
 import { getEnv, sleep } from '../utils';
 import { chunk }  from 'lodash'
 
-const GRAPHQL_URL = getEnv('GRAPHQL_API')
+const GRAPHQL_URL = 'https://api.thegraph.com/subgraphs/name/rtomas/lens-subgraph'
 
 const requestGQL = async (query: string, variables: object = {}) => {
 	while (true) {
@@ -31,108 +31,162 @@ const requestGQL = async (query: string, variables: object = {}) => {
  * Profiles
 */
 
-export const getProfilesCount = async () => {
+export const getStats = async () => {
 	const profilesCount = gql`
-		query ExploreProfiles {
-			exploreProfiles(request: { sortCriteria: LATEST_CREATED, limit: 50 }) {
-				pageInfo {
-					totalCount
-				}
+		query stats {
+			stats {
+				totalProfiles
+				totalPosts
+				totalMirror
+				totalComments
 			}
 		}
 	`
 
 	const res = await requestGQL(profilesCount)
-	return res.exploreProfiles.pageInfo.totalCount
+	return { 
+		totalProfiles: +res.stats[0].totalProfiles,
+		totalPosts: +res.stats[0].totalPosts,
+		totalMirror: +res.stats[0].totalMirror,
+		totaalComments: +res.stats[0].totalComments,
+	}
 }
 
-
-export const getProfilesBatch = async (offset = 0): Promise<Profile[]> => {
+export const getProfilesBatch = async (skip = 0, first = 100): Promise<Profile[]> => {
 	const profilesQuery = gql`
-		query ExploreProfiles($cursor: Cursor) {
-			exploreProfiles(request: { sortCriteria: MOST_FOLLOWERS, cursor: $cursor }) {
-				items {
-					id
-					handle
-				}
+		query Profiles($first: Int, $skip: Int) {
+			profiles(first: $first, skip: $skip) {
+				id
+				handle
+				followings(first: $first) { id }
+				createdAt
+			}
+		}
+	`
+	const followersQuery = gql`
+		query Profile($id: ID, $first: Int, $skip: Int) {
+			profile(id: $id) {
+				followings(first: $first, skip: $skip) { id }
 			}
 		}
 	`
 
-	const cursor = `{\"offset\": ${offset}}`
-	const res = await requestGQL(profilesQuery, { cursor })
-	const profiles = res.exploreProfiles.items
+	const { profiles } = await requestGQL(profilesQuery, { skip, first })
+	for (const profile of profiles)  {
+		if (profile.followings.length == first) {
+			console.log(`More than ${first} followings for profile ${profile.id}`)
+
+			let skip = first
+			let res: any
+			const moreFollowings = []
+
+			do {
+				res = await requestGQL(followersQuery, { id: profile.id, skip, first })
+				moreFollowings.push(...res.profile.followings)
+				skip += first
+			}
+			while (res.profile.followings.length == first)
+
+			profile.followings.push(...moreFollowings);
+		}
+
+		console.log('Fetched followings for profile', profile.id, profile.followings.length)
+
+		profile.followings = profile.followings.map((f: any) => +f.id)
+		profile.createdAt = new Date(+profile.createdAt * 1000)
+		profile.id = +profile.id
+	}
+
 	return profiles
 }
 
-/**
- * Followers
-*/
-
-const getFollowersCount = async (profileId: string) => {
-	const followersCount = gql`
-		query Followers($profileId: ProfileId!) {
-			followers(request: { profileId: $profileId }) {
-				pageInfo {
-					totalCount
+const getPostsBatch = async (skip: number, first = 100): Promise<Post[]> => {
+	const postsQuery = gql`
+		query Posts($first: Int, $skip: Int) {
+			posts(first: $first, skip: $skip) {
+				id,
+				pubId
+				timestamp
+				fromProfile {
+					id
 				}
 			}
 		}
 	`
 
-	const res = await requestGQL(followersCount, { profileId })
-	return res.followers.pageInfo.totalCount
+	const res = await requestGQL(postsQuery, { first, skip})
+	const posts = res.posts.map((p: any) => {
+		return {
+			id: p.id,
+			pubId: +p.pubId,
+			fromProfile: +p.fromProfile.id,
+			timestamp: new Date(+p.timestamp * 1000),
+		}
+	})
+
+	return posts
 }
 
-const getFollowersBatch = async (profileId: string, offset: number): Promise<Profile[]> => {
-	const followersQuery = gql`
-		query Followers($profileId: ProfileId!, $cursor: Cursor) {
-			followers(request: { profileId: $profileId, limit: 50, cursor: $cursor }) {
-				items {
-					wallet {
-						defaultProfile {
-							id
-							handle
-						}
-					}
-				}
-				pageInfo {
-					next
+const getCommentsBatch = async (skip: number, first = 100): Promise<Comment[]> => {
+	const commentsQuery = gql`
+		query Comments($first: Int, $skip: Int) {
+			comments(first: $first, skip: $skip) {
+				id,
+				pubId
+				timestamp
+				profileIdPointed
+				pubIdPointed
+				fromProfile {
+					id
 				}
 			}
 		}
 	`
 
-	const cursor = `{\"offset\": ${offset}}`
-	const res = await requestGQL(followersQuery, { profileId, cursor })
-	const followers = res.followers.items
-	const followerProfiles = followers
-		.map((f: Record<string, any>) => { 
-			return {
-				id: f.wallet?.defaultProfile?.id,
-				handle: f.wallet?.defaultProfile?.handle
-			} as Profile
-		})
-		.filter((f: Profile) => f.id != null)
+	const res = await requestGQL(commentsQuery, { first, skip })
+	const comments = res.comments.map((p: any) => {
+		return {
+			id: p.id,
+			pubId: +p.pubId,
+			pubIdPointed: +p.pubIdPointed,
+			profileIdPointed: +p.pubIdPointed,
+			fromProfile: +p.fromProfile.id,
+			timestamp: new Date(+p.timestamp * 1000),
+		}
+	})
 
-		return followerProfiles
+	return comments
 }
 
-export const getFollowers = async (profileId: string): Promise<Profile[]> => {
-	const count = await getFollowersCount(profileId)
-	let promises: Promise<Profile[]>[] = []
-	for (let i = 0; i <= count; i += 50) {
-		promises.push(getFollowersBatch(profileId, i))
-	}
+const getMirrorsBatch = async (skip: number, first = 100): Promise<Comment[]> => {
+	const mirrorsQuery = gql`
+		query Mirrors($first: Int, $skip: Int) {
+			mirrors(first: $first, skip: $skip) {
+				id,
+				pubId
+				timestamp
+				profileIdPointed
+				pubIdPointed
+				fromProfile {
+					id
+				}
+			}
+		}
+	`
 
-	const chunks = chunk(promises, 10)
-	let followers: Profile[][] = []
+	const res = await requestGQL(mirrorsQuery, { first, skip })
+	const mirrors = res.mirrors.map((p: any) => {
+		return {
+			id: p.id,
+			pubId: +p.pubId,
+			pubIdPointed: +p.pubIdPointed,
+			profileIdPointed: +p.pubIdPointed,
+			fromProfile: +p.fromProfile.id,
+			timestamp: new Date(+p.timestamp * 1000),
+		}
+	})
 
-	for (const chunk of chunks) {
-		const res = await Promise.all(chunk)
-		const profiles = res.flat()
-		followers.push(profiles)
-	}
-
-	return followers.flat()
+	return mirrors
 }
+
+getMirrorsBatch(0).then(console.log)
