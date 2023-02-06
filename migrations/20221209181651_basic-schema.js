@@ -29,8 +29,10 @@ exports.up = function (knex) {
 			table.integer("from_profile");
 			table.integer("profile_id_pointed");
 			table.integer("pub_id_pointed");
-			table.datetime("timestamp");
+			table.dateTime("timestamp");
 		})
+	// mentions
+	// collectNFTs
 };
 
 /**
