@@ -22,8 +22,14 @@ const main = async () => {
 			type: 'string',
 			default: 'existingConnections',
 		}) 
+		.option('alpha', {
+			alias: 'a',
+			describe: 'A weight denoting how much the pretrust should affect the global trust',
+			type: 'number',
+			default: 0.5,
+		})
 		.help()
-		.argv as { pretrust_strategy: string, localtrust_strategy: string }
+		.argv as { pretrust_strategy: string, localtrust_strategy: string, alpha: number }
 
 	if (!ptStrategies[argv.pretrust_strategy]) {
 		console.error(`Pretrust strategy: ${argv.pretrust_strategy} does not exist`)
@@ -40,7 +46,7 @@ const main = async () => {
 	console.log('Using localtrust strategy:', argv.localtrust_strategy)
 
 
-	const recommender = new Recommender(pretrustStrategy, localtrustStrategy)
+	const recommender = new Recommender(pretrustStrategy, localtrustStrategy, argv.alpha)
 	serve(recommender)
 }
 

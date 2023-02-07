@@ -76,7 +76,7 @@ const enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 				j: +following,
 				v: 3 * (commentsCount / maxComments) +
 				   4 * (mirrorsCount / maxMirrors) +
-				   1
+				   1 || 1
 			})
 		}
 	}
