@@ -2,9 +2,11 @@ import yargs from 'yargs'
 import path from 'path'
 import fs from 'fs'
 import Recommender from '../recommender'
-import serve from '../server/index'
+import { getDB } from '../utils'
 import { strategies as ptStrategies } from '../recommender/strategies/pretrust'
 import { strategies as ltStrategies } from '../recommender/strategies/localtrust'
+
+const db = getDB()
 
 const main = async () => {
 	const argv = yargs
@@ -45,12 +47,18 @@ const main = async () => {
 	console.log('Using localtrust strategy:', argv.localtrust_strategy)
 
 
-	const recommender = new Recommender()
-	await recommender.init(pretrustStrategy, localtrustStrategy)
-	const globalTrust = recommender.globaltrust
+	const recommender = new Recommender(pretrustStrategy, localtrustStrategy)
+	await recommender.load()
+	const globalTrust = recommender.globaltrustEntries
 
-	let csv = 'handle,globalTrust\n'
-	csv += globalTrust.map((gt) => `${gt.i},${gt.v}`).join('\n')
+	const handles = await db('profiles').select('handle', 'id');
+	const handlesMap: Record<string, number> = {}
+	for (const { id, handle } of handles) {
+		handlesMap[id] = handle
+	}
+
+	let csv = 'id,handle,globalTrust\n'
+	csv += globalTrust.map((gt) => `${gt[0]},${handlesMap[gt[0]]},${gt[1]}`).join('\n')
 	fs.writeFileSync(path.join(__dirname, '../../globaltrust.csv'), csv)
 
 	console.log('Done! (see globaltrust.csv)')

@@ -1,24 +1,17 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
-import { LocaltrustStrategy } from '../recommender/strategies/localtrust'
-import { PretrustStrategy } from '../recommender/strategies/pretrust'
+import { getIdFromQueryParams } from './utils'
 
 const app = express()
 const PORT = 8080
 
-export default (recommender: Recommender, pretrustStrategy: PretrustStrategy, localtrustStrategy: LocaltrustStrategy) => {
+export default (recommender: Recommender) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
 		try {
-			const handle = req.query?.handle as string
-			console.log('Recommeding for handle: ', handle)
+			const id = await getIdFromQueryParams(req.query)
+			console.log('Recommeding for id: ', id)
 
-			if (!recommender.handles.includes(handle)) {
-				return res.status(400).send(`Handle provided does not exist: ${handle}`)
-			}
-
-			console.log(`Suggesting for handle: ${handle}`)
-
-			const handles = await recommender.recommend(handle, 50)
+			const handles = await recommender.recommend(id, 50)
 
 			res.send(handles)
 		}
@@ -31,8 +24,7 @@ export default (recommender: Recommender, pretrustStrategy: PretrustStrategy, lo
 	})
 
 	app.listen(PORT, async () => {
-		recommender = new Recommender()
-		await recommender.init(pretrustStrategy, localtrustStrategy)
+		await recommender.load()
 
 		console.log(`Magic is happening on port: ${PORT}`)
 	})

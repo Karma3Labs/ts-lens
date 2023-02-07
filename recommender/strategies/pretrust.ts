@@ -1,36 +1,41 @@
-import { id } from 'ethers/lib/utils';
 import { Pretrust } from '../../types'
-import { getFollowsOfHandle } from '../utils'
+import { getDB } from '../../utils';
 
-export type PretrustPicker = (id?: string) => Promise<Pretrust<string>>
+export type PretrustPicker = (id?: number) => Promise<Pretrust>
 export type PretrustStrategy = {picker: PretrustPicker, personalized: boolean}
 
+const db = getDB()
+
 const pretrustAllEqually: PretrustPicker = async () => {
-	return [] as Pretrust<string>
+	return [] as Pretrust
 }
 
-const pretrustSpecificHandles: PretrustPicker = async () => {
-	const pretrustedIds = ['lensprotocol', 'aaveaave.lens']
-	const pretrust: Pretrust<string> = []
+const pretrustSpecificIds: PretrustPicker = async () => {
+	const pretrustedHandles = ['lensprotocol', 'aaveaave.lens']
+	const ids = await db('profiles').select('id').whereIn('handle', pretrustedHandles)
 
-	pretrustedIds.forEach((follower) => {
+	const pretrust: Pretrust = []
+
+	ids.forEach(({ id }: { id: number }) => {
 		pretrust.push({
-			i: follower,
-			v: 1 / pretrustedIds.length
+			i: id,
+			v: 1 / ids.length
 		})
 	})
 
 	return pretrust
 }
 
-const pretrustFollowsOfHandle: PretrustPicker = async (startHandle?: string) => {
-	const pretrust: Pretrust<string> = []
-	const follows = await getFollowsOfHandle(startHandle!)
+const pretrustFollowsOfId: PretrustPicker = async (id?: number) => {
+	const pretrust: Pretrust = []
+	const { followings } = await db('profiles')
+		.select('followings')
+		.where('id', id)
 
-	follows.forEach((follow) => {
+	followings.forEach((follow: number) => {
 		pretrust.push({
 			i: follow,
-			v: 1 / follows.size
+			v: 1 / followings.length
 		})
 	})
 
@@ -40,6 +45,6 @@ const pretrustFollowsOfHandle: PretrustPicker = async (startHandle?: string) => 
 
 export const strategies: Record<string, PretrustStrategy> = {
 	pretrustAllEqually: { picker: pretrustAllEqually, personalized: false },
-	pretrustSpecificHandles: { picker: pretrustSpecificHandles, personalized: false },
-	pretrustFollowsOfHandle: { picker: pretrustFollowsOfHandle, personalized: true },
+	pretrustSpecificIds: { picker: pretrustSpecificIds, personalized: false },
+	pretrustFollowsOfId: { picker: pretrustFollowsOfId, personalized: true },
 }

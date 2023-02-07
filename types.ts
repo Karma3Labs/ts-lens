@@ -30,8 +30,8 @@ export type Mirror = {
 }
 
 export type EthAddress = string
-export type Pretrust<T> = { i: T, v: number }[]
-export type GlobalTrust<T> = { i: T, v: number }[]
-export type LocalTrust<T> =  { i: T, j: T, v: string | number }[]
-export type Entry = [ string, number ] 
-export type AdjacencyMap = Record<string, Set<string>>
+export type Pretrust = { i: number, v: number }[]
+export type GlobalTrust = { i: number, v: number }[]
+export type LocalTrust =  { i: number, j: number, v: number }[]
+export type Entry = [ number, number ] 
+export type AdjacencyMap = Record<number, Set<number>>
