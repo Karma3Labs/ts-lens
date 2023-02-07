@@ -4,10 +4,7 @@ import { Pretrust, LocalTrust, GlobalTrust, Entry } from '../types'
 import { objectFlip } from "./utils"
 import { PretrustPicker, PretrustStrategy, strategies as pretrustStrategies } from './strategies/pretrust'
 import { LocaltrustStrategy, strategies as localStrategies } from './strategies/localtrust'
-import { getDB } from '../utils'
 import { getIds } from './utils'
-
-const db = getDB()
 
 // TODO: Fix that ugly thingie
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
@@ -17,10 +14,11 @@ export default class Recommender {
 	public ids: number[] = []
 	public idsToIndex: Record<number, number> = {}
 	public localtrustPicker: LocaltrustStrategy = localStrategies.existingConnections
-
 	public pretrustPicker: PretrustPicker = pretrustStrategies.pretrustAllEqually.picker
 	public personalized = pretrustStrategies.pretrustAllEqually.personalized
 
+	public convertedLocaltrust: LocalTrust = [] 
+	public pretrust: LocalTrust = [] 
 	public globaltrustEntries: Entry[] = []
 
 	constructor(pretrustPicker: PretrustStrategy, localtrustPicker = localStrategies.follows, alpha = 0.3) {
@@ -34,9 +32,18 @@ export default class Recommender {
 	async load() {
 		this.ids = await getIds()
 		this.idsToIndex = objectFlip(this.ids)
+
+		const localtrust = await this.localtrustPicker()
+		this.convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
+		console.log(`Generated localtrust with ${localtrust.length} entries`)
+
 		if (!this.personalized) {
+			const pretrust = await this.pretrustPicker()
+			const convertedPretrust = this.convertPretrustToIndeces(pretrust)
 			console.log('Since the strategy is not personalized, we can precompute the global trust')
-			this.globaltrustEntries = await this.runEigentrust()
+			console.log(`Generated pretrust with ${pretrust.length} entries`)
+
+			this.globaltrustEntries = await this.runEigentrust(convertedPretrust, this.convertedLocaltrust)
 		}
 
 		console.log(`Loaded ${this.ids.length} profiles`)
@@ -44,21 +51,18 @@ export default class Recommender {
 
 	async recommend(id: number, limit = 20) {
 		if (this.personalized) {	
-			this.globaltrustEntries = await this.runEigentrust(id)
+			// Regenerate pretrust
+			const pretrust = await this.pretrustPicker(id)
+			const convertedPretrust = this.convertPretrustToIndeces(pretrust)
+			console.log(`Generated pretrust with ${pretrust.length} entries`)
+
+			this.globaltrustEntries = await this.runEigentrust(convertedPretrust, this.convertedLocaltrust, id)
 		}
 
 		return this.globaltrustEntries.map(([id]) => id).slice(0, limit)
 	}
 
-	private runEigentrust = async (id?: number): Promise<Entry[]> => {
-		const pretrust = await this.pretrustPicker(id)
-		const convertedPretrust = this.convertPretrustToIndeces(pretrust)
-		console.log(`Generated pretrust with ${pretrust.length} entries`)
-
-		const localtrust = await this.localtrustPicker()
-		const convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
-		console.log(`Generated localtrust with ${localtrust.length} entries`)
-
+	private runEigentrust = async (convertedPretrust: Pretrust, convertedLocaltrust: LocalTrust, id?: number): Promise<Entry[]> => {
 		const res = await this.requestEigentrust(
 			convertedLocaltrust,
 			convertedPretrust,
