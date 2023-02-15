@@ -7,21 +7,22 @@ const db = getDB()
 /**
  * Generates basic localtrust by transforming all existing connections
 */
+
 const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
-	const profiles = await db('profiles').select('id', 'followings')
-	let localtrust: LocalTrust = []
-	
-	for (const profile of profiles) {
-		for (const following of profile.followings) {
-			localtrust.push({
-				i: +profile.id,
-				j: +following,
-				v: 1
-			})
-		}
+	const follows = await db('follows')
+		.select('id as follower_id', db.raw('unnest(profile_ids) as following_id'))
+		.innerJoin('profiles', 'profiles._to', 'follows.follower')
+
+	const localtrust: LocalTrust = []
+	for (const { followerId, followingId } of follows) {
+		localtrust.push({
+			i: followerId,
+			j: followingId,
+			v: 1
+		})
 	}
 
-	return localtrust
+	return []
 }
 
 /**
@@ -33,53 +34,58 @@ const enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 	 * Generate comments data
 	*/
 	const comments = await db('comments')
-		.select('from_profile', 'profile_id_pointed', db.raw('count(1) as count'))
-		.groupBy('from_profile', 'profile_id_pointed')
+		.select('profile_id', 'profile_id_pointed', db.raw('count(1) as count'))
+		.groupBy('profile_id', 'profile_id_pointed')
 
 	const maxComments = comments
 		.reduce((max: number, { count }: {count: number}) =>
 		Math.max(max, count), 0)
 
-	let commentsMap: {[k: string]: {[v: string]: number}} = {}
-	for (const { fromProfile, profileIdPointed, count } of comments) {
-		commentsMap[fromProfile] = commentsMap[profileIdPointed] || {}
-		commentsMap[fromProfile][profileIdPointed] = +count
+	let commentsMap: any = {}
+	for (const { profileId, profileIdPointed, count } of comments) {
+		commentsMap[profileId] = commentsMap[profileIdPointed] || {}
+		commentsMap[profileId][profileIdPointed] = +count
 	}
+	console.log('length of comments', comments.length)
 
 	/**
 	 * Generate mirrors data
 	*/
 	const mirrors = await db('mirrors')
-		.select('from_profile', 'profile_id_pointed', db.raw('count(1) as count'))
-		.groupBy('from_profile', 'profile_id_pointed')
+		.select('profile_id', 'profile_id_pointed', db.raw('count(1) as count'))
+		.groupBy('profile_id', 'profile_id_pointed')
+	console.log('length of mirrors', mirrors.length)
 
 	const maxMirrors = mirrors
 		.reduce((max: number, { count }: {count: number}) =>
 		Math.max(max, count), 0)
 
-	let mirrorsMap: {[k: string]: {[v: string]: number}} = {}
-	for (const { fromProfile, profileIdPointed, count } of mirrors) {
-		mirrorsMap[fromProfile] = mirrorsMap[profileIdPointed] || {}
-		mirrorsMap[fromProfile][profileIdPointed] = +count
+	let mirrorsMap: any = {}
+	for (const { profileId, profileIdPointed, count } of mirrors) {
+		mirrorsMap[profileId] = mirrorsMap[profileIdPointed] || {}
+		mirrorsMap[profileId][profileIdPointed] = +count
 	}
 
 	const localtrust: LocalTrust = []
-	const profiles = await db('profiles').select('id', 'followings')
-	
-	for (const profile of profiles) {
-		for (const following of profile.followings) {
-			const commentsCount = commentsMap[profile.id] && commentsMap[profile.id][following] || 0
-			const mirrorsCount = mirrorsMap[profile.id] && mirrorsMap[profile.id][following] || 0
 
-			localtrust.push({
-				i: +profile.id,
-				j: +following,
-				v: 3 * (commentsCount / maxComments) +
-				   4 * (mirrorsCount / maxMirrors) +
-				   1 || 1
-			})
-		}
+	const follows = await db('follows')
+		.select('id as follower_id', db.raw('unnest(profile_ids) as following_id'))
+		.innerJoin('profiles', 'profiles._to', 'follows.follower')
+
+	for (const { followerId, followingId } of follows) {
+		const commentsCount = commentsMap[followerId] && commentsMap[followerId][followingId] || 0
+		const mirrorsCount = mirrorsMap[followerId] && mirrorsMap[followerId][followingId] || 0
+
+		localtrust.push({
+			i: followerId,
+			j: followingId,
+			v: 5 * (commentsCount / maxComments) + 
+			   8 * mirrorsCount / maxMirrors +
+			   1
+		})
 	}
+	
+	console.log('length of localtrust', localtrust.length)
 
 	return localtrust
 }
