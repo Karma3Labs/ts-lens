@@ -4,32 +4,25 @@
  */
 exports.up = function (knex) {
 	return knex.schema.createTable("profiles", table => {
-		table.integer("id").primary();
+		table.integer("id");
 		table.string("handle");
-		table.specificType('followings', 'text ARRAY').nullable();
+		table.text('_to');
 		table.datetime("created_at");
 	})
 		.createTable("posts", table => {
-			table.text("id").primary();
-			table.integer("pub_id");
-			table.integer("from_profile");
-			table.datetime('timestamp');
+			table.integer("profile_id");
 		})
 		.createTable("comments", table => {
-			table.text("id").primary();
-			table.integer('pub_id');
-			table.integer("from_profile");
+			table.integer("profile_id");
 			table.integer("profile_id_pointed");
-			table.integer("pub_id_pointed");
-			table.datetime("timestamp");
 		})
 		.createTable("mirrors", table => {
-			table.text("id").primary();
-			table.integer('pub_id');
-			table.integer("from_profile");
+			table.integer("profile_id");
 			table.integer("profile_id_pointed");
-			table.integer("pub_id_pointed");
-			table.dateTime("timestamp");
+		})
+		.createTable("follows", table => {
+			table.text("follower");
+			table.specificType('profile_ids', 'INT[]')
 		})
 	// mentions
 	// collectNFTs
@@ -40,5 +33,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-	return knex.schema.dropTableIfExists('posts').dropTableIfExists('comments').dropTableIfExists('mirrors').dropTableIfExists('profiles');
+	return knex.schema.dropTableIfExists('posts').dropTableIfExists('comments').dropTableIfExists('mirrors').dropTableIfExists('profiles').dropTableIfExists('follows');
 };
