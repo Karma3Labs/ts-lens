@@ -104,9 +104,6 @@ export default class Recommender {
 	}
 
 	/**
-	 * Generate a list of users given all connections 
-	 */
-	/**
 	 * Address to number conversions
 	*/
 
