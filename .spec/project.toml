@@ -1,0 +1,139 @@
+# = Live Objects (Sources) ------------------------------
+
+[objects.Profile]
+id = 'lens.Profile@0.0.1'
+
+[objects.Post]
+id = 'lens.Post@0.0.1'
+
+[objects.Follow]
+id = 'lens.Follow@0.0.1'
+
+[objects.Collect]
+id = 'lens.Collect@0.0.1'
+
+[objects.Comment]
+id = 'lens.Comment@0.0.1'
+
+[objects.Mirror]
+id = 'lens.Mirror@0.0.1'
+
+# = Live Columns (Outputs) ------------------------------
+
+[tables.public.profiles]
+id = 'Profile.profileId'
+owner_address = 'Profile.ownerAddress'
+creator_address = 'Profile.creatorAddress'
+dispatcher_address = 'Profile.dispatcherAddress'
+handle = 'Profile.handle'
+image_uri = 'Profile.imageUri'
+follow_module_address = 'Profile.followModuleAddress'
+follow_module_return_data = 'Profile.followModuleReturnData'
+follow_nft_uri = 'Profile.followNftUri'
+is_default = 'Profile.isDefault'
+created_at = 'Profile.createdAt'
+block_hash = 'Profile.blockHash'
+block_number = 'Profile.blockNumber'
+block_timestamp = 'Profile.blockTimestamp'
+
+[tables.public.posts]
+profile_id = 'Post.profileId'
+pub_id = 'Post.pubId'
+content_uri = 'Post.contentUri'
+collect_module = 'Post.collectModule'
+collect_module_return_data = 'Post.collectModuleReturnData'
+reference_module = 'Post.referenceModule'
+reference_module_return_data = 'Post.referenceModuleReturnData'
+block_hash = 'Post.blockHash'
+block_number = 'Post.blockNumber'
+block_timestamp = 'Post.blockTimestamp'
+
+[tables.public.follows]
+profile_id = 'Follow.profileId'
+follow_nft_id = 'Follow.followNftId'
+follower_address = 'Follow.followerAddress'
+created_at = 'Follow.createdAt'
+block_hash = 'Follow.blockHash'
+block_number = 'Follow.blockNumber'
+block_timestamp = 'Follow.blockTimestamp'
+
+[tables.public.collects]
+profile_id = 'Collect.profileId'
+pub_id = 'Collect.pubId'
+collect_nft_id = 'Collect.collectNftId'
+collector_address = 'Collect.collectorAddress'
+created_at = 'Collect.createdAt'
+block_hash = 'Collect.blockHash'
+block_number = 'Collect.blockNumber'
+block_timestamp = 'Collect.blockTimestamp'
+
+[tables.public.comments]
+profile_id = 'Comment.profileId'
+pub_id = 'Comment.pubId'
+to_profile_id = 'Comment.toProfileId'
+to_pub_id = 'Comment.toPubId'
+content_uri = 'Comment.contentUri'
+collect_module = 'Comment.collectModule'
+collect_module_return_data = 'Comment.collectModuleReturnData'
+reference_module = 'Comment.referenceModule'
+reference_module_data = 'Comment.referenceModuleData'
+reference_module_return_data = 'Comment.referenceModuleReturnData'
+block_hash = 'Comment.blockHash'
+block_number = 'Comment.blockNumber'
+block_timestamp = 'Comment.blockTimestamp'
+
+[tables.public.mirrors]
+profile_id = 'Mirror.profileId'
+pub_id = 'Mirror.pubId'
+to_profile_id = 'Mirror.toProfileId'
+to_pub_id = 'Mirror.toPubId'
+reference_module = 'Mirror.referenceModule'
+reference_module_data = 'Mirror.referenceModuleData'
+reference_module_return_data = 'Mirror.referenceModuleReturnData'
+block_hash = 'Mirror.blockHash'
+block_number = 'Mirror.blockNumber'
+block_timestamp = 'Mirror.blockTimestamp'
+
+# = Links & Filters --------------------------------------
+
+[[objects.Profile.links]]
+table = 'public.profiles'
+uniqueBy = [ 'profileId' ]
+filterBy = [
+	{ chainId = { op = '=', value = '137' } },
+]
+
+[[objects.Post.links]]
+table = 'public.posts'
+uniqueBy = [ 'profileId', 'pubId' ]
+filterBy = [
+	{ chainId = { op = '=', value = '137' } },
+]
+
+[[objects.Follow.links]]
+table = 'public.follows'
+uniqueBy = [ 'profileId', 'followNftId' ]
+filterBy = [
+	{ chainId = { op = '=', value = '137' } },
+]
+
+[[objects.Collect.links]]
+table = 'public.collects'
+uniqueBy = [ 'profileId', 'pubId', 'collectNftId' ]
+filterBy = [
+	{ chainId = { op = '=', value = '137' } },
+]
+
+[[objects.Comment.links]]
+table = 'public.comments'
+uniqueBy = [ 'profileId', 'pubId' ]
+filterBy = [
+	{ chainId = { op = '=', value = '137' } },
+]
+
+[[objects.Mirror.links]]
+table = 'public.mirrors'
+uniqueBy = [ 'profileId', 'pubId' ]
+filterBy = [
+	{ chainId = { op = '=', value = '137' } },
+]

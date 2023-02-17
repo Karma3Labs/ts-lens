@@ -1,0 +1,9 @@
+[local]
+# Your local postgres superuser.
+superuser = ''
+# Your superuser's database password (if any).
+password = ''
+# The local port to run postgres on.
+port = 5432
+# The name of the local database to connect to.
+name = ''
