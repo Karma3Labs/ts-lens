@@ -10,8 +10,8 @@ const db = getDB()
 
 const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
 	const follows = await db('follows')
-		.select('id as follower_id', db.raw('unnest(profile_ids) as following_id'))
-		.innerJoin('profiles', 'profiles._to', 'follows.follower')
+	.select('profile_id as following_id', 'profiles.id as follower_id')
+	.innerJoin('profiles', 'owner_address', 'follower_address')
 
 	const localtrust: LocalTrust = []
 	for (const { followerId, followingId } of follows) {
@@ -34,17 +34,17 @@ const enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 	 * Generate comments data
 	*/
 	const comments = await db('comments')
-		.select('profile_id', 'profile_id_pointed', db.raw('count(1) as count'))
-		.groupBy('profile_id', 'profile_id_pointed')
+		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
+		.groupBy('profile_id', 'to_profile_id')
 
 	const maxComments = comments
 		.reduce((max: number, { count }: {count: number}) =>
 		Math.max(max, count), 0)
 
 	let commentsMap: any = {}
-	for (const { profileId, profileIdPointed, count } of comments) {
-		commentsMap[profileId] = commentsMap[profileIdPointed] || {}
-		commentsMap[profileId][profileIdPointed] = +count
+	for (const { profileId, toProfileId, count } of comments) {
+		commentsMap[profileId] = commentsMap[toProfileId] || {}
+		commentsMap[profileId][toProfileId] = +count
 	}
 	console.log('length of comments', comments.length)
 
@@ -52,8 +52,8 @@ const enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 	 * Generate mirrors data
 	*/
 	const mirrors = await db('mirrors')
-		.select('profile_id', 'profile_id_pointed', db.raw('count(1) as count'))
-		.groupBy('profile_id', 'profile_id_pointed')
+		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
+		.groupBy('profile_id', 'to_profile_id')
 	console.log('length of mirrors', mirrors.length)
 
 	const maxMirrors = mirrors
@@ -61,16 +61,16 @@ const enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 		Math.max(max, count), 0)
 
 	let mirrorsMap: any = {}
-	for (const { profileId, profileIdPointed, count } of mirrors) {
-		mirrorsMap[profileId] = mirrorsMap[profileIdPointed] || {}
-		mirrorsMap[profileId][profileIdPointed] = +count
+	for (const { profileId, toProfileId, count } of mirrors) {
+		mirrorsMap[profileId] = mirrorsMap[toProfileId] || {}
+		mirrorsMap[profileId][toProfileId] = +count
 	}
 
 	const localtrust: LocalTrust = []
 
 	const follows = await db('follows')
-		.select('id as follower_id', db.raw('unnest(profile_ids) as following_id'))
-		.innerJoin('profiles', 'profiles._to', 'follows.follower')
+		.select('profile_id as following_id', 'profiles.id as follower_id')
+		.innerJoin('profiles', 'owner_address', 'follower_address')
 
 	for (const { followerId, followingId } of follows) {
 		const commentsCount = commentsMap[followerId] && commentsMap[followerId][followingId] || 0

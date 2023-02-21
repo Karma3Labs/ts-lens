@@ -28,14 +28,15 @@ const pretrustSpecificIds: PretrustPicker = async () => {
 
 const pretrustFollowsOfId: PretrustPicker = async (id?: number) => {
 	const pretrust: Pretrust = []
-	const { followings } = await db('profiles')
-		.select('followings')
-		.where('id', id)
+	const follows = await db('follows')
+		.select('profile_id as following_id', 'profiles.id as follower_id')
+		.innerJoin('profiles', 'owner_address', 'follower_address')
+		.where('following_id', id)
 
-	followings.forEach((follow: number) => {
+	follows.forEach((follow: number) => {
 		pretrust.push({
 			i: follow,
-			v: 1 / followings.length
+			v: 1 / follows.length
 		})
 	})
 

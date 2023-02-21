@@ -5,7 +5,7 @@
 exports.up = function (knex) {
 	return knex.schema.raw(`
 		--Profiles Table
-			create table profiles(
+		create table profiles(
 			id int8 primary key,
 			owner_address varchar,
 			creator_address varchar,
