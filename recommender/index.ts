@@ -30,10 +30,15 @@ export default class Recommender {
 	}
 
 	async load() {
+		console.time('ids')
 		this.ids = await getIds()
+		console.timeEnd('ids')
+
 		this.idsToIndex = objectFlip(this.ids)
 
+		console.time('localtrust_generation')
 		const localtrust = await this.localtrustPicker()
+		console.timeEnd('localtrust_generation')
 		this.convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 

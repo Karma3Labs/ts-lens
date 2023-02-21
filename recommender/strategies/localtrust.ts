@@ -22,7 +22,7 @@ const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 		})
 	}
 
-	return []
+	return localtrust
 }
 
 /**
