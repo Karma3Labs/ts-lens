@@ -5,7 +5,7 @@
 exports.up = function (knex) {
 	return knex.schema.raw(`
 		--Profiles Table
-		create table profiles(
+		create table if not exists profiles(
 			id int8 primary key,
 			owner_address varchar,
 			creator_address varchar,
@@ -21,13 +21,13 @@ exports.up = function (knex) {
 			block_number int8 not null,
 			block_timestamp timestamptz not null
 		);
-		create index profiles_by_owner on profiles(owner_address);
-		create index default_profiles on profiles(owner_address, is_default);
-		create index profiles_by_handle on profiles(handle);
+		create index if not exists profiles_by_owner on profiles(owner_address);
+		create index if not exists default_profiles on profiles(owner_address, is_default);
+		create index if not exists profiles_by_handle on profiles(handle);
 
 
 		--Posts Table
-		create table posts(
+		create table if not exists posts(
 			id serial primary key,
 			profile_id int8 not null,
 			pub_id int8 not null,
@@ -40,12 +40,12 @@ exports.up = function (knex) {
 			block_number int8 not null,
 			block_timestamp timestamptz not null
 		);
-		create index post_profile_idx on posts(profile_id);
-		create unique index unique_post on posts(profile_id, pub_id);
+		create index if not exists post_profile_idx on posts(profile_id);
+		create unique index if not exists unique_post on posts(profile_id, pub_id);
 
 
 		--Follows Table
-		create table follows(
+		create table if not exists follows(
 			id serial primary key,
 			profile_id int8 not null,
 			follow_nft_id int8 not null,
@@ -55,13 +55,13 @@ exports.up = function (knex) {
 			block_number int8 not null,
 			block_timestamp timestamptz not null
 		);
-		create index follow_profile_idx on follows(profile_id);
-		create index follows_by_follower on follows(follower_address);
-		create unique index unique_follow on follows(profile_id, follow_nft_id);
+		create index if not exists follow_profile_idx on follows(profile_id);
+		create index if not exists follows_by_follower on follows(follower_address);
+		create unique index if not exists unique_follow on follows(profile_id, follow_nft_id);
 
 
 		--Collects Table
-		create table collects(
+		create table if not exists collects(
 			id serial primary key,
 			profile_id int8 not null,
 			pub_id int8 not null,
@@ -72,14 +72,14 @@ exports.up = function (knex) {
 			block_number int8 not null,
 			block_timestamp timestamptz not null
 		);
-		create index collect_profile_idx on collects(profile_id);
-		create index collects_by_publication on collects(profile_id, pub_id);
-		create index collects_by_collector on collects(collector_address);
-		create unique index unique_collect on collects(profile_id, pub_id, collect_nft_id);
+		create index if not exists collect_profile_idx on collects(profile_id);
+		create index if not exists collects_by_publication on collects(profile_id, pub_id);
+		create index if not exists collects_by_collector on collects(collector_address);
+		create unique index if not exists unique_collect on collects(profile_id, pub_id, collect_nft_id);
 
 
 		--Comments Table
-		create table comments(
+		create table if not exists comments(
 			id serial primary key,
 			profile_id int8 not null,
 			pub_id int8 not null,
@@ -95,14 +95,14 @@ exports.up = function (knex) {
 			block_number int8 not null,
 			block_timestamp timestamptz not null
 		);
-		create index comments_from_profile_idx on comments(profile_id);
-		create index comments_to_profile_idx on comments(to_profile_id);
-		create index comments_by_publication on comments(to_profile_id, to_pub_id);
-		create unique index unique_comment on comments(profile_id, pub_id);
+		create index if not exists comments_from_profile_idx on comments(profile_id);
+		create index if not exists comments_to_profile_idx on comments(to_profile_id);
+		create index if not exists comments_by_publication on comments(to_profile_id, to_pub_id);
+		create unique index if not exists unique_comment on comments(profile_id, pub_id);
 
 
 		--Mirrors Table
-		create table mirrors(
+		create table if not exists mirrors(
 			id serial primary key,
 			profile_id int8 not null,
 			pub_id int8 not null,
@@ -115,10 +115,10 @@ exports.up = function (knex) {
 			block_number int8 not null,
 			block_timestamp timestamptz not null
 		);
-		create index mirrors_from_profile_idx on mirrors(profile_id);
-		create index mirrors_to_profile_idx on mirrors(to_profile_id);
-		create index mirrors_by_publication on mirrors(to_profile_id, to_pub_id);
-		create unique index unique_mirror on mirrors(profile_id, pub_id);
+		create index if not exists mirrors_from_profile_idx on mirrors(profile_id);
+		create index if not exists mirrors_to_profile_idx on mirrors(to_profile_id);
+		create index if not exists mirrors_by_publication on mirrors(to_profile_id, to_pub_id);
+		create unique index if not exists unique_mirror on mirrors(profile_id, pub_id);
 	`)
 };
 
