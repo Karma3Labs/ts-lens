@@ -2,12 +2,15 @@ import { getDB } from "../utils"
 
 const db = getDB()
 
-export const getHandlesFromIdsOrdered = async (ids: number[]): Promise<string[]> => {
+export const getHandlesFromIdsOrdered = async (ids: number[]): Promise<{id: number, handle: string}[]> => {
 	const handles = await db('profiles').select('id', 'handle').whereIn('id', ids)
 
-	return handles
-		.map(({ id, handle }: { id: number, handle: string }) => [+id, handle])
-		.sort(([id1]: [number], [id2]: [number]) => ids.indexOf(id1) - ids.indexOf(id2))
+	const res = ids.map((id: number) => {
+		const handle: string = handles.find((h: { id: number }) => h.id === id)?.handle
+		return { id, handle }
+	})
+
+	return res
 }
 
 export const getIdFromQueryParams = async (query: Record<string, any>): Promise<number> => {

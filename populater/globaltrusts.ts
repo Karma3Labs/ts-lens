@@ -21,7 +21,7 @@ const main = async () => {
 		const pt = ptStrategies[pretrustStrategy]
 		const lt = ltStrategies[localtrustStrategy]
 		const recommender = new Recommender(pt, lt, 0.3)
-		await recommender.load()
+		await recommender.loadFromDB()
 		const globaltrust = recommender.globaltrust	
 
 		const chunkSIZE = 1000 

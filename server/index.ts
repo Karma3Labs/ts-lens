@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
-import { getIdFromQueryParams } from './utils'
+import { getHandlesFromIdsOrdered, getIdFromQueryParams } from './utils'
 import { getDB } from '../utils' 
 
 const app = express()
@@ -12,9 +12,11 @@ export default (recommender: Recommender) => {
 			const id = await getIdFromQueryParams(req.query)
 			console.log('Recommeding for id: ', id)
 
-			const ids = await recommender.recommend(id, 50)
+			const ids = await recommender.recommend(50, id)
+			const handles = await getHandlesFromIdsOrdered(ids)
+			console.log(ids)
 
-			res.send(ids)
+			res.send(handles)
 		}
 		catch (e: unknown) {
 			if (e instanceof Error) {
@@ -25,7 +27,7 @@ export default (recommender: Recommender) => {
 	})
 
 	app.listen(PORT, async () => {
-		await recommender.load()
+		await recommender.loadFromDB()
 
 		console.log(`Magic is happening on port: ${PORT}`)
 	})

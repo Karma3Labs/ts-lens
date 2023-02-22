@@ -1,16 +1,16 @@
 import  path from 'path'
 import axios from "axios"
-import { Pretrust, LocalTrust, GlobalTrust, Entry, ParsedGlobaltrust } from '../types'
-import { objectFlip } from "./utils"
-import { PretrustStrategy, strategies as pretrustStrategies } from './strategies/pretrust'
-import { LocaltrustStrategy, strategies as localStrategies } from './strategies/localtrust'
+import { Pretrust, LocalTrust, GlobalTrust } from '../types'
+import { objectFlip, getIds } from "./utils"
+import { PretrustStrategy } from './strategies/pretrust'
+import { LocaltrustStrategy } from './strategies/localtrust'
 import { PersonalizationStrategy, strategies as personalizationStrategies } from './strategies/personalization'
-import { getIds } from './utils'
-import { parsed } from 'yargs'
-import { toNumber } from 'lodash'
+import { getDB } from '../utils'
+const db = getDB()
 
 // TODO: Fix that ugly thingie
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
+
 
 export default class Recommender {
 	public alpha: number
@@ -19,7 +19,7 @@ export default class Recommender {
 	public localtrustStrategy: LocaltrustStrategy
 	public pretrustStrategy: PretrustStrategy
 	public personalizationStrategy: PersonalizationStrategy
-	public globaltrust: ParsedGlobaltrust = {}
+	public globaltrust: GlobalTrust = []
 
 	constructor(pretrustStrategy: PretrustStrategy, localtrustStrategy: LocaltrustStrategy, alpha = 0.3, personalizationStrategy?: PersonalizationStrategy) {
 		this.alpha = alpha
@@ -28,7 +28,7 @@ export default class Recommender {
 		this.personalizationStrategy = personalizationStrategy || personalizationStrategies.useFollows
 	}
 
-	async load() {
+	async recalculate() {
 		console.time('ids')
 		this.ids = await getIds()
 		console.timeEnd('ids')
@@ -44,17 +44,31 @@ export default class Recommender {
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
 		this.globaltrust = await this.runEigentrust(pretrust, localtrust)
+		this.saveToDB(this.globaltrust)
 	}
 
-	async recommend(limit = 20, id?: number): Promise<number[]> {
-		return Object.keys(this.globaltrust)
-			.slice(0, limit)
-			.map(parseInt) // Damn ts
+	async saveToDB(globaltrust: GlobalTrust) {
+		const chunkSIZE = 1000
 
-		return this.personalizationStrategy(this.globaltrust, limit)
+		for (let i = 0; i < globaltrust.length; i += chunkSIZE) {
+			const chunk = globaltrust.slice(i, i + chunkSIZE)
+			await db('globaltrust_cache').insert(chunk)
+		}
 	}
 
-	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, id?: number): Promise<ParsedGlobaltrust> => {
+	async loadFromDB() {
+		this.globaltrust = await db('globaltrust_cache')
+			.orderBy('v', 'desc')
+			.select()
+	}
+
+	async recommend(limit = 20, id: number): Promise<number[]> {
+		// return this.globaltrust.slice(0, limit).map(({ i }) => i)
+
+		return this.personalizationStrategy(this.globaltrust, id, limit)
+	}
+
+	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, id?: number): Promise<GlobalTrust> => {
 		const convertedPretrust = this.convertPretrustToIndeces(pretrust)
 		const convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
 
@@ -63,12 +77,10 @@ export default class Recommender {
 			convertedPretrust,
 		)
 
-		const globaltrust = this.parseGlobaltrust(res);
-		
-		return globaltrust
+		return this.parseGlobaltrust(res)
 	}
 
-	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust) {
+	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust): Promise<GlobalTrust> {
 		try {
 			console.time('calculation')
 
@@ -118,17 +130,14 @@ export default class Recommender {
 		}) 
 	}
 
-	private parseGlobaltrust(globaltrust: GlobalTrust): ParsedGlobaltrust {
-		const parsedGlobalTrust: ParsedGlobaltrust = {}
-
-		globaltrust.forEach(({ i, v }) => {
-			parsedGlobalTrust[this.ids[i]] = v
+	private parseGlobaltrust(globaltrust: GlobalTrust): GlobalTrust {
+		const parsedGlobaltrust = globaltrust.map(({ i, v }) => {
+			return {
+				i: this.ids[i],
+				v: +v
+			}
 		})
 
-		const sorted = Object.fromEntries(
-			Object.entries(parsedGlobalTrust).sort(([,a],[,b]) => b - a)
-		);
-
-		return sorted
+		return parsedGlobaltrust.sort((a, b) => b.v - a.v)
 	}
 }
