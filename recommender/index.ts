@@ -28,9 +28,7 @@ export default class Recommender {
 	}
 
 	async recalculate() {
-		console.time('ids')
 		this.ids = await getIds()
-		console.timeEnd('ids')
 
 		this.idsToIndex = objectFlip(this.ids)
 
@@ -43,20 +41,10 @@ export default class Recommender {
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
 		this.globaltrust = await this.runEigentrust(pretrust, localtrust)
-		this.saveToDB(this.globaltrust)
-	}
-
-	async saveToDB(globaltrust: GlobalTrust) {
-		const chunkSIZE = 1000
-
-		for (let i = 0; i < globaltrust.length; i += chunkSIZE) {
-			const chunk = globaltrust.slice(i, i + chunkSIZE)
-			await db('globaltrust_cache').insert(chunk)
-		}
 	}
 
 	async loadFromDB() {
-		this.globaltrust = await db('globaltrust_cache')
+		this.globaltrust = await db('globaltrust')
 			.orderBy('v', 'desc')
 			.select()
 	}

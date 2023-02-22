@@ -5,6 +5,9 @@ const db = getDB()
 
 export type PersonalizationStrategy = (globalTrust: GlobalTrust, id: number, limit: number) => Promise<number[]>
 
+/**
+ * Multiplies the global trust by 5 if the profile is followed by the user
+*/
 const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, id: number, limit: number): Promise<number[]> => {
 	const { rows } = await db.raw(`
 	with profile_follows as (
