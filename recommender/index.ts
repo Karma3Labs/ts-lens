@@ -1,10 +1,13 @@
 import  path from 'path'
 import axios from "axios"
-import { Pretrust, LocalTrust, GlobalTrust, Entry } from '../types'
+import { Pretrust, LocalTrust, GlobalTrust, Entry, ParsedGlobaltrust } from '../types'
 import { objectFlip } from "./utils"
-import { PretrustPicker, PretrustStrategy, strategies as pretrustStrategies } from './strategies/pretrust'
+import { PretrustStrategy, strategies as pretrustStrategies } from './strategies/pretrust'
 import { LocaltrustStrategy, strategies as localStrategies } from './strategies/localtrust'
+import { PersonalizationStrategy, strategies as personalizationStrategies } from './strategies/personalization'
 import { getIds } from './utils'
+import { parsed } from 'yargs'
+import { toNumber } from 'lodash'
 
 // TODO: Fix that ugly thingie
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
@@ -13,20 +16,16 @@ export default class Recommender {
 	public alpha: number
 	public ids: number[] = []
 	public idsToIndex: Record<number, number> = {}
-	public localtrustPicker: LocaltrustStrategy = localStrategies.existingConnections
-	public pretrustPicker: PretrustPicker = pretrustStrategies.pretrustAllEqually.picker
-	public personalized = pretrustStrategies.pretrustAllEqually.personalized
+	public localtrustStrategy: LocaltrustStrategy
+	public pretrustStrategy: PretrustStrategy
+	public personalizationStrategy: PersonalizationStrategy
+	public globaltrust: ParsedGlobaltrust = {}
 
-	public convertedLocaltrust: LocalTrust = [] 
-	public pretrust: LocalTrust = [] 
-	public globaltrustEntries: Entry[] = []
-
-	constructor(pretrustPicker: PretrustStrategy, localtrustPicker = localStrategies.follows, alpha = 0.3) {
+	constructor(pretrustStrategy: PretrustStrategy, localtrustStrategy: LocaltrustStrategy, alpha = 0.3, personalizationStrategy?: PersonalizationStrategy) {
 		this.alpha = alpha
-		this.localtrustPicker = localtrustPicker
-
-		this.pretrustPicker = pretrustPicker.picker
-		this.personalized = pretrustPicker.personalized
+		this.localtrustStrategy = localtrustStrategy
+		this.pretrustStrategy = pretrustStrategy
+		this.personalizationStrategy = personalizationStrategy || personalizationStrategies.useFollows
 	}
 
 	async load() {
@@ -37,48 +36,36 @@ export default class Recommender {
 		this.idsToIndex = objectFlip(this.ids)
 
 		console.time('localtrust_generation')
-		const localtrust = await this.localtrustPicker()
+		const localtrust = await this.localtrustStrategy()
 		console.timeEnd('localtrust_generation')
-		this.convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 
-		if (!this.personalized) {
-			const pretrust = await this.pretrustPicker()
-			const convertedPretrust = this.convertPretrustToIndeces(pretrust)
-			console.log('Since the strategy is not personalized, we can precompute the global trust')
-			console.log(`Generated pretrust with ${pretrust.length} entries`)
+		const pretrust = await this.pretrustStrategy()
+		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
-			this.globaltrustEntries = await this.runEigentrust(convertedPretrust, this.convertedLocaltrust)
-		}
-
-		console.log(`Loaded ${this.ids.length} profiles`)
+		this.globaltrust = await this.runEigentrust(pretrust, localtrust)
 	}
 
-	async recommend(id: number, limit = 20) {
-		if (this.personalized) {	
-			// Regenerate pretrust
-			const pretrust = await this.pretrustPicker(id)
-			const convertedPretrust = this.convertPretrustToIndeces(pretrust)
-			console.log(`Generated pretrust with ${pretrust.length} entries`)
+	async recommend(limit = 20, id?: number): Promise<number[]> {
+		return Object.keys(this.globaltrust)
+			.slice(0, limit)
+			.map(parseInt) // Damn ts
 
-			this.globaltrustEntries = await this.runEigentrust(convertedPretrust, this.convertedLocaltrust, id)
-		}
-
-		return this.globaltrustEntries.map(([id]) => id).slice(0, limit)
+		return this.personalizationStrategy(this.globaltrust, limit)
 	}
 
-	private runEigentrust = async (convertedPretrust: Pretrust, convertedLocaltrust: LocalTrust, id?: number): Promise<Entry[]> => {
+	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, id?: number): Promise<ParsedGlobaltrust> => {
+		const convertedPretrust = this.convertPretrustToIndeces(pretrust)
+		const convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
+
 		const res = await this.requestEigentrust(
 			convertedLocaltrust,
 			convertedPretrust,
 		)
 
-		const globaltrust = this.convertGlobalTrustToIds(res);
-		const globaltrustEntries: Entry[] = globaltrust.map((entry: GlobalTrust[0]) => [entry.i, entry.v])
-		globaltrustEntries.sort((a: Entry, b: Entry)  => b[1] - a[1]) 
-		console.log('globalTrustEntries', globaltrustEntries)
+		const globaltrust = this.parseGlobaltrust(res);
 		
-		return globaltrustEntries
+		return globaltrust
 	}
 
 	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust) {
@@ -131,12 +118,17 @@ export default class Recommender {
 		}) 
 	}
 
-	private convertGlobalTrustToIds(globalTrust: GlobalTrust): GlobalTrust {
-		return globalTrust.map(({ i, v }) => {
-			return {
-				i: this.ids[i], 
-				v
-			}
+	private parseGlobaltrust(globaltrust: GlobalTrust): ParsedGlobaltrust {
+		const parsedGlobalTrust: ParsedGlobaltrust = {}
+
+		globaltrust.forEach(({ i, v }) => {
+			parsedGlobalTrust[this.ids[i]] = v
 		})
+
+		const sorted = Object.fromEntries(
+			Object.entries(parsedGlobalTrust).sort(([,a],[,b]) => b - a)
+		);
+
+		return sorted
 	}
 }

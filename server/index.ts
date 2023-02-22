@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
 import { getIdFromQueryParams } from './utils'
+import { getDB } from '../utils' 
 
 const app = express()
 const PORT = 8080
@@ -11,9 +12,9 @@ export default (recommender: Recommender) => {
 			const id = await getIdFromQueryParams(req.query)
 			console.log('Recommeding for id: ', id)
 
-			const handles = await recommender.recommend(id, 50)
+			const ids = await recommender.recommend(id, 50)
 
-			res.send(handles)
+			res.send(ids)
 		}
 		catch (e: unknown) {
 			if (e instanceof Error) {

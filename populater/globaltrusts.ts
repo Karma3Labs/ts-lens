@@ -22,12 +22,13 @@ const main = async () => {
 		const lt = ltStrategies[localtrustStrategy]
 		const recommender = new Recommender(pt, lt, 0.3)
 		await recommender.load()
-		const globalTrust = recommender.globaltrustEntries	
+		const globaltrust = recommender.globaltrust	
 
 		const chunkSIZE = 1000 
 
-		for (let i = 0; i < globalTrust.length; i += chunkSIZE) {
-			const chunk = globalTrust
+		const entries = Object.entries(globaltrust)
+		for (let i = 0; i < entries.length; i += chunkSIZE) {
+			const chunk = entries
 				.slice(i, i + chunkSIZE)
 				.map(([ id, globaltrust ]) => ({
 					pretrust_strategy: pretrustStrategy,

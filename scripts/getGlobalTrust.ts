@@ -38,11 +38,6 @@ const main = async () => {
 		process.exit(1)
 	}
 	const pretrustStrategy = ptStrategies[argv.pretrust_strategy]
-	if (pretrustStrategy.personalized) {
-		console.error(`Pretrust strategy: ${argv.pretrust_strategy} is personalized`)
-		process.exit(1)
-	}
-
 	console.log('Using pretrust strategy:', argv.pretrust_strategy)
 
 	if (!ltStrategies[argv.localtrust_strategy]) {
@@ -55,7 +50,7 @@ const main = async () => {
 
 	const recommender = new Recommender(pretrustStrategy, localtrustStrategy, argv.alpha)
 	await recommender.load()
-	const globalTrust = recommender.globaltrustEntries
+	const globalTrust = recommender.globaltrust
 
 	const handles = await db('profiles').select('handle', 'id');
 	const handlesMap: Record<string, number> = {}
@@ -64,7 +59,7 @@ const main = async () => {
 	}
 
 	let csv = 'id,handle,globalTrust\n'
-	csv += globalTrust.map((gt) => `${gt[0]},${handlesMap[gt[0]]},${gt[1]}`).join('\n')
+	csv += Object.entries(globalTrust).map((gt) => `${gt[0]},${handlesMap[gt[0]]},${gt[1]}`).join('\n')
 	fs.writeFileSync(path.join(__dirname, '../../globaltrust.csv'), csv)
 
 	console.log('Done! (see globaltrust.csv)')

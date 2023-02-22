@@ -2,6 +2,14 @@ import { getDB } from "../utils"
 
 const db = getDB()
 
+export const getHandlesFromIdsOrdered = async (ids: number[]): Promise<string[]> => {
+	const handles = await db('profiles').select('id', 'handle').whereIn('id', ids)
+
+	return handles
+		.map(({ id, handle }: { id: number, handle: string }) => [+id, handle])
+		.sort(([id1]: [number], [id2]: [number]) => ids.indexOf(id1) - ids.indexOf(id2))
+}
+
 export const getIdFromQueryParams = async (query: Record<string, any>): Promise<number> => {
 	if (query.id) {
 		if (isNaN(query.id)) {
