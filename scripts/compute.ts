@@ -35,16 +35,14 @@ const main = async () => {
 
 		console.log("Saving to DB")
 		console.time('saving')
-		const entries = Object.entries(globaltrust)
-		for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
-			const chunk = entries
+		for (let i = 0; i < globaltrust.length; i += CHUNK_SIZE) {
+			const chunk = globaltrust
 				.slice(i, i + CHUNK_SIZE)
-				.map(([ id, globaltrust ]) => ({
+				.map(g => ({
 					pretrust: pretrustStrategy,
 					localtrust: localtrustStrategy,
 					alpha: ALPHA,
-					i: id,
-					v: globaltrust
+					...g
 				}))
 
 			await db('globaltrust')
