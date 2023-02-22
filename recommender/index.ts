@@ -11,7 +11,6 @@ const db = getDB()
 // TODO: Fix that ugly thingie
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
-
 export default class Recommender {
 	public alpha: number
 	public ids: number[] = []

@@ -7,6 +7,7 @@
     "build": "tsc && cp .env dist/",
     "scrape": "yarn build && node dist/scraper/index.js",
     "populate": "node dist/scraper/index.js",
+    "compute": "yarn build && node dist/scripts/compute.js",
     "serve": "yarn build && node dist/scripts/startServer.js",
     "global-trust": "yarn build && node dist/scripts/getGlobalTrust.js"
   },
