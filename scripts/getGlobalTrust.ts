@@ -49,7 +49,7 @@ const main = async () => {
 
 
 	const recommender = new Recommender(pretrustStrategy, localtrustStrategy, argv.alpha)
-	await recommender.loadFromDB()
+	await recommender.loadFromDB(argv.pretrust_strategy, argv.localtrust_strategy, argv.alpha)
 	const globalTrust = recommender.globaltrust
 
 	const handles = await db('profiles').select('handle', 'id');

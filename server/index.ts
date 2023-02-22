@@ -26,9 +26,5 @@ export default (recommender: Recommender) => {
 		}
 	})
 
-	app.listen(PORT, async () => {
-		await recommender.loadFromDB()
-
-		console.log(`Magic is happening on port: ${PORT}`)
-	})
+	app.listen(PORT, () => console.log(`Magic is happening on port: ${PORT}`))
 }

@@ -60,6 +60,8 @@ const main = async () => {
 	console.log('Using personalization strategy:', argv.personalization_strategy)
 
 	const recommender = new Recommender(pretrustStrategy, localtrustStrategy, argv.alpha, personalizationStrategy)
+	await recommender.loadFromDB(argv.pretrust_strategy, argv.localtrust_strategy, argv.alpha)
+
 	serve(recommender)
 }
 

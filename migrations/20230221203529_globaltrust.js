@@ -10,7 +10,7 @@ exports.up = function (knex) {
 		table.bigInteger('i')
 		table.float('v')
 		table.index(['pretrust', 'localtrust', 'alpha'], 'globaltrust_pretrust_localtrust_alpha_idx')
-		table.index(['pretrust', 'localtrust', 'alpha', 'i'], 'globaltrust_pretrust_localtrust_alpha_i_idx').unique()
+		table.unique(['pretrust', 'localtrust', 'alpha', 'i'], 'globaltrust_pretrust_localtrust_alpha_i_idx')
 	});
 };
 

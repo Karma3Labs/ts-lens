@@ -43,10 +43,15 @@ export default class Recommender {
 		this.globaltrust = await this.runEigentrust(pretrust, localtrust)
 	}
 
-	async loadFromDB() {
+	async loadFromDB(pretrust: string, localtrust: string, alpha: number) {
 		this.globaltrust = await db('globaltrust')
 			.orderBy('v', 'desc')
+			.where({ pretrust, localtrust, alpha })
 			.select()
+
+		if (!this.globaltrust.length) {
+			throw new Error('No globaltrust found in DB')
+		}
 	}
 
 	async recommend(limit = 20, id: number): Promise<number[]> {
