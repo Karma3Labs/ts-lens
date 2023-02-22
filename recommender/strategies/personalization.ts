@@ -1,9 +1,35 @@
-import { Entry, ParsedGlobaltrust } from "../../types";
+import { GlobalTrust } from "../../types"
+import { getDB } from "../../utils"
 
-export type PersonalizationStrategy = (globalTrust: ParsedGlobaltrust, limit: number) => Promise<number[]>
+const db = getDB()
 
-const useFollows: PersonalizationStrategy = async (globaltrust: ParsedGlobaltrust, limit: number): Promise<number[]> => {
-	return Object.keys(globaltrust).slice(limit).map(parseInt)
+export type PersonalizationStrategy = (globalTrust: GlobalTrust, id: number, limit: number) => Promise<number[]>
+
+const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, id: number, limit: number): Promise<number[]> => {
+	const { rows } = await db.raw(`
+	with profile_follows as (
+		select profiles.id as following_id,
+		profile_id as follower_id
+		from profiles
+		inner join
+			follows
+		on
+			profiles.owner_address = follows.follower_address
+		where
+			profile_id = :id:
+	)
+	select 
+		i, v * case when follower_id = :id: then 5 else 1 end AS trust
+	from globaltrust_cache
+		left join
+			profile_follows
+		on globaltrust_cache.i = profile_follows.following_id
+	order by
+		trust desc
+	limit :limit:
+	`, { id, limit }) as  { rows: { i: number, trust: number }[] }
+
+	return rows.map(({ i }: {i: number}) => i)
 }
 
 export const strategies: Record<string, PersonalizationStrategy> = {
