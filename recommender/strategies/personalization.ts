@@ -23,10 +23,10 @@ const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, id:
 	)
 	select 
 		i, v * case when follower_id = :id: then 5 else 1 end AS trust
-	from globaltrust_cache
+	from globaltrust
 		left join
 			profile_follows
-		on globaltrust_cache.i = profile_follows.following_id
+		on globaltrust.i = profile_follows.following_id
 	order by
 		trust desc
 	limit :limit:
