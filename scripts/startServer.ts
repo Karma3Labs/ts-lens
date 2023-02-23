@@ -1,6 +1,4 @@
 import yargs from 'yargs'
-import path from 'path'
-import fs from 'fs'
 import Recommender from '../recommender'
 import serve from '../server/index'
 import { strategies as ptStrategies } from '../recommender/strategies/pretrust'
@@ -12,25 +10,21 @@ const main = async () => {
 		.scriptName("./scripts/start-server.ts")
 		.usage('$0 [args]')
 		.option('pretrust', {
-			alias: 'pr',
 			describe: 'Strategy that should be used to generate pretrust. The strategy should exist in recommender/strategies/pretrust.ts file',
 			type: 'string',
 			default: 'pretrustAllEqually',
 		}) 
 		.option('localtrust', {
-			alias: 'l',
 			describe: 'Strategy that should be used to generate localtrust. The strategy should exist in recommender/strategies/localtrust.ts file',
 			type: 'string',
 			default: 'existingConnections',
 		}) 
 		.option('personalization', {
-			alias: 'ps',
 			describe: 'Strategy that should be used to generate personalized results from the global trust.',
 			type: 'string',
 			default: 'useFollows',
 		}) 
 		.option('alpha', {
-			alias: 'a',
 			describe: 'A weight denoting how much the pretrust should affect the global trust',
 			type: 'number',
 			default: 0.5,
