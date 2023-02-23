@@ -38,7 +38,7 @@ export const getIdFromQueryParams = async (query: Record<string, any>): Promise<
 			throw new Error('Address does not exist')
 		}
 
-		return id
+		return +id
 	}
 
 	throw new Error('Either handle or id should be provided')
