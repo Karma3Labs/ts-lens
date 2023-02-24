@@ -1,9 +1,10 @@
 import yargs from 'yargs'
 import Recommender from '../recommender'
 import serve from '../server/index'
-import { strategies as ptStrategies } from '../recommender/strategies/pretrust'
-import { strategies as ltStrategies } from '../recommender/strategies/localtrust'
 import { strategies as psStrategies } from '../recommender/strategies/personalization'
+import { getDB } from '../utils'
+
+const db = getDB()
 
 const main = async () => {
 	const argv = yargs
