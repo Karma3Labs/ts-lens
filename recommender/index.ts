@@ -2,8 +2,9 @@ import  path from 'path'
 import axios from "axios"
 import { Pretrust, LocalTrust, GlobalTrust } from '../types'
 import { objectFlip, getIds } from "./utils"
-import { PretrustStrategy } from './strategies/pretrust'
-import { LocaltrustStrategy } from './strategies/localtrust'
+import { strategies as ptStrategies  } from './strategies/pretrust'
+import { strategies as ltStrategies  } from './strategies/localtrust'
+import { strategies as psStrategies  } from './strategies/personalization'
 import { PersonalizationStrategy, strategies as personalizationStrategies } from './strategies/personalization'
 import { getDB } from '../utils'
 const db = getDB()
@@ -12,67 +13,65 @@ const db = getDB()
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class Recommender {
-	public alpha: number
 	public ids: number[] = []
 	public idsToIndex: Record<number, number> = {}
-	public localtrustStrategy: LocaltrustStrategy
-	public pretrustStrategy: PretrustStrategy
-	public personalizationStrategy: PersonalizationStrategy
 	public globaltrust: GlobalTrust = []
 
-	constructor(pretrustStrategy: PretrustStrategy, localtrustStrategy: LocaltrustStrategy, alpha = 0.3, personalizationStrategy?: PersonalizationStrategy) {
-		this.alpha = alpha
-		this.localtrustStrategy = localtrustStrategy
-		this.pretrustStrategy = pretrustStrategy
-		this.personalizationStrategy = personalizationStrategy || personalizationStrategies.useFollows
-	}
+	constructor(
+		public strategyId: number,
+		public personalizationStrategy?: PersonalizationStrategy,
+	) {}
 
 	async recalculate() {
 		this.ids = await getIds()
-
 		this.idsToIndex = objectFlip(this.ids)
 
+		const strategy = await db('strategies')
+			.where('id', this.strategyId)
+			.first()
+
+		const localtrustStrategy = ltStrategies[strategy.localtrust]
+		const pretrustStrategy = ptStrategies[strategy.pretrust]
+
 		console.time('localtrust_generation')
-		const localtrust = await this.localtrustStrategy()
+		const localtrust = await localtrustStrategy()
 		console.timeEnd('localtrust_generation')
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 
-		const pretrust = await this.pretrustStrategy()
+		console.time('pretrust_generation')
+		const pretrust = await pretrustStrategy()
+		console.timeEnd('pretrust_generation')
+		console.log(`Generated localtrust with ${localtrust.length} entries`)
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
-		this.globaltrust = await this.runEigentrust(pretrust, localtrust)
-	}
+		this.globaltrust = await this.runEigentrust(pretrust, localtrust, strategy.alpha)
+		console.log("Generated globaltrust")
 
-	async loadFromDB(pretrust: string, localtrust: string, alpha: number) {
-		this.globaltrust = await db('globaltrust')
-			.orderBy('v', 'desc')
-			.where({ pretrust, localtrust, alpha })
-			.select()
-
-		if (!this.globaltrust.length) {
-			throw new Error('No globaltrust found in DB')
-		}
+		await this.saveGlobaltrust()
 	}
 
 	async recommend(limit = 20, id: number): Promise<number[]> {
-		// return this.globaltrust.slice(0, limit).map(({ i }) => i)
+		if (!this.personalizationStrategy) {
+			throw Error('Reommending but no personalization strategy set')
+		}
 
 		return this.personalizationStrategy(this.globaltrust, id, limit)
 	}
 
-	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, id?: number): Promise<GlobalTrust> => {
+	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, alpha: number, id?: number): Promise<GlobalTrust> => {
 		const convertedPretrust = this.convertPretrustToIndeces(pretrust)
 		const convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
 
 		const res = await this.requestEigentrust(
 			convertedLocaltrust,
 			convertedPretrust,
+			alpha
 		)
 
 		return this.parseGlobaltrust(res)
 	}
 
-	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust): Promise<GlobalTrust> {
+	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust, alpha: number): Promise<GlobalTrust> {
 		try {
 			console.time('calculation')
 
@@ -88,7 +87,7 @@ export default class Recommender {
 					size: this.ids.length,
 					entries: pretrust,
 				},
-				alpha: this.alpha
+				alpha: alpha
 			})
 
 			console.timeEnd('calculation')
@@ -102,6 +101,36 @@ export default class Recommender {
 	/**
 	 * Address to number conversions
 	*/
+	async loadFromDB() {
+		this.globaltrust = await db('globaltrust')
+			.orderBy('v', 'desc')
+			.where(this.strategyId)
+			.select()
+
+		if (!this.globaltrust.length) {
+			throw new Error(`No globaltrust found in DB for strategy id: ${this.strategyId}`)
+		}
+	}
+
+	private async saveGlobaltrust() {
+		const CHUNK_SIZE = 1000
+		if (!this.globaltrust.length || this.strategyId) {
+			return
+		}
+
+		for (let i = 0; i < this.globaltrust.length; i += CHUNK_SIZE) {
+			const chunk = this.globaltrust
+				.slice(i, i + CHUNK_SIZE)
+				.map(g => ({
+					strategyId: this.strategyId,
+					...g
+				}))
+
+			await db('globaltrust')
+				.insert(chunk)
+				.onConflict(['strategy_id', 'i']).ignore()
+		}
+	}
 
 	private convertLocaltrustToIndeces(localTrust: LocalTrust): LocalTrust {
 		return localTrust.map(({ i, j, v }) => {

@@ -29,7 +29,7 @@ const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
  * Generates localtrust by taking into consuderation the number of likes between
  * two users.
 */
-const enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
+const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
 	/**
 	 * Generate comments data
 	*/
@@ -92,5 +92,5 @@ const enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 
 export const strategies: Record<string, LocaltrustStrategy> = {
 	existingConnections,
-	enhancedConnections
+	c5m8enhancedConnections
 }

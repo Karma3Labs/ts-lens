@@ -32,29 +32,20 @@ const main = async () => {
 		.help()
 		.argv as { pretrust: string, localtrust: string, personalization: string, alpha: number }
 
-	if (!ptStrategies[argv.pretrust]) {
-		console.error(`Pretrust strategy: ${argv.pretrust} does not exist`)
-		process.exit(1)
-	}
-	const pretrustStrategy = ptStrategies[argv.pretrust]
-	console.log('Using pretrust strategy:', argv.pretrust)
+	const { id } = await db('strategies')
+		.where({ pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha })
+		.first('id')
 
-	if (!ltStrategies[argv.localtrust]) {
-		console.error(`Localtrust strategy: ${argv.localtrust} does not exist`)
+	if (!id) {
+		console.error('Strategy not found in DB. Please run the compute script first.')
 		process.exit(1)
 	}
-	const localtrustStrategy = ltStrategies[argv.localtrust]
-	console.log('Using localtrust strategy:', argv.localtrust)
 
-	if (!psStrategies[argv.personalization]) {
-		console.error(`Personalization strategy: ${argv.personalization} does not exist`)
-		process.exit(1)
-	}
 	const personalizationStrategy = psStrategies[argv.personalization]
 	console.log('Using personalization strategy:', argv.personalization)
 
-	const recommender = new Recommender(pretrustStrategy, localtrustStrategy, argv.alpha, personalizationStrategy)
-	await recommender.loadFromDB(argv.pretrust, argv.localtrust, argv.alpha)
+	const recommender = new Recommender(id, personalizationStrategy)
+	await recommender.loadFromDB()
 
 	serve(recommender)
 }
