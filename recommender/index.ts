@@ -87,7 +87,9 @@ export default class Recommender {
 					size: this.ids.length,
 					entries: pretrust,
 				},
-				alpha: alpha
+				alpha: alpha,
+				epsilon: 1.0,
+				flatTail: 2
 			})
 
 			console.timeEnd('calculation')
