@@ -5,7 +5,7 @@ const db = getDB()
 export const getProfilesFromIdsOrdered = async (ids: number[]): Promise<{id: number, handle: string}[]> => {
 	const handles = await db('profiles')
 		.select('id', 'handle', 'count as followers_count')
-		.innerJoin('follower_counts', 'follower_counts.followee', 'profiles.id')
+		.innerJoin('follower_counts', 'follower_counts.profile_id', 'profiles.id')
 		.whereIn('id', ids)
 
 	const res = ids.map((id: number) => {
