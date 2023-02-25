@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
 import { getIdFromQueryParams, getProfilesFromIdsOrdered } from './utils'
-import { getDB } from '../utils' 
 
 const app = express()
 const PORT = 8080
@@ -30,7 +29,8 @@ export default (recommender: Recommender) => {
 		try {
 			const limit = req.query.limit ? +req.query.limit : 50
 			const offset = req.query.offset ? +req.query.offset : 0
-			const strategyId = req.query.strategyId ? +req.query.strategyId : undefined
+			const strategyId = req.query.strategy_id ? +req.query.strategy_id : undefined
+
 			if (!strategyId) {
 				return res.status(400).send('Missing strategyId')
 			}
