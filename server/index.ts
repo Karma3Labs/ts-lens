@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
-import { getHandlesFromIdsOrdered, getIdFromQueryParams } from './utils'
+import { getIdFromQueryParams, getProfilesFromIdsOrdered } from './utils'
 import { getDB } from '../utils' 
 
 const app = express()
@@ -13,10 +13,10 @@ export default (recommender: Recommender) => {
 			console.log('Recommeding for id: ', id)
 
 			const ids = await recommender.recommend(50, id)
-			const handles = await getHandlesFromIdsOrdered(ids)
+			const profiles = await getProfilesFromIdsOrdered(ids)
 			console.log(ids)
 
-			res.send(handles)
+			res.send(profiles)
 		}
 		catch (e: unknown) {
 			if (e instanceof Error) {
@@ -37,8 +37,9 @@ export default (recommender: Recommender) => {
 			console.log(`Recommeding rankings in range [${offset}, ${offset + limit}]`)
 
 			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId)
-			const slice = globaltrust.slice(offset, offset + limit)
-			res.send(slice)
+			const ids = globaltrust.slice(offset, offset + limit).map(({ i }) => i )
+			const profiles = await getProfilesFromIdsOrdered(ids)
+			res.send(profiles)
 		}
 		catch (e: unknown) {
 			if (e instanceof Error) {
