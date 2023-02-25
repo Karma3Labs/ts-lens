@@ -116,7 +116,7 @@ export default class Recommender {
 
 	private async saveGlobaltrust() {
 		const CHUNK_SIZE = 1000
-		if (!this.globaltrust.length || this.strategyId) {
+		if (!this.globaltrust.length) {
 			return
 		}
 
