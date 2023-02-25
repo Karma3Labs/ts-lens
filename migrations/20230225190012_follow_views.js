@@ -19,12 +19,12 @@ exports.up = function (knex) {
 
 		create materialized view follower_counts as (
 			SELECT
-				profile_follows.follower AS profile_id,
+				profile_follows.following AS profile_id,
 				count(*) AS count
 			FROM
 				profile_follows
 			GROUP BY
-				profile_follows.follower
+				profile_id
 		);
 		create index follower_counts_profile_id_idx on follower_counts(profile_id);
 	`)
@@ -35,5 +35,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-	return knex.schema.dropMaterializedViewIfExists('profile_follows')
+	return knex.schema.dropMaterializedViewIfExists('follower_counts').dropMaterializedView('profile_follows')
 };
