@@ -26,5 +26,28 @@ export default (recommender: Recommender) => {
 		}
 	})
 
+	app.get('/rankings', async (req: Request, res: Response) => {
+		try {
+			const limit = req.query.limit ? +req.query.limit : 50
+			const offset = req.query.offset ? +req.query.offset : 0
+			const strategyId = req.query.strategyId ? +req.query.strategyId : undefined
+			if (!strategyId) {
+				return res.status(400).send('Missing strategyId')
+			}
+			console.log(`Recommeding rankings in range [${offset}, ${offset + limit}]`)
+
+			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId)
+			const slice = globaltrust.slice(offset, offset + limit)
+			res.send(slice)
+		}
+		catch (e: unknown) {
+			if (e instanceof Error) {
+				console.log(`[SERVER] ${e.message} for input:`, req.query)
+				return res.status(400).send(e.message) //TODO: Parameterize HTTP codes
+			}
+		}
+	})
+
 	app.listen(PORT, () => console.log(`Magic is happening on port: ${PORT}`))
 }
+

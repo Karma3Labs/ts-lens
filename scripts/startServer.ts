@@ -45,10 +45,16 @@ const main = async () => {
 	const personalizationStrategy = psStrategies[argv.personalization]
 	console.log('Using personalization strategy:', argv.personalization)
 
-	const recommender = new Recommender(id, personalizationStrategy)
-	await recommender.loadFromDB()
+	try {
+		const recommender = new Recommender(id, personalizationStrategy)
+		await recommender.loadFromDB()
 
-	serve(recommender)
+		serve(recommender)
+	}
+	catch (e: any) {
+		console.error(e?.message)
+		process.exit()
+	}
 }
 
 main()

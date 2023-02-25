@@ -100,18 +100,9 @@ export default class Recommender {
 		}
 	}
 
-	/**
-	 * Address to number conversions
-	*/
 	async loadFromDB() {
-		this.globaltrust = await db('globaltrust')
-			.orderBy('v', 'desc')
-			.where(this.strategyId)
-			.select()
-
-		if (!this.globaltrust.length) {
-			throw new Error(`No globaltrust found in DB for strategy id: ${this.strategyId}`)
-		}
+		this.globaltrust = await Recommender.getGlobaltrustByStrategyId(this.strategyId)
+		console.log(`Loaded ${this.globaltrust.length} globaltrust entries from DB`)
 	}
 
 	private async saveGlobaltrust() {
@@ -127,7 +118,7 @@ export default class Recommender {
 					strategyId: this.strategyId,
 					...g
 				}))
-
+			
 			await db('globaltrust')
 				.insert(chunk)
 				.onConflict(['strategy_id', 'i']).ignore()
@@ -163,4 +154,17 @@ export default class Recommender {
 
 		return parsedGlobaltrust.sort((a, b) => b.v - a.v)
 	}
+
+	static async getGlobaltrustByStrategyId(strategyId: number): Promise<GlobalTrust> {
+		const globaltrust = await db('globaltrust')
+			.where({ strategyId })
+			.orderBy('v', 'desc')
+			.select()
+
+		if (!globaltrust.length) {
+			throw new Error(`No globaltrust found in DB for strategy id: ${strategyId}`)
+		}
+
+		return globaltrust
+	}	
 }
