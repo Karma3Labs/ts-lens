@@ -3,18 +3,14 @@ import { getDB } from "../utils"
 const db = getDB()
 
 export const getProfilesFromIdsOrdered = async (ids: number[]): Promise<{id: number, handle: string}[]> => {
-	const handles = await db('profiles')
+	const profiles = await db('profiles')
 		.select('id', 'handle', 'count as followers_count')
 		.innerJoin('follower_counts', 'follower_counts.profile_id', 'profiles.id')
 		.whereIn('id', ids)
+	
+	profiles.sort((a: any, b: any) => ids.indexOf(a.id) - ids.indexOf(b.id))
 
-	const res = ids.map((id: number) => {
-		const record: { id: number, handle: string, followersCount: number } 
-			= handles.find((h: { id: number }) => h.id === id)
-		return { id, handle: record.handle, followers: +record.followersCount }
-	})
-
-	return res
+	return profiles
 }
 
 export const getIdFromQueryParams = async (query: Record<string, any>): Promise<number> => {
