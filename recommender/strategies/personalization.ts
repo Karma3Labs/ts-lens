@@ -3,12 +3,12 @@ import { getDB } from "../../utils"
 
 const db = getDB()
 
-export type PersonalizationStrategy = (globalTrust: GlobalTrust, id: number, limit: number) => Promise<number[]>
+export type PersonalizationStrategy = (globalTrust: GlobalTrust, strategyId: number, id: number, limit: number) => Promise<number[]>
 
 /**
  * Multiplies the global trust by 5 if the profile is followed by the user
 */
-const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, id: number, limit: number): Promise<number[]> => {
+const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, strategyId: number, id: number, limit: number): Promise<number[]> => {
 	const { rows } = await db.raw(`
 	with profile_follows as (
 		select profiles.id as following_id,

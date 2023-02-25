@@ -4,9 +4,8 @@ import { Pretrust, LocalTrust, GlobalTrust } from '../types'
 import { objectFlip, getIds } from "./utils"
 import { strategies as ptStrategies  } from './strategies/pretrust'
 import { strategies as ltStrategies  } from './strategies/localtrust'
-import { strategies as psStrategies  } from './strategies/personalization'
-import { PersonalizationStrategy, strategies as personalizationStrategies } from './strategies/personalization'
 import { getDB } from '../utils'
+import { PersonalizationStrategy } from './strategies/personalization'
 const db = getDB()
 
 // TODO: Fix that ugly thingie
@@ -55,7 +54,7 @@ export default class Recommender {
 			throw Error('Reommending but no personalization strategy set')
 		}
 
-		return this.personalizationStrategy(this.globaltrust, id, limit)
+		return this.personalizationStrategy(this.globaltrust, this.strategyId, id, limit)
 	}
 
 	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, alpha: number, id?: number): Promise<GlobalTrust> => {
