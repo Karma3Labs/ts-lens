@@ -5,14 +5,26 @@ export type PretrustStrategy = () => Promise<Pretrust>
 
 const db = getDB()
 
-const pretrustAllEqually: PretrustStrategy = async () => {
-	return [] as Pretrust
+const pretrustFirstFifty: PretrustStrategy = async () => {
+	const ids = await db('profiles').select('id').orderBy('id', 'asc').limit(50)
+	const pretrust: Pretrust = []
+
+	ids.forEach(({ id }: { id: number }) => {
+		pretrust.push({
+			i: id,
+			v: 1 / ids.length
+		})
+	})
+
+	return pretrust
 }
 
-const pretrustSpecificIds: PretrustStrategy = async () => {
-	const pretrustedHandles = ['lensprotocol', 'aaveaave.lens']
-	const ids = await db('profiles').select('id').whereIn('handle', pretrustedHandles)
+const pretrustOGs: PretrustStrategy = async () => {
+	const ogs = ["chriscomrie.lens", "christina.lens", "cristinaspinei.lens",
+	"bradorbradley.lens", "blackdave.lens", "goodkrak.lens", "levychain.lens",
+	"ryanfox.lens", "stani.lens", "jamesfinnerty.lens" ]
 
+	const ids = await db('profiles').select('id').whereIn('handle', ogs)
 	const pretrust: Pretrust = []
 
 	ids.forEach(({ id }: { id: number }) => {
@@ -26,6 +38,6 @@ const pretrustSpecificIds: PretrustStrategy = async () => {
 }
 
 export const strategies: Record<string, PretrustStrategy> = {
-	pretrustAllEqually,
-	pretrustSpecificIds
+	pretrustOGs,
+	pretrustFirstFifty
 }

@@ -13,7 +13,7 @@ const main = async () => {
 		.option('pretrust', {
 			describe: 'Strategy that should be used to generate pretrust. The strategy should exist in recommender/strategies/pretrust.ts file',
 			type: 'string',
-			default: 'pretrustAllEqually',
+			default: 'pretrustOGs',
 		}) 
 		.option('localtrust', {
 			describe: 'Strategy that should be used to generate localtrust. The strategy should exist in recommender/strategies/localtrust.ts file',
