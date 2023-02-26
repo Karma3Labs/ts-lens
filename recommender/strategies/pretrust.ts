@@ -5,6 +5,10 @@ export type PretrustStrategy = () => Promise<Pretrust>
 
 const db = getDB()
 
+const pretrustAllEqually: PretrustStrategy = async () => {
+	return []
+}
+
 const pretrustFirstFifty: PretrustStrategy = async () => {
 	const ids = await db('profiles').select('id').orderBy('id', 'asc').limit(50)
 	const pretrust: Pretrust = []
@@ -39,5 +43,6 @@ const pretrustOGs: PretrustStrategy = async () => {
 
 export const strategies: Record<string, PretrustStrategy> = {
 	pretrustOGs,
-	pretrustFirstFifty
+	pretrustFirstFifty,
+	pretrustAllEqually
 }
