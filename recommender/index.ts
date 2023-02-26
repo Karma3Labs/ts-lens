@@ -178,16 +178,12 @@ export default class Recommender {
 
 	static async getRankOfUserByHandle(strategyId: number, handle: string): Promise<number> {
 		const res = await db('globaltrust')
-			.select('i', 'v', db.raw('row_number() over (order by v desc) as rank'), 'handle')
+			.select('i', 'v', 'strategy_id', db.raw('row_number() over (order by v desc) as rank'), 'handle')
 			.innerJoin('profiles', 'globaltrust.i', 'profiles.id')
-			.where({ strategyId, handle })
+			.where('profiles.handle', handle )
 			.orderBy('v', 'desc')
 			.first()
 		
-		if (!res) {
-			throw new Error('handle is not in globaltrust')
-		}
-		
-		return +res.rank
+		return res && +res.rank
 	}	
 }

@@ -39,7 +39,7 @@ export default (recommender: Recommender) => {
 			return res.status(400).send('Missing strategy_id')
 		}
 
-		return res.send({ count: Recommender.getGlobaltrustLength(strategyId) })
+		return res.send({ count: await Recommender.getGlobaltrustLength(strategyId) })
 	})
 
 	app.get('/ranking_index', async (req: Request, res: Response) => {
@@ -53,15 +53,11 @@ export default (recommender: Recommender) => {
 			return res.status(400).send('Missing strategy_id')
 		}
 
-		const profile = await db('profiles')
-			.select('id')
-			.where('handle', handle).first()
-
-		if (!profile) {
-			throw new Error('Profile does not exist')
+		const rank = await Recommender.getRankOfUserByHandle(strategyId, handle);
+		if (!rank ) {
+			return res.status(400).send('Handle is not in globaltrust')
 		}
-
-		+profile.id
+		res.send({ rank })
 	})
 
 	app.get('/rankings', async (req: Request, res: Response) => {
@@ -78,6 +74,11 @@ export default (recommender: Recommender) => {
 			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId)
 			const ids = globaltrust.slice(offset, offset + limit).map(({ i }) => i )
 			const profiles = await getProfilesFromIdsOrdered(ids)
+
+			profiles.forEach((profile: any, i) => {
+				profile.rank = offset + i
+			})
+
 			res.send(profiles)
 		}
 		catch (e: unknown) {
