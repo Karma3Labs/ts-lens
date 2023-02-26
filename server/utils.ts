@@ -13,33 +13,37 @@ export const getProfilesFromIdsOrdered = async (ids: number[]): Promise<{id: num
 	return profiles
 }
 
-export const getIdFromQueryParams = async (query: Record<string, any>): Promise<number> => {
-	if (query.id) {
-		if (isNaN(query.id)) {
-			throw new Error('Invalid id') 
-		}
-
-		const { count } = await db('profiles')
-			.count({ count: '*' })
-			.where('id', query.id)
-
-		if (+count === 0) {
-			throw new Error('Id does not exist')
-		}
-
-		return +query.id
+export const getHandleFromQueryParams = async (query: any): Promise<string> => {
+	if (!query.handle) {
+		throw Error('Handle is required')
 	}
 
-	if (query.handle) {
-		const stripped = (query.handle as string).trim() 
-		const record = await db('profiles').select('id').where('handle', stripped).first()
-
-		if (!record) {
-			throw new Error('Address does not exist')
-		}
-
-		return +record.id
+	const handle = (query.handle as string).trim() 
+	const record = await db('profiles').select('id').where({ handle }).first()
+	if (!record) {
+		throw new Error('Handle does not exist')
 	}
 
-	throw new Error('Either handle or id should be provided')
+	return handle
+}
+
+export const getIdFromHandle = async (handle: string): Promise<number> => {
+	const { id } = await db('profiles').select('id').where({ handle }).first()
+	return +id
+}
+
+export const getStrategyIdFromQueryParams = async (query: any): Promise<number> => {
+	if (!query.strategy_id) {
+		throw Error('Strategy id is required')
+	}
+	if (isNaN(+query.strategy_id)) { 
+		throw Error("Invalid strategy id")
+	}
+
+	const record = await db('strategies').select('id').where('id', query.strategy_id).first()
+	if (!record) {
+		throw new Error('Strategy id does not exist')
+	}
+
+	return +query.strategy_id
 }

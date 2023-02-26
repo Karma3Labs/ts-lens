@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
 import { getDB } from '../utils'
-import { getIdFromQueryParams, getProfilesFromIdsOrdered } from './utils'
+import { getHandleFromQueryParams, getIdFromHandle, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams } from './utils'
 
 const app = express()
 const PORT = 8080
@@ -15,62 +15,80 @@ const db = getDB()
 
 export default (recommender: Recommender) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
+		let id: number
 		try {
-			const id = await getIdFromQueryParams(req.query)
-			console.log('Recommeding for id: ', id)
+			const handle = await getHandleFromQueryParams(req.query)
+			id = await getIdFromHandle(handle)
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
+		}
 
+		console.log('id', id)
+		try {
 			const ids = await recommender.recommend(50, id)
 			const profiles = await getProfilesFromIdsOrdered(ids)
-			console.log(ids)
-
-			res.send(profiles)
+			return res.send(profiles)
 		}
-		catch (e: unknown) {
-			if (e instanceof Error) {
-				console.log(`[SERVER] ${e.message} for input:`, req.query)
-				return res.status(400).send(e.message) //TODO: Parameterize HTTP codes
-			}
+		catch (e: any) {
+			console.error(`Error in /suggest for id: ${id}`, e)
+			res.status(500).send('Computation failed')
 		}
 	})
 
 	app.get('/rankings_count', async (req: Request, res: Response) => {
-		const strategyId = req.query.strategy_id ? +req.query.strategy_id : undefined
-		if (!strategyId) {
-			return res.status(400).send('Missing strategy_id')
+		let strategyId: number
+		try {
+			strategyId = await getStrategyIdFromQueryParams(req.query)
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
 		}
 
-		return res.send({ count: await Recommender.getGlobaltrustLength(strategyId) })
+		try {
+			const count = await Recommender.getGlobaltrustLength(strategyId)
+			return res.send({ count })
+		}
+		catch (e: any) {
+			console.error(`Error in /rankings_count for strategyId: ${strategyId}`, e)
+			res.status(500).send('Could not get rankings count')
+		}
 	})
 
 	app.get('/ranking_index', async (req: Request, res: Response) => {
-		if (!req.query.handle) {
-			return res.status(400).send('Handle must be provided')
-		}
-		const handle = (req.query.handle as string).trim() 
+		let handle: string, strategyId: number
 
-		const strategyId = req.query.strategy_id ? +req.query.strategy_id : undefined
-		if (!strategyId) {
-			return res.status(400).send('Missing strategy_id')
+		try {
+			handle = await getHandleFromQueryParams(req.query)
+			strategyId = await getStrategyIdFromQueryParams(req.query)
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
 		}
 
-		const rank = await Recommender.getRankOfUserByHandle(strategyId, handle);
-		if (!rank ) {
-			return res.status(400).send('Handle is not in globaltrust')
+		try {
+			const rank = await Recommender.getRankOfUserByHandle(strategyId, handle);
+			return res.send({ rank })
 		}
-		res.send({ rank })
+		catch (e: any) {
+			console.error(`Error in /ranking_index for handle: ${handle} and strategyId: ${strategyId}`, e)
+			res.status(500).send('Could not get ranking index')
+		}
 	})
 
 	app.get('/rankings', async (req: Request, res: Response) => {
+		const limit = req.query.limit ? +req.query.limit : 50
+		const offset = req.query.offset ? +req.query.offset : 0
+		let strategyId: number
 		try {
-			const limit = req.query.limit ? +req.query.limit : 50
-			const offset = req.query.offset ? +req.query.offset : 0
-			const strategyId = req.query.strategy_id ? +req.query.strategy_id : undefined
-
-			if (!strategyId) {
-				return res.status(400).send('Missing strategyId')
-			}
+			strategyId = await getStrategyIdFromQueryParams(req.query)
 			console.log(`Recommeding rankings in range [${offset}, ${offset + limit}]`)
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
+		}
 
+		try {
 			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId)
 			const ids = globaltrust.slice(offset, offset + limit).map(({ i }) => i )
 			const profiles = await getProfilesFromIdsOrdered(ids)
@@ -79,13 +97,11 @@ export default (recommender: Recommender) => {
 				profile.rank = offset + i
 			})
 
-			res.send(profiles)
-		}
-		catch (e: unknown) {
-			if (e instanceof Error) {
-				console.log(`[SERVER] ${e.message} for input:`, req.query)
-				return res.status(400).send(e.message) //TODO: Parameterize HTTP codes
-			}
+			return res.send(profiles)
+		} 
+		catch (e: any) {
+			console.log(`Error in /rankings for strategyId: ${strategyId}`, e)
+			return res.status(500).send('Could not get rankings')
 		}
 	})
 

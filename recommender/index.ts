@@ -177,13 +177,14 @@ export default class Recommender {
 	}	
 
 	static async getRankOfUserByHandle(strategyId: number, handle: string): Promise<number> {
-		const res = await db('globaltrust')
-			.select('i', 'v', 'strategy_id', db.raw('row_number() over (order by v desc) as rank'), 'handle')
-			.innerJoin('profiles', 'globaltrust.i', 'profiles.id')
-			.where('profiles.handle', handle )
-			.orderBy('v', 'desc')
-			.first()
+		const res = await db.with('globaltrust_ranks', (qb: any) => {
+			return qb.from('globaltrust')
+				.select('i', 'v', 'strategy_id', db.raw('row_number() over (order by v desc) as rank'), 'handle')
+				.innerJoin('profiles', 'globaltrust.i', 'profiles.id')
+				.where('strategy_id', strategyId)
+				.orderBy('v', 'desc')
+		}).select('rank').from('globaltrust_ranks').where('handle', handle).first()
 		
-		return res && +res.rank
-	}	
+		return res && res.rank
+	}
 }
