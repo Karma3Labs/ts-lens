@@ -1,9 +1,17 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
+import { getDB } from '../utils'
 import { getIdFromQueryParams, getProfilesFromIdsOrdered } from './utils'
 
 const app = express()
 const PORT = 8080
+const db = getDB()
+
+/**
+ * * ranks instead of ids
+ * * rankings_count
+ * * ranking_index (handle)
+*/
 
 export default (recommender: Recommender) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
@@ -23,6 +31,37 @@ export default (recommender: Recommender) => {
 				return res.status(400).send(e.message) //TODO: Parameterize HTTP codes
 			}
 		}
+	})
+
+	app.get('/rankings_count', async (req: Request, res: Response) => {
+		const strategyId = req.query.strategy_id ? +req.query.strategy_id : undefined
+		if (!strategyId) {
+			return res.status(400).send('Missing strategy_id')
+		}
+
+		return res.send({ count: Recommender.getGlobaltrustLength(strategyId) })
+	})
+
+	app.get('/ranking_index', async (req: Request, res: Response) => {
+		if (!req.query.handle) {
+			return res.status(400).send('Handle must be provided')
+		}
+		const handle = (req.query.handle as string).trim() 
+
+		const strategyId = req.query.strategy_id ? +req.query.strategy_id : undefined
+		if (!strategyId) {
+			return res.status(400).send('Missing strategy_id')
+		}
+
+		const profile = await db('profiles')
+			.select('id')
+			.where('handle', handle).first()
+
+		if (!profile) {
+			throw new Error('Profile does not exist')
+		}
+
+		+profile.id
 	})
 
 	app.get('/rankings', async (req: Request, res: Response) => {

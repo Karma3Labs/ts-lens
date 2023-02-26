@@ -157,13 +157,37 @@ export default class Recommender {
 	static async getGlobaltrustByStrategyId(strategyId: number): Promise<GlobalTrust> {
 		const globaltrust = await db('globaltrust')
 			.where({ strategyId })
+			.select('i', 'v', db.raw('row_number() over (order by v desc) as rank'))
 			.orderBy('v', 'desc')
-			.select()
 
 		if (!globaltrust.length) {
 			throw new Error(`No globaltrust found in DB for strategy id: ${strategyId}`)
 		}
 
 		return globaltrust
+	}	
+
+	static async getGlobaltrustLength(strategyId: number): Promise<number> {
+		const { count } = await db('globaltrust')
+			.where('strategy_id', strategyId)
+			.count()
+			.first()
+
+		return +count
+	}	
+
+	static async getRankOfUserByHandle(strategyId: number, handle: string): Promise<number> {
+		const res = await db('globaltrust')
+			.select('i', 'v', db.raw('row_number() over (order by v desc) as rank'), 'handle')
+			.innerJoin('profiles', 'globaltrust.i', 'profiles.id')
+			.where({ strategyId, handle })
+			.orderBy('v', 'desc')
+			.first()
+		
+		if (!res) {
+			throw new Error('handle is not in globaltrust')
+		}
+		
+		return +res.rank
 	}	
 }

@@ -31,7 +31,7 @@ export type Mirror = {
 
 export type EthAddress = string
 export type Pretrust = { i: number, v: number }[]
-export type GlobalTrust = { i: number, v: number }[]
+export type GlobalTrust = { i: number, v: number, rank?: number }[]
 export type LocalTrust =  { i: number, j: number, v: number }[]
 export type GlobalTrustEntries = [number, number][]
 export type Entry = [ number, number ] 
