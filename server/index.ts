@@ -1,17 +1,9 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
-import { getDB } from '../utils'
 import { getHandleFromQueryParams, getIdFromHandle, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams } from './utils'
 
 const app = express()
 const PORT = 8080
-const db = getDB()
-
-/**
- * * ranks instead of ids
- * * rankings_count
- * * ranking_index (handle)
-*/
 
 export default (recommender: Recommender) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
@@ -23,8 +15,8 @@ export default (recommender: Recommender) => {
 		catch (e: any) {
 			return res.status(400).send(e.message)
 		}
+		console.log(`Suggesting personalized for id: ${id}`)
 
-		console.log('id', id)
 		try {
 			const ids = await recommender.recommend(50, id)
 			const profiles = await getProfilesFromIdsOrdered(ids)
@@ -44,6 +36,7 @@ export default (recommender: Recommender) => {
 		catch (e: any) {
 			return res.status(400).send(e.message)
 		}
+		console.log(`Recommeding rankings count for strategyId: ${strategyId}`)
 
 		try {
 			const count = await Recommender.getGlobaltrustLength(strategyId)
@@ -65,6 +58,7 @@ export default (recommender: Recommender) => {
 		catch (e: any) {
 			return res.status(400).send(e.message)
 		}
+		console.log(`Recommeding ranking index for handle: ${handle} and strategyId: ${strategyId}`)
 
 		try {
 			const rank = await Recommender.getRankOfUserByHandle(strategyId, handle);
@@ -82,11 +76,11 @@ export default (recommender: Recommender) => {
 		let strategyId: number
 		try {
 			strategyId = await getStrategyIdFromQueryParams(req.query)
-			console.log(`Recommeding rankings in range [${offset}, ${offset + limit}]`)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
 		}
+		console.log(`Recommeding rankings in range [${offset}, ${offset + limit}]`)
 
 		try {
 			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId)
