@@ -20,6 +20,9 @@ export default (recommender: Recommender) => {
 		try {
 			const ids = await recommender.recommend(50, id)
 			const profiles = await getProfilesFromIdsOrdered(ids)
+			profiles.map((profile: any, i: number) => {
+				profile.rank = i
+			})
 			return res.send(profiles)
 		}
 		catch (e: any) {
