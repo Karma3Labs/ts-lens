@@ -62,7 +62,6 @@ const useFollowsRecursive: PersonalizationStrategy = async (
             FROM sorted
             ORDER BY v DESC LIMIT :limit
 		`, {strategyId, limit})).rows as { i: number, v: number }[]
-		console.log(rows)
 		return trx.commit()
 	})
 	return rows.map(({i}: { i: number }) => i)
@@ -129,7 +128,6 @@ const useLocalTrustRecursive: PersonalizationStrategy = async (
               AND f.matched ISNULL
             ORDER BY v DESC LIMIT :limit
 		`, {id, limit})).rows as { i: number, v: number }[]
-		console.log(rows)
 		return trx.commit()
 	})
 	return rows.map(({i}: { i: number }) => i)
