@@ -118,9 +118,8 @@ const useLocalTrustRecursive: PersonalizationStrategy = async (
                                 WHERE follower = :id)
             SELECT i, v
             FROM t
-                     LEFT JOIN followings f
-                               ON t.i = f.following
-            WHERE id <> :id
+                     LEFT JOIN followings f USING (i)
+            WHERE i <> :id
               AND f.matched ISNULL
             ORDER BY v DESC LIMIT :limit
 		`, {id, limit})).rows as { i: number, v: number }[]
