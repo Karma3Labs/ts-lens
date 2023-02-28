@@ -97,17 +97,13 @@ const useLocalTrustRecursive: PersonalizationStrategy = async (
 		const iterate = async () => {
 			await trx.raw(`
 				INSERT INTO t (i, v)
-					SELECT j AS i, sum(lt.v * t.v)
+					SELECT j AS i, 0.1 * sum(lt.v * t.v)
 					FROM weighted_localtrust lt
 					JOIN t USING (i)
 					WHERE lt.name = :localtrust
 					GROUP BY j
 					ON CONFLICT (i) DO UPDATE SET v = EXCLUDED.v
 			`, {localtrust})
-			await trx.raw(`
-                UPDATE t
-                SET v = v * 0.1
-			`)
 			await trx.raw(`
                 UPDATE t
                 SET v = v + 0.9
