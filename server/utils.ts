@@ -19,10 +19,15 @@ export const getHandleFromQueryParams = async (query: any): Promise<string> => {
 	}
 
 	const handle = (query.handle as string).trim() 
-	const record = await db('profiles').select('id').where({ handle }).first()
+	let record = await db('profiles').select('id').where({ handle }).first()
 	if (!record) {
+		const handleLens = `${handle}.lens`
+		record = await db('profiles').select('id').where({ handle: handleLens }).first()
+		if (record) return handleLens
+
 		throw new Error('Handle does not exist')
 	}
+
 
 	return handle
 }
