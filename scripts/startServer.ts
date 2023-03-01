@@ -23,7 +23,7 @@ const main = async () => {
 		.option('personalization', {
 			describe: 'Strategy that should be used to generate personalized results from the global trust.',
 			type: 'string',
-			default: 'useLocalTrustRecursive',
+			default: 'useFollowsRecursive',
 		}) 
 		.option('alpha', {
 			describe: 'A weight denoting how much the pretrust should affect the global trust',
