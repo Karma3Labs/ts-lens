@@ -37,10 +37,6 @@ const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
 
-	const maxComments = comments
-		.reduce((max: number, { count }: {count: number}) =>
-		Math.max(max, count), 0)
-
 	let commentsMap: any = {}
 	for (const { profileId, toProfileId, count } of comments) {
 		commentsMap[profileId] = commentsMap[toProfileId] || {}
@@ -55,10 +51,6 @@ const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
 	console.log('length of mirrors', mirrors.length)
-
-	const maxMirrors = mirrors
-		.reduce((max: number, { count }: {count: number}) =>
-		Math.max(max, count), 0)
 
 	let mirrorsMap: any = {}
 	for (const { profileId, toProfileId, count } of mirrors) {
@@ -79,8 +71,8 @@ const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust
 		localtrust.push({
 			i: followerId,
 			j: followingId,
-			v: 5 * (commentsCount / maxComments) + 
-			   8 * mirrorsCount / maxMirrors +
+			v: 5 * commentsCount +
+			   8 * mirrorsCount +
 			   1
 		})
 	}
