@@ -120,7 +120,7 @@ export default class Recommender {
 			
 			await db('globaltrust')
 				.insert(chunk)
-				.onConflict(['strategy_id', 'i']).merge()
+				.onConflict(['strategy_id', 'date', 'i']).merge()
 		}
 	}
 

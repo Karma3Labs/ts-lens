@@ -4,10 +4,12 @@
  */
 exports.up = function (knex) {
 	return knex.schema.alterTable('globaltrust', (table) => {
-		table.timestamp('timestamp').defaultTo(knex.fn.now());
-		table.index(['strategy_id', 'timestamp'])
-		table.index(['strategy_id', 'timestamp', 'i'])
-	});
+		table.date('date').defaultTo(knex.fn.now());
+		table.index(['strategy_id', 'date']);
+		table.unique(['strategy_id', 'date', 'i']);
+	})
+		.raw('alter table globaltrust drop constraint globaltrust_strategy_id_i_unique')
+		.raw('drop index globaltrust_strategy_id_index')
 };
 
 /**
@@ -16,8 +18,8 @@ exports.up = function (knex) {
  */
 exports.down = function (knex) {
 	return knex.schema.alterTable('globaltrust', (table) => {
-		table.dropColumn('timestamp');
-		table.dropIndex(['strategy_id', 'timestamp'])
-		table.dropIndex(['strategy_id', 'timestamp', 'i'])
+		table.dropColumn('date');
+		table.unique(['strategy_id', 'i']);
+		table.index(['strategy_id']);
 	})
 };
