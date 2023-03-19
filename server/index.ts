@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express'
 import Recommender from '../recommender/index'
-import { getHandleFromQueryParams, getIdFromHandle, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams } from './utils'
+import { getHandleFromQueryParams, getIdFromHandle, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
 
 const app = express()
 const PORT = 8080
@@ -32,9 +32,10 @@ export default (recommender: Recommender) => {
 	})
 
 	app.get('/rankings_count', async (req: Request, res: Response) => {
-		let strategyId: number
+		let strategyId: number, date: string
 		try {
 			strategyId = await getStrategyIdFromQueryParams(req.query)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
@@ -42,7 +43,7 @@ export default (recommender: Recommender) => {
 		console.log(`Recommeding rankings count for strategyId: ${strategyId}`)
 
 		try {
-			const count = await Recommender.getGlobaltrustLength(strategyId)
+			const count = await Recommender.getGlobaltrustLength(strategyId, date)
 			return res.send({ count })
 		}
 		catch (e: any) {
@@ -53,10 +54,12 @@ export default (recommender: Recommender) => {
 
 	app.get('/ranking_index', async (req: Request, res: Response) => {
 		let handle: string, strategyId: number
+		let date: string
 
 		try {
 			handle = await getHandleFromQueryParams(req.query)
 			strategyId = await getStrategyIdFromQueryParams(req.query)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
@@ -64,7 +67,7 @@ export default (recommender: Recommender) => {
 		console.log(`Recommeding ranking index for handle: ${handle} and strategyId: ${strategyId}`)
 
 		try {
-			const rank = await Recommender.getRankOfUserByHandle(strategyId, handle);
+			const rank = await Recommender.getRankOfUserByHandle(strategyId, handle, date);
 			return res.send({ rank })
 		}
 		catch (e: any) {
@@ -76,9 +79,10 @@ export default (recommender: Recommender) => {
 	app.get('/rankings', async (req: Request, res: Response) => {
 		const limit = req.query.limit ? +req.query.limit : 50
 		const offset = req.query.offset ? +req.query.offset : 0
-		let strategyId: number
+		let strategyId: number, date: string
 		try {
 			strategyId = await getStrategyIdFromQueryParams(req.query)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
@@ -86,7 +90,7 @@ export default (recommender: Recommender) => {
 		console.log(`Recommeding rankings in range [${offset}, ${offset + limit}]`)
 
 		try {
-			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId)
+			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId, date)
 			const ids = globaltrust.slice(offset, offset + limit).map(({ i }) => i )
 			const profiles = await getProfilesFromIdsOrdered(ids)
 

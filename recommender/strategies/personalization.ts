@@ -19,8 +19,11 @@ const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, str
         SELECT i, v * CASE WHEN follower_id = :id THEN 5 ELSE 1 END AS trust
         FROM globaltrust
                  LEFT JOIN profile_follows ON globaltrust.i = profile_follows.following_id
+		WHERE 
+		strategy_id = :strategyId
+		AND date = (SELECT MAX(date) FROM globaltrust)
         ORDER BY trust DESC limit :limit
-	`, {id, limit}) as { rows: { i: number, trust: number }[] }
+	`, {id, limit, strategyId}) as { rows: { i: number, trust: number }[] }
 
 	return rows.map(({i}: { i: number }) => i)
 }
@@ -57,7 +60,9 @@ const useFollowsRecursive: PersonalizationStrategy = async (
             WITH sorted AS (SELECT gt.i, gt.v * COALESCE(f.l, 1) AS v
                             FROM globaltrust gt
                                      LEFT JOIN f USING (i)
-                            WHERE strategy_id = :strategyId)
+                            WHERE strategy_id = :strategyId
+							AND date = (SELECT MAX(date) FROM globaltrust)
+							)
             SELECT *
             FROM sorted
             ORDER BY v DESC LIMIT :limit
@@ -93,6 +98,7 @@ const useLocalTrustRecursive: PersonalizationStrategy = async (
 				SELECT i, v
 				FROM globaltrust
 				WHERE strategy_id = :strategyId
+				AND date = (SELECT MAX(date) FROM globaltrust)
 		`, {strategyId})
 		const iterate = async () => {
 			await trx.raw(`

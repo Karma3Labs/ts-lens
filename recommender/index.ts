@@ -154,9 +154,11 @@ export default class Recommender {
 		return parsedGlobaltrust.sort((a, b) => b.v - a.v)
 	}
 
-	static async getGlobaltrustByStrategyId(strategyId: number): Promise<GlobalTrust> {
+	static async getGlobaltrustByStrategyId(strategyId: number, date?: string): Promise<GlobalTrust> {
+		date = date || await this.getLatestDateByStrategyId(strategyId)
+
 		const globaltrust = await db('globaltrust')
-			.where({ strategyId })
+			.where({ strategyId, date })
 			.select('i', 'v', db.raw('row_number() over (order by v desc) as rank'))
 			.orderBy('v', 'desc')
 
@@ -167,24 +169,37 @@ export default class Recommender {
 		return globaltrust
 	}	
 
-	static async getGlobaltrustLength(strategyId: number): Promise<number> {
+	static async getGlobaltrustLength(strategyId: number, date?: string): Promise<number> {
+		date = date || await this.getLatestDateByStrategyId(strategyId)
+
 		const { count } = await db('globaltrust')
-			.where('strategy_id', strategyId)
+			.where({ strategyId, date })
 			.count()
 			.first()
 
 		return +count
 	}	
 
-	static async getRankOfUserByHandle(strategyId: number, handle: string): Promise<number> {
+	static async getRankOfUserByHandle(strategyId: number, handle: string, date?: string): Promise<number> {
+		date = date || await this.getLatestDateByStrategyId(strategyId)
+
 		const res = await db.with('globaltrust_ranks', (qb: any) => {
 			return qb.from('globaltrust')
 				.select('i', 'v', 'strategy_id', db.raw('row_number() over (order by v desc) as rank'), 'handle')
 				.innerJoin('profiles', 'globaltrust.i', 'profiles.id')
-				.where('strategy_id', strategyId)
+				.where({ strategyId, date })
 				.orderBy('v', 'desc')
 		}).select('rank').from('globaltrust_ranks').where('handle', handle).first()
-		
+
 		return res && res.rank
+	}
+
+	static async getLatestDateByStrategyId(strategyId: number): Promise<string> {
+		const { date } = await db('globaltrust')
+			.where('strategy_id', strategyId)
+			.max('date as date')
+			.first()
+		
+		return date
 	}
 }
