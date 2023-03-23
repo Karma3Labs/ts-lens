@@ -9,7 +9,7 @@ const db = getDB()
 */
 
 const getFollows = async () => {
-	const follows = db('follows')
+	const follows = await db('follows')
 	.select('profile_id as following_id', 'profiles.id as follower_id')
 	.innerJoin('profiles', 'owner_address', 'follower_address')
 
