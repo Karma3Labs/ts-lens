@@ -19,6 +19,7 @@ paths:
           required: true
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/Backdate"
       responses:
         200:
           description: Query succeeded.
@@ -48,6 +49,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/StrategyId"
           required: true
+        - $ref: "#/components/parameters/Backdate"
       responses:
         200:
           description: Query succeeded.
@@ -76,6 +78,7 @@ paths:
           required: true
         - $ref: "#/components/parameters/ProfileHandle"
           required: true
+        - $ref: "#/components/parameters/Backdate"
       responses:
         200:
           description: Query succeeded.
@@ -168,6 +171,14 @@ components:
       schema:
         type: integer
       description: Number of entries to return.
+    Backdate:
+      name: date
+      in: query
+      schema:
+        type: string
+      description: |
+        A date, in `YYYY-MM-DD` format, for which to return the historic result.
+        If absent, the request returns the current (most recent) result.
   responses:
     HTTP400ErrorMessage:
       description: |
