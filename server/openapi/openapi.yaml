@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: ts-lens
+  description: ts-lens
+  version: 0.0.1
+servers:
+  - url: 'http://lens-api.k3l.io/'
+paths:
+  /rankings:
+    get:
+      summary: List the current profile score ranking, highest score first
+      description: |
+        Returns the global ranking of profiles according to the given strategy.
+        
+        The result is paginated, using the `offset` and `limit` parameters.
+      operationId: getRankings
+      parameters:
+        - $ref: "#/components/parameters/StrategyId"
+          required: true
+        - $ref: "#/components/parameters/PaginationOffset"
+        - $ref: "#/components/parameters/PaginationLimit"
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+                description: |
+                  The requested profiles, whose ranking is
+                  in the `[limit, limit+offset)` range.
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+  /rankings_count:
+    get:
+      summary: Return the number of ranked users
+      description: |
+        Returns the number of users in the ranking for the given strategy.
+        
+        This can be used, for example, to display the number of pages
+        on the paginated UI.
+      operationId:
+        getNumberOfRankings
+      parameters:
+        - $ref: "#/components/parameters/StrategyId"
+          required: true
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: |
+                      The number of ranking entries (with non-zero trust).
+                required:
+                  - count
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+  /ranking_index:
+    get:
+      summary: Return the ranking of the given user.
+      description: OMG
+      operationId: getRankingIndex
+      parameters:
+        - $ref: "#/components/parameters/StrategyId"
+          required: true
+        - $ref: "#/components/parameters/ProfileHandle"
+          required: true
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rank:
+                    type: integer
+                    description: Zero-based ranking of the user.
+                required:
+                  - rank
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+components:
+  parameters:
+    StrategyId:
+      name: strategy_id
+      in: query
+      schema:
+        type: integer
+      description: |
+        ID of the EigenTrust scoring strategy.
+        
+        An EigenTrust scoring strategy is expressed
+        in terms of two sub-strategies:
+        
+        - Local trust (LT) strategy: Models peer-to-peer trust.
+        - Pre-trust (PT) strategy: Models seed trust.
+        
+        | ID  | LT Strategy | PT Strategy |
+        | --- | ------------| ----------- |
+        | 1   | Follows     | Lens OG     |
+        | 3   | Engagement  | Lens OG     |
+        | 585 | Follows     | Global      |
+        | 587 | Engagement  | Global      |
+        
+        Current local trust strategies define local trust that A places on B
+        as a weighted sum (linear combination) of various trust components
+        
+        - Followership: 1 if A follows B, 0 otherwise.
+        - Comments: Number of comments that A made on B's posts
+        - Mirrors: Number of B's posts that A mirrored.
+        
+        Below are the component weights for each LT strategy:
+        
+        | LT Strategy | Followership | Comments | Mirrors |
+        | ----------- | ------------ | -------- | ------- |
+        | Follow      | 1            | -        | -       |
+        | Engagement  | 1            | 5        | 8       |
+        
+        Pre-trust (seed trust) is a mechanism of enabling non-uniform boost of
+        specific pre-trusted peers on the network.
+        
+        The “Lens OG” pre-trust strategy boosts 10 “OG” Lensters' trust opinion:
+        
+        | Handle              | Profile ID |
+        | ------------------- | ---------- |
+        | chriscomrie.lens    |      73557 |
+        | levychain.lens      |       3297 |
+        | stani.lens          |          5 |
+        | bradorbradley.lens  |         36 |
+        | cristinaspinei.lens |       4231 |
+        | goodkrak.lens       |      89805 |
+        | jamesfinnerty.lens  |     105878 |
+        | ryanfox.lens        |      90724 |
+        | christina.lens      |        142 |
+        | blackdave.lens      |      36284 |
+        
+        The “Global” pre-trust strategy is a neutral, unbiased strategy:
+        It does not boost anyone's trust opinions.
+    ProfileHandle:
+      name: handle
+      in: query
+      schema:
+        type: string
+      description: The Lens profile handle.
+    PaginationOffset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+      description: Starting offset, zero-based.
+    PaginationLimit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+      description: Number of entries to return.
+  responses:
+    HTTP400ErrorMessage:
+      description: |
+        Invalid request, ex: wrong parameters.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+    HTTP500ErrorMessage:
+      description: |
+        Internal server error, not caused by issues with the request.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+  schemas:
+    ErrorMessage:
+      description: A human-readable error message.
+      type: string
+    Profile:
+      description: A user profile.
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Lens profile ID.
+        handle:
+          type: string
+          description: Lens profile handle.
+        followersCount:
+          type: integer
+          description: Number of followers.
+        rank:
+          type: integer
+          description: Ranking of the user, zero-based.
+      required:
+        - id
+        - handle
+        - followersCount
+      examples:
+        - id: 12
+          handle: lenster.lens
+          followersCount: 38973
+          rank: 11
+        - id: 90724
+          handle: ryanfox.lens
+          followersCount: 813
