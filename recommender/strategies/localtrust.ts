@@ -8,31 +8,16 @@ const db = getDB()
  * Generates basic localtrust by transforming all existing connections
 */
 
-const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
-	const follows = await db('follows')
+const getFollows = async () => {
+	const follows = db('follows')
 	.select('profile_id as following_id', 'profiles.id as follower_id')
 	.innerJoin('profiles', 'owner_address', 'follower_address')
 
-	const localtrust: LocalTrust = []
-	for (const { followerId, followingId } of follows) {
-		localtrust.push({
-			i: followerId,
-			j: followingId,
-			v: 1
-		})
-	}
-
-	return localtrust
+	console.log('length of follows', follows.length)
+	return follows
 }
 
-/**
- * Generates localtrust by taking into consuderation the number of likes between
- * two users.
-*/
-const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
-	/**
-	 * Generate comments data
-	*/
+const getCommentCounts = async () => {
 	const comments = await db('comments')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
@@ -42,15 +27,15 @@ const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust
 		commentsMap[profileId] = commentsMap[toProfileId] || {}
 		commentsMap[profileId][toProfileId] = +count
 	}
-	console.log('length of comments', comments.length)
 
-	/**
-	 * Generate mirrors data
-	*/
+	console.log('length of comments', comments.length)
+	return commentsMap
+}
+
+const getMirrorCounts = async () => {
 	const mirrors = await db('mirrors')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
-	console.log('length of mirrors', mirrors.length)
 
 	let mirrorsMap: any = {}
 	for (const { profileId, toProfileId, count } of mirrors) {
@@ -58,31 +43,66 @@ const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust
 		mirrorsMap[profileId][toProfileId] = +count
 	}
 
-	const localtrust: LocalTrust = []
+	console.log('length of mirrors', mirrors.length)
+	return mirrorsMap
+}
 
-	const follows = await db('follows')
-		.select('profile_id as following_id', 'profiles.id as follower_id')
-		.innerJoin('profiles', 'owner_address', 'follower_address')
+const getCollectCounts = async () => {
+	const collects = await db('collects')
+		.select('profile_id as to_profile_id', 'profiles.id as from_profile_id', db.raw('count(1) as count'))
+		.innerJoin('profiles', 'collector_address', 'owner_address')
+		.groupBy('profile_id', 'profiles.id')
+
+	let collectsMap: any = {}
+	for (const { fromProfileId, toProfileId, count } of collects) {
+		collectsMap[fromProfileId] = collectsMap[toProfileId] || {}
+		collectsMap[fromProfileId][toProfileId] = +count
+	}
+
+	console.log('length of collects', collects.length)
+	return collectsMap
+}
+
+const getLocaltrust = async (followsWeight: number, commentsWeight: number, mirrorsWeight: number, collectsWeight: number) => {
+	const follows = followsWeight > 0 ? await getFollows() : null
+	const commentsMap = commentsWeight > 0 ? await getCommentCounts() : null
+	const mirrorsMap = mirrorsWeight > 0 ? await getMirrorCounts() : null
+	const collectsMap = collectsWeight > 0 ? await getCollectCounts() : null
+
+	let localtrust: LocalTrust = []
 
 	for (const { followerId, followingId } of follows) {
-		const commentsCount = commentsMap[followerId] && commentsMap[followerId][followingId] || 0
-		const mirrorsCount = mirrorsMap[followerId] && mirrorsMap[followerId][followingId] || 0
+		const commentsCount = commentsMap && commentsMap[followerId] && commentsMap[followerId][followingId] || 0
+		const mirrorsCount = mirrorsMap && mirrorsMap[followerId] && mirrorsMap[followerId][followingId] || 0
+		const collectsCount = collectsMap && collectsMap[followerId] && collectsMap[followerId][followingId] || 0
 
 		localtrust.push({
 			i: followerId,
 			j: followingId,
-			v: 5 * commentsCount +
-			   8 * mirrorsCount +
-			   1
+			v: commentsWeight * commentsCount +
+			   mirrorsWeight * mirrorsCount +
+			   collectsWeight * collectsCount +
+			   followsWeight 
 		})
 	}
-	
-	console.log('length of localtrust', localtrust.length)
 
 	return localtrust
 }
 
+const existingConnections = async (): Promise<LocalTrust> => {
+	return getLocaltrust(1, 0, 0, 0)
+}
+
+const c5m8enhancedConnections = async (): Promise<LocalTrust> => {
+	return getLocaltrust(1, 5, 8, 0)
+}
+
+const c5m8col10enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
+	return getLocaltrust(1, 5, 8, 10)
+}
+
 export const strategies: Record<string, LocaltrustStrategy> = {
 	existingConnections,
-	c5m8enhancedConnections
+	c5m8enhancedConnections,
+	c5m8col10enhancedConnections
 }

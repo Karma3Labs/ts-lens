@@ -2,6 +2,7 @@ import yargs from 'yargs'
 import path from 'path'
 import fs from 'fs'
 import { getDB } from '../utils'
+import Recommender from '../recommender'
 
 const db = getDB()
 
