@@ -29,19 +29,11 @@ const main = async () => {
 	
 	console.log(`Getting global trust for pretrust: ${argv.pretrust}, localtrust: ${argv.localtrust}, alpha: ${argv.alpha}`)
 
-	const globaltrust = await db('globaltrust')
-		.select('id', 'handle', 'v')
-		.innerJoin('profiles', 'profiles.id', 'globaltrust.i')
-		.where({ pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha })
-		.orderBy('v', 'desc')
-
-	if (globaltrust.length === 0) {
-		console.log("No global trust found for the given parameters. Consider running `yarn compute`")
-		return
-	}
-
+	const recommender = new Recommender(0, undefined)
+	await recommender.recalculate(false, argv)
+	
 	let csv = 'id,handle,globalTrust\n'
-	csv += globaltrust.map((r: any) => `${r.id},${r.handle},${r.v}`).join('\n')
+	csv += recommender.globaltrust.map((r: any) => `${r.id},${r.handle},${r.v}`).join('\n')
 	fs.writeFileSync(path.join(__dirname, '../../globaltrust.csv'), csv)
 
 	console.log('Done! (see globaltrust.csv)')

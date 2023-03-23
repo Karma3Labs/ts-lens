@@ -21,13 +21,13 @@ export default class Recommender {
 		public personalizationStrategy?: PersonalizationStrategy,
 	) {}
 
-	async recalculate() {
+	async recalculate(save = true, strategy?: { pretrust: string, localtrust: string, alpha: number }) {
 		this.ids = await getIds()
 		this.idsToIndex = objectFlip(this.ids)
 
-		const strategy = await db('strategies')
+		strategy = strategy || await db('strategies')
 			.where('id', this.strategyId)
-			.first()
+			.first() as { pretrust: string, localtrust: string, alpha: number }
 
 		const localtrustStrategy = ltStrategies[strategy.localtrust]
 		const pretrustStrategy = ptStrategies[strategy.pretrust]
@@ -46,7 +46,7 @@ export default class Recommender {
 		this.globaltrust = await this.runEigentrust(pretrust, localtrust, strategy.alpha)
 		console.log("Generated globaltrust")
 
-		await this.saveGlobaltrust()
+		save && await this.saveGlobaltrust()
 	}
 
 	async recommend(limit = 20, id: number): Promise<number[]> {
