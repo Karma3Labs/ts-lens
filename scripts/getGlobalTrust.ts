@@ -32,9 +32,18 @@ const main = async () => {
 
 	const recommender = new Recommender(0, undefined)
 	await recommender.recalculate(false, argv)
+
+	console.log("Calculation finished. Saving to CSV...")
+	const ids = recommender.globaltrust.map((r: any) => r.i)
+
+	const profiles = await db('profiles')
+		.select('id', 'handle')
+		.whereIn('id', ids)
+
+	profiles.sort((a: any, b: any) => ids.indexOf(a.id) - ids.indexOf(b.id))
 	
-	let csv = 'id,handle,globalTrust\n'
-	csv += recommender.globaltrust.map((r: any) => `${r.id},${r.handle},${r.v}`).join('\n')
+	let csv = 'id,handle\n'
+	csv += profiles.map((r: any) => `${r.id},${r.handle}`).join('\n')
 	fs.writeFileSync(path.join(__dirname, '../../globaltrust.csv'), csv)
 
 	console.log('Done! (see globaltrust.csv)')
