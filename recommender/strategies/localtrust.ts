@@ -97,12 +97,12 @@ const c5m8enhancedConnections = async (): Promise<LocalTrust> => {
 	return getLocaltrust(1, 5, 8, 0)
 }
 
-const c5m8col10enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
-	return getLocaltrust(1, 5, 8, 10)
+const c5m8col12enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
+	return getLocaltrust(1, 5, 8, 12)
 }
 
 export const strategies: Record<string, LocaltrustStrategy> = {
 	existingConnections,
 	c5m8enhancedConnections,
-	c5m8col10enhancedConnections
+	c5m8col12enhancedConnections
 }

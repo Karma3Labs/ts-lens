@@ -14,12 +14,12 @@ const main = async () => {
 			describe: 'Strategy that should be used to generate pretrust. The strategy should exist in recommender/strategies/pretrust.ts file and should not be personalized',
 			type: 'string',
 			default: 'pretrustAllEqually',
-		}) 
+		})
 		.option('localtrust', {
 			describe: 'Strategy that should be used to generate localtrust. The strategy should exist in recommender/strategies/localtrust.ts file',
 			type: 'string',
 			default: 'enhancedConnections',
-		}) 
+		})
 		.option('alpha', {
 			describe: 'A weight denoting how much the pretrust should affect the global trust',
 			type: 'number',
