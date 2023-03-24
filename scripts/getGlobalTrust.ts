@@ -27,23 +27,21 @@ const main = async () => {
 		})
 		.help()
 		.argv as { pretrust: string, localtrust: string, alpha: number }
-	
+
 	console.log(`Getting global trust for pretrust: ${argv.pretrust}, localtrust: ${argv.localtrust}, alpha: ${argv.alpha}`)
 
 	const recommender = new Recommender(0, undefined)
 	await recommender.recalculate(false, argv)
+ 	//recommender.globaltrust = [{i: 1, v: 2}, {i: 3, v: 1}, {i: 2, v: 0.5}]
+
 
 	console.log("Calculation finished. Saving to CSV...")
-	const ids = recommender.globaltrust.map((r: any) => r.i)
+	const ids = recommender.globaltrust.map((t: any) =>  t.i)
 
-	const profiles = await db('profiles')
-		.select('id', 'handle')
-		.whereIn('id', ids)
+	const profiles = await db.raw(`select profiles.id, handle from profiles join unnest('{${ids.join(',')}}'::int[]) with ordinality t(id,ord) using (id) order by t.ord`)
 
-	profiles.sort((a: any, b: any) => ids.indexOf(a.id) - ids.indexOf(b.id))
-	
 	let csv = 'id,handle\n'
-	csv += profiles.map((r: any) => `${r.id},${r.handle}`).join('\n')
+	csv += profiles.rows.map((r: any) => `${r.id},${r.handle}`).join('\n')
 	fs.writeFileSync(path.join(__dirname, '../../globaltrust.csv'), csv)
 
 	console.log('Done! (see globaltrust.csv)')
