@@ -13,8 +13,12 @@ const getFollows = async () => {
 	.select('profile_id as following_id', 'profiles.id as follower_id')
 	.innerJoin('profiles', 'owner_address', 'follower_address')
 
-	console.log('length of follows', follows.length)
-	return follows
+	let followsMap: any = {}
+	for (const { followerId, followingId } of follows) {
+		followsMap[followerId] = followsMap[followerId] || []
+		followsMap[followerId][followingId] = 1
+	}
+	return followsMap
 }
 
 const getCommentCounts = async () => {
@@ -24,7 +28,7 @@ const getCommentCounts = async () => {
 
 	let commentsMap: any = {}
 	for (const { profileId, toProfileId, count } of comments) {
-		commentsMap[profileId] = commentsMap[toProfileId] || {}
+		commentsMap[profileId] = commentsMap[profileId] || {}
 		commentsMap[profileId][toProfileId] = +count
 	}
 
@@ -39,7 +43,7 @@ const getMirrorCounts = async () => {
 
 	let mirrorsMap: any = {}
 	for (const { profileId, toProfileId, count } of mirrors) {
-		mirrorsMap[profileId] = mirrorsMap[toProfileId] || {}
+		mirrorsMap[profileId] = mirrorsMap[profileId] || {}
 		mirrorsMap[profileId][toProfileId] = +count
 	}
 
@@ -55,7 +59,7 @@ const getCollectCounts = async () => {
 
 	let collectsMap: any = {}
 	for (const { fromProfileId, toProfileId, count } of collects) {
-		collectsMap[fromProfileId] = collectsMap[toProfileId] || {}
+		collectsMap[fromProfileId] = collectsMap[fromProfileId] || {}
 		collectsMap[fromProfileId][toProfileId] = +count
 	}
 
@@ -71,29 +75,53 @@ const getLocaltrust = async (followsWeight: number, commentsWeight: number, mirr
 
 	let localtrust: LocalTrust = []
 
-	for (const { followerId, followingId } of follows) {
-		const commentsCount = commentsMap && commentsMap[followerId] && commentsMap[followerId][followingId] || 0
-		const mirrorsCount = mirrorsMap && mirrorsMap[followerId] && mirrorsMap[followerId][followingId] || 0
-		const collectsCount = collectsMap && collectsMap[followerId] && collectsMap[followerId][followingId] || 0
+	const from = [
+		...new Set([
+			...Object.keys(follows || {}),
+			...Object.keys(commentsMap || {}),
+			...Object.keys(mirrorsMap || {}),
+			...Object.keys(collectsMap || {})
+		])
+	]
 
-		localtrust.push({
-			i: followerId,
-			j: followingId,
-			v: commentsWeight * commentsCount +
-			   mirrorsWeight * mirrorsCount +
-			   collectsWeight * collectsCount +
-			   followsWeight 
-		})
+	for (const id1 of from) {
+		const to = [
+			...new Set([
+				...Object.keys(follows && follows[+id1] || {}),
+				...Object.keys(commentsMap && commentsMap[+id1] || {}),
+				...Object.keys(mirrorsMap && mirrorsMap[+id1] || {}),
+				...Object.keys(collectsMap && collectsMap[+id1] || {})
+			])
+		]
+
+		for (const id2 of to) {
+			const follow = follows && follows[+id1] && follows[+id1][+id2] || 0
+			const commentsCount = commentsMap && commentsMap[+id1] && commentsMap[+id1][+id2] || 0
+			const mirrorsCount = mirrorsMap && mirrorsMap[+id1] && mirrorsMap[+id1][+id2] || 0
+			const collectsCount = collectsMap && collectsMap[+id1] && collectsMap[+id1][+id2] || 0
+			
+			localtrust.push({
+				i: +id1,
+				j: +id2,
+				v: commentsWeight * commentsCount +
+				mirrorsWeight * mirrorsCount +
+				collectsWeight * collectsCount +
+				followsWeight * follow
+			})
+		}
 	}
+
+	console.timeEnd('localtrust')
+	console.log('Length of localtrust', localtrust.length)
 
 	return localtrust
 }
 
-const existingConnections = async (): Promise<LocalTrust> => {
+const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
 	return getLocaltrust(1, 0, 0, 0)
 }
 
-const c5m8enhancedConnections = async (): Promise<LocalTrust> => {
+const c5m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
 	return getLocaltrust(1, 5, 8, 0)
 }
 
