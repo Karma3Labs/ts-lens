@@ -180,16 +180,15 @@ export default class Recommender {
 		return +count
 	}	
 
-	static async getRankOfUserByHandle(strategyId: number, handle: string, date?: string): Promise<number> {
+	static async getRankOfUser(strategyId: number, id: number, date?: string): Promise<number> {
 		date = date || await this.getLatestDateByStrategyId(strategyId)
 
 		const res = await db.with('globaltrust_ranks', (qb: any) => {
 			return qb.from('globaltrust')
-				.select('i', 'v', 'strategy_id', db.raw('row_number() over (order by v desc) as rank'), 'handle')
-				.innerJoin('profiles', 'globaltrust.i', 'profiles.id')
+				.select('i', 'v', 'strategy_id', db.raw('row_number() over (order by v desc) as rank'))
 				.where({ strategyId, date })
 				.orderBy('v', 'desc')
-		}).select('rank').from('globaltrust_ranks').where('handle', handle).first()
+		}).select('rank').from('globaltrust_ranks').where('i', id).first()
 
 		return res && res.rank
 	}

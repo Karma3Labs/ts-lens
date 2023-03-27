@@ -1,8 +1,8 @@
-import { getDB } from "../utils" 
+import { getDB } from "../utils"
 
 const db = getDB()
 
-export const getProfilesFromIdsOrdered = async (ids: number[]): Promise<{id: number, handle: string}[]> => {
+export const getProfilesFromIdsOrdered = async (ids: number[], hex = false): Promise<{id: number, handle: string}[]> => {
 	const profiles = await db('profiles')
 		.select('id', 'handle', 'count as followers_count')
 		.innerJoin('follower_counts', 'follower_counts.profile_id', 'profiles.id')
@@ -10,38 +10,55 @@ export const getProfilesFromIdsOrdered = async (ids: number[]): Promise<{id: num
 	
 	profiles.sort((a: any, b: any) => ids.indexOf(a.id) - ids.indexOf(b.id))
 
+	if (hex) {
+		profiles.forEach((profile: any) => {
+			profile.id = '0x' + (+profile.id).toString(16)
+		})
+	}
+
 	return profiles
 }
 
-export const getHandleFromQueryParams = async (query: any): Promise<string> => {
-	if (!query.handle) {
-		throw Error('Handle is required')
+export const getIdFromQueryParams = async (query: any): Promise<number> => {
+	if (!query.handle && !query.id) {
+		throw Error('Handle or id is required')
 	}
 
-	const handle = (query.handle as string).trim() 
+	if (query.id) {
+		if (Number.isNaN(parseInt(query.id))) {
+			throw Error('Invalid id')
+		}
+
+		let id = query.id
+		if (query.id.startsWith('0x')) {
+			id = parseInt(query.id.slice(2), 16)	
+		}
+
+		const record = await db('profiles').select('id').where('id', id).first()	
+		if (!record) {
+			throw new Error('Id does not exist')
+		}
+		return record.id
+	}
+
+	const handle = (query.handle as string).trim()
 	let record = await db('profiles').select('id').where({ handle }).first()
-	if (!record) {
-		const handleLens = `${handle}.lens`
-		record = await db('profiles').select('id').where({ handle: handleLens }).first()
-		if (record) return handleLens
-
-		throw new Error('Handle does not exist')
+	if (record) {
+		return record.id
 	}
 
+	const handleLens = `${handle}.lens`
+	record = await db('profiles').select('id').where({ handle: handleLens }).first()
+	if (record) return record.id
 
-	return handle
-}
-
-export const getIdFromHandle = async (handle: string): Promise<number> => {
-	const { id } = await db('profiles').select('id').where({ handle }).first()
-	return +id
+	throw new Error('Handle does not exist')
 }
 
 export const getStrategyIdFromQueryParams = async (query: any): Promise<number> => {
 	if (!query.strategy_id) {
 		throw Error('Strategy id is required')
 	}
-	if (isNaN(+query.strategy_id)) { 
+	if (isNaN(+query.strategy_id)) {
 		throw Error("Invalid strategy id")
 	}
 
