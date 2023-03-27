@@ -1,6 +1,6 @@
 node_modules/
 dist/
-.env
+.env*
 log.txt
 globaltrust.csv
 
