@@ -17,7 +17,7 @@ exports.up = async function (knex) {
 			alpha: 0.5
 		}, {
 			pretrust: 'pretrustOGs',
-			localtrust: 'c5m8enhancedConnections',
+			localtrust: 'f6c3m8enhancedConnections',
 			alpha: 0.5
 		}, {
 			pretrust: 'pretrustAllEqually',
@@ -25,7 +25,7 @@ exports.up = async function (knex) {
 			alpha: 0.5,
 		}, {
 			pretrust: 'pretrustOGs',
-			localtrust: 'c5m8col12enhancedConnections',
+			localtrust: 'f6c3m8col12enhancedConnections',
 			alpha: 0.5
 		}
 	])
