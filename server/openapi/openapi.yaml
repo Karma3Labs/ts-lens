@@ -40,7 +40,7 @@ paths:
     get:
       summary: Return the number of ranked users
       description: |
-        Returns the number of users in the ranking for the given strategy.
+        Returns the number of profiles available for a given strategy.
         
         This can be used, for example, to display the number of pages
         on the paginated UI.
@@ -71,7 +71,8 @@ paths:
   /ranking_index:
     get:
       summary: Return the ranking of the given user.
-      description: OMG
+      description: |
+        Retrieves a particular profile's position in relations to the population
       operationId: getRankingIndex
       parameters:
         - $ref: "#/components/parameters/StrategyId"
