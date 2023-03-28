@@ -1,24 +1,22 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: ts-lens
   description: ts-lens
-  version: 0.0.2
+  version: 0.0.3
 servers:
   - url: 'https://lens-api.k3l.io'
 paths:
-  /rankings:
+  /profile_score:
     get:
-      summary: List the current profile score ranking, highest score first
+      summary: Display a user's profile score
       description: |
-        Returns the global ranking of profiles according to the given strategy.
-        
-        The result is paginated, using the `offset` and `limit` parameters.
-      operationId: getRankings
+        Returns the global profile score of a user based on a strategy.
+      operationId: getScore
       parameters:
         - $ref: "#/components/parameters/StrategyId"
           required: true
-        - $ref: "#/components/parameters/PaginationOffset"
-        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/ProfileHandle"
+          required: true
         - $ref: "#/components/parameters/Backdate"
       responses:
         200:
@@ -30,22 +28,51 @@ paths:
                 items:
                   $ref: "#/components/schemas/Profile"
                 description: |
-                  The requested profiles, whose ranking is
-                  in the `[limit, limit+offset)` range.
+                  A numeric profile's score, between 0 and 1.
         400:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
-  /rankings_count:
+  /profile_scores:
     get:
-      summary: Return the number of ranked users
+      summary: Return a paginated list of all profile scores
+      description: |
+        Returns the global profile scores, ordered by the highest scoring profiles, 
+        according to a given strategy.
+      operationId: getScores
+      parameters:
+        - $ref: "#/components/parameters/StrategyId"
+          required: true
+        - $ref: "#/components/parameters/PaginationOffset"
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/Backdate"
+        - $ref: "#/components/parameters/Hex"
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+                description: |
+                  The requested profiles, whose scores are
+                  within the `[limit, limit+offset)` range.
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+  /profile_count:
+    get:
+      summary: Return the total population of profiles scored
       description: |
         Returns the number of profiles available for a given strategy.
         
-        This can be used, for example, to display the number of pages
-        on the paginated UI.
+        As an example, this can be used to display the number of 
+        pages on a paginated dashboard.
       operationId:
-        getNumberOfRankings
+        getNumberOfProfiles
       parameters:
         - $ref: "#/components/parameters/StrategyId"
           required: true
@@ -68,12 +95,13 @@ paths:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
-  /ranking_index:
+  /profile_rank:
     get:
-      summary: Return the ranking of the given user.
+      summary: Provide the ranked position of a given profile
       description: |
-        Retrieves a particular profile's position in relations to the population
-      operationId: getRankingIndex
+        Retrieves a particular profile's position ranked in relations 
+        to the result set of a strategy.
+      operationId: getProfilePosition
       parameters:
         - $ref: "#/components/parameters/StrategyId"
           required: true
@@ -90,7 +118,7 @@ paths:
                 properties:
                   rank:
                     type: integer
-                    description: Zero-based ranking of the user.
+                    description: Display a profile's ranking based on strategy specified.
                 required:
                   - rank
         400:
@@ -129,8 +157,14 @@ components:
       schema:
         type: string
       description: |
-        A date, in `YYYY-MM-DD` format, for which to return the historic result.
-        If absent, the request returns the current (most recent) result.
+        A date, in `YYYY-MM-DD` format, for which to return the historic result.  Defaults to the most recent date.
+    Hex:
+      name: hex
+      in: query
+      schema:
+        type: string
+      description: |
+        Set to `true` in order to return the Lens Profile IDs in hexadecimal format `0x...`, defaults to numeric IDs
   responses:
     HTTP400ErrorMessage:
       description: |
@@ -155,26 +189,39 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          description: Lens profile ID.
+          oneOf:
+            - type: integer
+            - type: string
+          description: Lens profile ID, returns a hexadecimal string when `hex` is set to `true`
         handle:
           type: string
           description: Lens profile handle.
         followersCount:
           type: integer
           description: Number of followers.
+        score:
+          type: number
+          description: Profile score of a user, ranges from 0 to 1
         rank:
           type: integer
-          description: Ranking of the user, zero-based.
+          description: Ranking of a user, beginning with zero.
       required:
         - id
         - handle
         - followersCount
       examples:
-        - id: 12
-          handle: lenster.lens
-          followersCount: 38973
-          rank: 11
-        - id: 90724
+        - id: 0x5
+          handle: stani.lens
+          followersCount: 49371
+          score: 0.06392881
+          rank: 0
+        - id: 0x24
+          handle: bradorbradley.lens
+          followersCount: 813
+          score: 0.056683067
+          rank: 1
+        - id: 0x16264
           handle: ryanfox.lens
           followersCount: 813
+          score: 0.05656492
+          rank: 2

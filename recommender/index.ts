@@ -193,6 +193,18 @@ export default class Recommender {
 		return res && res.rank
 	}
 
+	static async getScoreOfUser(strategyId: number, id: number, date?: string): Promise<number> {
+		date = date || await this.getLatestDateByStrategyId(strategyId)
+
+		const res = await db('globaltrust')
+			.select(db.raw('v as score'))
+			.where('strategyId', strategyId)
+			.where('i', id)
+			.where('date', date).first()
+
+		return res && res.score
+	}
+
 	static async getLatestDateByStrategyId(strategyId: number): Promise<string> {
 		const { date } = await db('globaltrust')
 			.where('strategy_id', strategyId)
