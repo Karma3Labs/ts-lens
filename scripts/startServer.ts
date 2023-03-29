@@ -18,7 +18,7 @@ const main = async () => {
 		.option('localtrust', {
 			describe: 'Strategy that should be used to generate localtrust. The strategy should exist in recommender/strategies/localtrust.ts file',
 			type: 'string',
-			default: 'c5m8col12enhancedConnections',
+			default: 'f6c3m8col12enhancedConnections',
 		}) 
 		.option('personalization', {
 			describe: 'Strategy that should be used to generate personalized results from the global trust.',
