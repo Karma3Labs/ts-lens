@@ -24,11 +24,15 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Profile"
-                description: |
-                  A numeric profile's score, between 0 and 1.
+                type: object
+                properties:
+                  score:
+                    type: number
+                    format: double
+                    description: |
+                      The profile's score, between `0.0` and `1.0`.
+                required:
+                  - score
         400:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
@@ -118,7 +122,7 @@ paths:
                 properties:
                   rank:
                     type: integer
-                    description: Display a profile's ranking based on strategy specified.
+                    description: The given profile's ranking (0 is the first place), based on the strategy specified.
                 required:
                   - rank
         400:
@@ -162,7 +166,7 @@ components:
       name: hex
       in: query
       schema:
-        type: string
+        type: boolean
       description: |
         Set to `true` in order to return the Lens Profile IDs in hexadecimal format `0x...`, defaults to numeric IDs
   responses:
@@ -204,7 +208,7 @@ components:
           description: Profile score of a user, ranges from 0 to 1
         rank:
           type: integer
-          description: Ranking of a user, beginning with zero.
+          description: Ranking of a user (0 is the first place).
       required:
         - id
         - handle
