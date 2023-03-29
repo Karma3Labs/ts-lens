@@ -1,9 +1,16 @@
 import express, { Request, Response } from 'express'
+import cors from 'cors'
 import Recommender from '../recommender/index'
 import { getIdFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
 
 const app = express()
 const PORT = 8080
+
+const options: cors.CorsOptions = {
+    origin: '*',
+	allowedHeaders: ['Content-Type', 'api_key', 'Authorization'],
+}
+app.use(cors<Request>(options))
 
 export default (recommender: Recommender) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
