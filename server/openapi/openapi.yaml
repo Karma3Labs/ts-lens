@@ -65,7 +65,7 @@ paths:
           $ref: "#/components/responses/HTTP500ErrorMessage"
   /profile_count:
     get:
-      summary: Return the total population of profiles scored
+      summary: Return the total population size of profiles scored
       description: |
         Returns the number of profiles available for a given strategy.
         
