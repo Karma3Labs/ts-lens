@@ -86,7 +86,8 @@ const getCollectPrices = async () => {
 
 	for (const { fromProfileId, toProfileId, price } of collects) {
 		collectsMap[fromProfileId] = collectsMap[fromProfileId] || {}
-		collectsMap[fromProfileId][toProfileId] = (price - min) / (max - min)
+		// Normalize results from 0 to 10
+		collectsMap[fromProfileId][toProfileId] = ((price - min) / (max - min)) * 9 + 1
 	}
 
 	console.log('length of collects', collects.length)
