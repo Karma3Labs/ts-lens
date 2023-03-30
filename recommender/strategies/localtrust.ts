@@ -67,11 +67,37 @@ const getCollectCounts = async () => {
 	return collectsMap
 }
 
-const getLocaltrust = async (followsWeight: number, commentsWeight: number, mirrorsWeight: number, collectsWeight: number) => {
+const getCollectPrices = async () => {
+	const collects = await db('collects')
+		.select('profile_id as to_profile_id', 'profiles.id as from_profile_id', db.raw('sum(price) as price'))
+		.innerJoin('profiles', 'collector_address', 'owner_address')
+		.where('price', '<>', 0)
+		.groupBy('profile_id', 'profiles.id')
+
+	const { min, max } = await db.with('coll', (q: any) => q.from('collects') 
+		.select('profile_id as to_profile_id', 'profiles.id as from_profile_id', db.raw('sum(price) as price'))
+		.innerJoin('profiles', 'collector_address', 'owner_address')
+		.where('price', '<>', 0)
+		.groupBy('profile_id', 'profiles.id')
+	)
+	.select(db.raw('min(price) as min'), db.raw('max(price) as max')).from('coll').first()
+
+	let collectsMap: any = {}
+
+	for (const { fromProfileId, toProfileId, price } of collects) {
+		collectsMap[fromProfileId] = collectsMap[fromProfileId] || {}
+		collectsMap[fromProfileId][toProfileId] = (price - min) / (max - min)
+	}
+
+	console.log('length of collects', collects.length)
+	return collectsMap
+}
+
+const getLocaltrust = async (followsWeight: number, commentsWeight: number, mirrorsWeight: number, collectsWeight: number, withPrice = true) => {
+	const collectsMap = collectsWeight > 0 ? (withPrice ? await  getCollectPrices() : await getCollectCounts()) : null
 	const follows = followsWeight > 0 ? await getFollows() : null
 	const commentsMap = commentsWeight > 0 ? await getCommentCounts() : null
 	const mirrorsMap = mirrorsWeight > 0 ? await getMirrorCounts() : null
-	const collectsMap = collectsWeight > 0 ? await getCollectCounts() : null
 
 	let localtrust: LocalTrust = []
 
@@ -125,8 +151,13 @@ const f6c3m8col12enhancedConnections: LocaltrustStrategy = async (): Promise<Loc
 	return getLocaltrust(6, 3, 8, 12)
 }
 
+const f6c3m8col12PriceEnhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
+	return getLocaltrust(6, 3, 8, 12, true)
+}
+
 export const strategies: Record<string, LocaltrustStrategy> = {
 	existingConnections,
 	f6c3m8enhancedConnections,
 	f6c3m8col12enhancedConnections,
+	f6c3m8col12PriceEnhancedConnections
 }
