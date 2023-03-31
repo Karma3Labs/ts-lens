@@ -177,8 +177,11 @@ export default class Recommender {
 	static async getGlobaltrustLength(strategyId: number, date?: string): Promise<number> {
 		date = date || await this.getLatestDateByStrategyId(strategyId)
 
+		// TODO: Investigate why count is different without joins
 		const { count } = await db('globaltrust')
 			.where({ strategyId, date })
+			.innerJoin('profiles', 'profiles.id', 'globaltrust.i')
+			.innerJoin('follower_counts', 'follower_counts.profile_id', 'profiles.id')
 			.count()
 			.first()
 
