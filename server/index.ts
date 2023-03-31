@@ -130,16 +130,8 @@ export default (recommender: Recommender) => {
 		console.log(`${reqUri} for strategyId: ${strategyId} on ${date} ranging from [${offset} to ${offset + limit}]`)
 
 		try {
-			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId, date)
-			const ids = globaltrust.slice(offset, offset + limit).map(({ i }) => i )
-			const profiles = await getProfilesFromIdsOrdered(ids, hex)
-
-			profiles.forEach((profile: any, i) => {
-				profile.score = globaltrust[i].v
-				profile.rank = offset + i
-			})
-
-			return res.send(profiles)
+			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId, date, hex, limit, offset)
+			return res.send(globaltrust)
 		}
 		catch (e: any) {
 			console.log(`Error in ${reqUri} for strategyId: ${strategyId}`, e)

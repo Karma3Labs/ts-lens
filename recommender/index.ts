@@ -154,13 +154,18 @@ export default class Recommender {
 		return parsedGlobaltrust.sort((a, b) => b.v - a.v)
 	}
 
-	static async getGlobaltrustByStrategyId(strategyId: number, date?: string): Promise<GlobalTrust> {
+	static async getGlobaltrustByStrategyId(strategyId: number, date?: string, hex = false, limit = 50, offset = 0): Promise<GlobalTrust> {
 		date = date || await this.getLatestDateByStrategyId(strategyId)
 
 		const globaltrust = await db('globaltrust')
 			.where({ strategyId, date })
-			.select('i', 'v', db.raw('row_number() over (order by v desc) as rank'))
-			.orderBy('v', 'desc')
+			.select('v as score', db.raw('row_number() over (order by v desc) as rank'), 'handle', 'count as followers_count')
+			.select(hex ? db.raw("'0x' || to_hex(profiles.id) as id") : 'profiles.id as id')
+			.innerJoin('profiles', 'profiles.id', 'globaltrust.i')
+			.innerJoin('follower_counts', 'follower_counts.profile_id', 'profiles.id')
+			.orderBy('score', 'desc')
+			.offset(offset)
+			.limit(limit)
 
 		if (!globaltrust.length) {
 			throw new Error(`No globaltrust found in DB for strategy id: ${strategyId}`)
