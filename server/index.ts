@@ -1,6 +1,5 @@
 import express, { Request } from 'express'
 import cors from 'cors'
-import Tracing from '@sentry/tracing'
 import Recommender from '../recommender/index'
 import getRoutes from './routes'
 import * as Sentry from "@sentry/node";
