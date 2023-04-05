@@ -119,7 +119,8 @@ const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, coll
 		...Object.keys(follows || {}),
 		...Object.keys(commentsMap || {}),
 		...Object.keys(mirrorsMap || {}),
-		...Object.keys(collectsMap || {})
+		...Object.keys(collectsMap || {}),
+		...Object.keys(collectsPriceMap || {})
 	])
 
 	for (const id1 of from) {
@@ -127,7 +128,8 @@ const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, coll
 			...Object.keys(follows && follows[+id1] || {}),
 			...Object.keys(commentsMap && commentsMap[+id1] || {}),
 			...Object.keys(mirrorsMap && mirrorsMap[+id1] || {}),
-			...Object.keys(collectsMap && collectsMap[+id1] || {})
+			...Object.keys(collectsMap && collectsMap[+id1] || {}),
+			...Object.keys(collectsPriceMap && collectsPriceMap[+id1] || {})
 		])
 
 		for (const id2 of to) {
