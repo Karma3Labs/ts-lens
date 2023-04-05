@@ -2,6 +2,14 @@ import { getDB } from "../utils"
 
 const db = getDB()
 
+// Newly defined mapping of strategy names to numeric strategy IDs
+const strategyNameToId: Record<string, number> = {
+	'followship' : 6,
+	'engagement' : 3,
+	'influencer' : 6,
+	'creator'    : 7
+}
+
 export const getProfilesFromIdsOrdered = async (ids: number[], hex = false): Promise<{id: number, handle: string}[]> => {
 	const profiles = await db('profiles')
 		.select('id', 'handle', 'count as followers_count')
@@ -55,19 +63,35 @@ export const getIdFromQueryParams = async (query: any): Promise<number> => {
 }
 
 export const getStrategyIdFromQueryParams = async (query: any): Promise<number> => {
-	if (!query.strategy_id) {
-		throw Error('Strategy id is required')
-	}
-	if (isNaN(+query.strategy_id)) {
-		throw Error("Invalid strategy id")
+	// Able to take in either string "strategy" or numeric "strategy_id"
+	if (!query.strategy && !query.strategy_id) {
+		throw Error('"strategy" or "strategy_id" is required')
 	}
 
-	const record = await db('strategies').select('id').where('id', query.strategy_id).first()
+	let strategyId = +query.strategy_id;
+	if (query.strategy) {
+		query.strategy = query.strategy.toString().toLowerCase()
+		if (strategyNameToId.hasOwnProperty(query.strategy)) {
+			strategyId = strategyNameToId[query.strategy]
+		}
+	}
+
+	if (isNaN(strategyId)) {
+		if (query.strategy) 
+			throw new Error(`Invalid strategy ${query.strategy}`)
+		else
+			throw new Error(`Invalid strategy_id ${query.strategy_id}`)
+	}
+
+	const record = await db('strategies').select('id').where('id', strategyId).first()
 	if (!record) {
-		throw new Error('Strategy id does not exist')
+		if (query.strategy) 
+			throw new Error(`No results for strategy ${query.strategy}`)
+		else
+			throw new Error(`No results for strategy_id ${query.strategy_id}`)
 	}
 
-	return +query.strategy_id
+	return strategyId
 }
 
 export const isValidDate = (date: string): boolean => {

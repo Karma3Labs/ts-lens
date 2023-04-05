@@ -13,7 +13,7 @@ paths:
         Returns the global profile score of a user based on a strategy.
       operationId: getScore
       parameters:
-        - $ref: "#/components/parameters/StrategyId"
+        - $ref: "#/components/parameters/Strategy"
           required: true
         - $ref: "#/components/parameters/ProfileHandle"
           required: true
@@ -45,7 +45,7 @@ paths:
         according to a given strategy.
       operationId: getScores
       parameters:
-        - $ref: "#/components/parameters/StrategyId"
+        - $ref: "#/components/parameters/Strategy"
           required: true
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/PaginationLimit"
@@ -78,7 +78,7 @@ paths:
       operationId:
         getNumberOfProfiles
       parameters:
-        - $ref: "#/components/parameters/StrategyId"
+        - $ref: "#/components/parameters/Strategy"
           required: true
         - $ref: "#/components/parameters/Backdate"
       responses:
@@ -107,7 +107,7 @@ paths:
         to the result set of a strategy.
       operationId: getProfilePosition
       parameters:
-        - $ref: "#/components/parameters/StrategyId"
+        - $ref: "#/components/parameters/Strategy"
           required: true
         - $ref: "#/components/parameters/ProfileHandle"
           required: true
@@ -131,12 +131,12 @@ paths:
           $ref: "#/components/responses/HTTP500ErrorMessage"
 components:
   parameters:
-    StrategyId:
-      name: strategy_id
+    Strategy:
+      name: strategy
       in: query
       schema:
-        type: integer
-      description: The strategy ID of representing the pre-trust and local-trust EigenTrust heuristics.
+        type: string
+      description: The strategy name to use such as 'followship', 'engagement', 'influencer', or 'creator'.
     ProfileHandle:
       name: handle
       in: query
