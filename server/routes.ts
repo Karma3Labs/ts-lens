@@ -32,6 +32,7 @@ export default (app: Express, recommender: Recommender) => {
 
 	app.get('/suggest_posts', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
+		const limit = req.query.limit ? +req.query.limit : 50
 		let id: number, hex: boolean
 
 		try {
@@ -44,7 +45,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} personalized for id: ${id}`)
 
 		try {
-			const ids = await recommender.recommendCasts(50, id)
+			const ids = await recommender.recommendCasts(limit, id)
 			return res.send(ids)
 		}
 		catch (e: any) {

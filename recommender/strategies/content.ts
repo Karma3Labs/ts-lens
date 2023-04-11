@@ -40,7 +40,7 @@ export const bestPostsOfPersonalized = async (strategyId: number, id: number, li
 			WHERE posts.profile_id IN (${users.join(', ')})
 			ORDER BY weighted_average DESC
 		)
-	SELECT id, content_uri, profile_id, pub_id, timestamp FROM hot_posts
+	SELECT id, content_uri, profile_id, pub_id, timestamp FROM hot_posts limit :limit
 	`, { limit })
 
 	return res.rows
