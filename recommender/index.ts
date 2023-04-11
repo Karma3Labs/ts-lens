@@ -6,6 +6,7 @@ import { strategies as ptStrategies  } from './strategies/pretrust'
 import { strategies as ltStrategies  } from './strategies/localtrust'
 import { getDB } from '../utils'
 import { PersonalizationStrategy } from './strategies/personalization'
+import { ContentStrategy } from './strategies/content'
 const db = getDB()
 
 // TODO: Fix that ugly thingie
@@ -19,6 +20,7 @@ export default class Recommender {
 	constructor(
 		public strategyId: number,
 		public personalizationStrategy?: PersonalizationStrategy,
+		public contentStrategy?: ContentStrategy
 	) {}
 
 	async recalculate(save = true, strategy?: { pretrust: string, localtrust: string, alpha: number }) {
@@ -51,10 +53,18 @@ export default class Recommender {
 
 	async recommend(limit = 20, id: number): Promise<number[]> {
 		if (!this.personalizationStrategy) {
-			throw Error('Reommending but no personalization strategy set')
+			throw Error('Recommending but no personalization strategy set')
 		}
 
-		return this.personalizationStrategy(this.globaltrust, this.strategyId, id, limit)
+		return this.personalizationStrategy(this.strategyId, id, limit)
+	}
+
+	async recommendCasts(limit = 20, id: number): Promise<number[]> {
+		if (!this.contentStrategy) {
+			throw Error('Recommending but no content strategy set')
+		}
+
+		return this.contentStrategy(this.strategyId, id, limit)
 	}
 
 	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, alpha: number, id?: number): Promise<GlobalTrust> => {

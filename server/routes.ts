@@ -26,7 +26,30 @@ export default (app: Express, recommender: Recommender) => {
 		}
 		catch (e: any) {
 			console.error(`Error in ${reqUri} for id: ${id}`, e)
-			res.status(500).send('Could not get ${reqUri}')
+			res.status(500).send(`Could not get ${reqUri}`)
+		}
+	})
+
+	app.get('/suggest_posts', async (req: Request, res: Response) => {
+		const reqUri = req.originalUrl.split("?").shift()
+		let id: number, hex: boolean
+
+		try {
+			id = await getIdFromQueryParams(req.query)
+			hex = req.query.hex === 'true'
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
+		}
+		console.log(`${reqUri} personalized for id: ${id}`)
+
+		try {
+			const ids = await recommender.recommendCasts(50, id)
+			return res.send(ids)
+		}
+		catch (e: any) {
+			console.error(`Error in ${reqUri} for id: ${id}`, e)
+			res.status(500).send(`Could not get ${reqUri}`)	
 		}
 	})
 
@@ -49,7 +72,7 @@ export default (app: Express, recommender: Recommender) => {
 		}
 		catch (e: any) {
 			console.error(`Error in /rankings_count for strategyId: ${strategyId}`, e)
-			res.status(500).send('Could not get ${reqUri}')
+			res.status(500).send(`Could not get ${reqUri}`)
 		}
 	})
 
@@ -74,7 +97,7 @@ export default (app: Express, recommender: Recommender) => {
 		}
 		catch (e: any) {
 			console.error(`Error in ${reqUri} for handle: ${id} and strategyId: ${strategyId}`, e)
-			res.status(500).send('Could not get ${reqUri}')
+			res.status(500).send(`Could not get ${reqUri}`)
 		}
 	})
 
@@ -99,7 +122,7 @@ export default (app: Express, recommender: Recommender) => {
 		}
 		catch (e: any) {
 			console.error(`Error in ${reqUri} for handle: ${id} and strategyId: ${strategyId}`, e)
-			res.status(500).send('Could not get ${reqUri}')
+			res.status(500).send(`Could not get ${reqUri}`)
 		}
 	})
 
@@ -125,7 +148,7 @@ export default (app: Express, recommender: Recommender) => {
 		}
 		catch (e: any) {
 			console.log(`Error in ${reqUri} for strategyId: ${strategyId}`, e)
-			return res.status(500).send('Could not get ${reqUri}')
+			return res.status(500).send(`Could not get ${reqUri}`)
 		}
 	})
 }

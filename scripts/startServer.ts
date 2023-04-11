@@ -2,6 +2,7 @@ import yargs from 'yargs'
 import Recommender from '../recommender'
 import serve from '../server/index'
 import { strategies as psStrategies } from '../recommender/strategies/personalization'
+import { strategies as contentStrategies } from '../recommender/strategies/content'
 import { getDB } from '../utils'
 
 const db = getDB()
@@ -18,12 +19,17 @@ const main = async () => {
 		.option('localtrust', {
 			describe: 'Strategy that should be used to generate localtrust. The strategy should exist in recommender/strategies/localtrust.ts file',
 			type: 'string',
-			default: 'f6c3m8col12enhancedConnections',
+			default: 'f6c3m8col12PriceEnhancedConnections',
 		}) 
 		.option('personalization', {
 			describe: 'Strategy that should be used to generate personalized results from the global trust.',
 			type: 'string',
-			default: 'useFollowsRecursive',
+			default: 'useFollows',
+		}) 
+		.option('content', {
+			describe: 'Strategy that should be used to generate content results from the global trust.',
+			type: 'string',
+			default: 'bestPostsOfPersonalized',
 		}) 
 		.option('alpha', {
 			describe: 'A weight denoting how much the pretrust should affect the global trust',
@@ -31,7 +37,7 @@ const main = async () => {
 			default: 0.5,
 		})
 		.help()
-		.argv as { pretrust: string, localtrust: string, personalization: string, alpha: number }
+		.argv as { pretrust: string, localtrust: string, personalization: string, content: string, alpha: number }
 
 	const { id } = await db('strategies')
 		.where({ pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha })
@@ -45,8 +51,11 @@ const main = async () => {
 	const personalizationStrategy = psStrategies[argv.personalization]
 	console.log('Using personalization strategy:', argv.personalization)
 
+	const contentStrategy = contentStrategies[argv.content]
+	console.log('Using personalization strategy:', argv.personalization)
+
 	try {
-		const recommender = new Recommender(id, personalizationStrategy)
+		const recommender = new Recommender(id, personalizationStrategy, contentStrategy)
 		await recommender.loadFromDB()
 
 		serve(recommender)

@@ -5,12 +5,12 @@ import Transaction = Knex.Transaction;
 
 const db = getDB()
 
-export type PersonalizationStrategy = (globalTrust: GlobalTrust, strategyId: number, id: number, limit: number) => Promise<number[]>
+export type PersonalizationStrategy = (strategyId: number, id: number, limit: number) => Promise<number[]>
 
 /**
  * Multiplies the global trust by 5 if the profile is followed by the user
  */
-const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, strategyId: number, id: number, limit: number): Promise<number[]> => {
+const useFollows: PersonalizationStrategy = async (strategyId: number, id: number, limit: number): Promise<number[]> => {
 	const {rows} = await db.raw(`
         WITH profile_follows AS (SELECT profiles.id AS following_id, profile_id AS follower_id
                                  FROM profiles
@@ -24,12 +24,12 @@ const useFollows: PersonalizationStrategy = async (globaltrust: GlobalTrust, str
 		AND date = (SELECT MAX(date) FROM globaltrust)
         ORDER BY trust DESC limit :limit
 	`, {id, limit, strategyId}) as { rows: { i: number, trust: number }[] }
+	console.log(rows)
 
 	return rows.map(({i}: { i: number }) => i)
 }
 
-const useFollowsRecursive: PersonalizationStrategy = async (
-	globaltrust: GlobalTrust,
+export const useFollowsRecursive: PersonalizationStrategy = async (
 	strategyId: number,
 	id: number,
 	limit: number,
@@ -73,7 +73,6 @@ const useFollowsRecursive: PersonalizationStrategy = async (
 }
 
 const useLocalTrustRecursive: PersonalizationStrategy = async (
-	globaltrust: GlobalTrust,
 	strategyId: number,
 	id: number,
 	limit: number,
