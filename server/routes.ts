@@ -1,6 +1,6 @@
 import { Express, Request, Response } from 'express'
 import Recommender from '../recommender/index'
-import { getIdFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
+import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
 
 export default (app: Express, recommender: Recommender) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
@@ -76,7 +76,7 @@ export default (app: Express, recommender: Recommender) => {
 			res.status(500).send(`Could not get ${reqUri}`)
 		}
 	})
-
+	
 	app.get(['/profile_score'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let id: number, strategyId: number
@@ -98,6 +98,31 @@ export default (app: Express, recommender: Recommender) => {
 		}
 		catch (e: any) {
 			console.error(`Error in ${reqUri} for handle: ${id} and strategyId: ${strategyId}`, e)
+			res.status(500).send(`Could not get ${reqUri}`)
+		}
+	})
+
+	app.get(['/profile_scores'], async (req: Request, res: Response) => {
+		const reqUri = req.originalUrl.split("?").shift()
+		let ids: number[], strategyId: number
+		let date: string
+
+		try {
+			ids = await getIdsFromQueryParams(req.query)
+			strategyId = await getStrategyIdFromQueryParams(req.query)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
+		}
+		console.log(`${reqUri} for ids: ${ids} and strategyId: ${strategyId}`)
+
+		try {
+			const scores = await Recommender.getScoreOfUsers(strategyId, ids, date);
+			return res.send(scores)
+		}
+		catch (e: any) {
+			console.error(`Error in ${reqUri} for ids: ${ids} and strategyId: ${strategyId}`, e)
 			res.status(500).send(`Could not get ${reqUri}`)
 		}
 	})

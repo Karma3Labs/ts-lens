@@ -27,6 +27,42 @@ export const getProfilesFromIdsOrdered = async (ids: number[], hex = false): Pro
 	return profiles
 }
 
+export const getIdsFromQueryParams = async (query: any): Promise<number[]> => {
+	console.log(query)
+	if (!query.handles && !query.ids) {
+		throw Error('Ids or handles is required')
+	}
+
+	if (query.ids) {
+		let ids = query.ids
+		if (typeof ids === 'string') {
+			ids = ids.split(',')
+		}
+
+		ids = ids.map((id: string) => {
+			if (id.startsWith('0x')) {
+				return parseInt(id.slice(2), 16)
+			}
+			return id
+		})
+
+		const records = await db('profiles').select('id').whereIn('id', ids)
+		if (records.length !== ids.length) {
+			throw new Error('Invalid ids')
+		}
+		return ids
+	}
+
+	const handles = (query.handles as string).split(',')
+	let records = await db('profiles').select('id').whereIn('handle', handles)
+	if (records.length !== handles.length) {
+		throw new Error('Invalid handles')
+	}
+
+	return records.map((record: any) => record.id)
+}
+
+
 export const getIdFromQueryParams = async (query: any): Promise<number> => {
 	if (!query.handle && !query.id) {
 		throw Error('Handle or id is required')
