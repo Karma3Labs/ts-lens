@@ -102,12 +102,13 @@ export default (app: Express, recommender: Recommender) => {
 		}
 	})
 
-	app.get(['/profile_scores'], async (req: Request, res: Response) => {
+	app.get(['/profile_scores_by_users'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
-		let ids: number[], strategyId: number
+		let ids: number[], strategyId: number, hex: boolean
 		let date: string
 
 		try {
+			hex	= req.query.hex === 'true'
 			ids = await getIdsFromQueryParams(req.query)
 			strategyId = await getStrategyIdFromQueryParams(req.query)
 			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
@@ -118,7 +119,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} for ids: ${ids} and strategyId: ${strategyId}`)
 
 		try {
-			const scores = await Recommender.getScoreOfUsers(strategyId, ids, date);
+			const scores = await Recommender.getGlobaltrustByStrategyIdAndIds(strategyId, ids, hex, date);
 			return res.send(scores)
 		}
 		catch (e: any) {

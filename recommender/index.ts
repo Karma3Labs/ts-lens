@@ -184,6 +184,30 @@ export default class Recommender {
 		return globaltrust
 	}	
 
+	static async getGlobaltrustByStrategyIdAndIds(strategyId: number, ids: number[], hex = false, date?: string): Promise<GlobalTrust> {
+		date = date || await this.getLatestDateByStrategyId(strategyId)
+
+		const globaltrust = await db.with('g', (q: any) => {
+			return q.from('globaltrust')
+				.where({ strategyId, date })
+				.select('v as score', db.raw('row_number() over (order by v desc) as rank'), 'handle', 'count as followers_count', 'profiles.id as id')
+				.innerJoin('profiles', 'profiles.id', 'globaltrust.i')
+				.innerJoin('follower_counts', 'follower_counts.profile_id', 'profiles.id')
+				.orderBy('score', 'desc')
+		})
+		.select('*')
+		.from('g')
+		.whereIn('id', ids)
+
+		hex && globaltrust.forEach((g: any) => g.id = '0x' + g.id.toString(16))
+
+		if (!globaltrust.length) {
+			throw new Error(`No globaltrust found in DB for strategy id: ${strategyId}`)
+		}
+
+		return globaltrust 
+	}
+
 	static async getGlobaltrustLength(strategyId: number, date?: string): Promise<number> {
 		date = date || await this.getLatestDateByStrategyId(strategyId)
 
@@ -211,22 +235,6 @@ export default class Recommender {
 		return res && res.rank
 	}
 
-	static async getScoreOfUsers(strategyId: number, ids: number[], date?: string): Promise<number> {
-		date = date || await this.getLatestDateByStrategyId(strategyId)
-
-		const res = await db('globaltrust')
-			.select('i', db.raw('v as score'))
-			.where('strategyId', strategyId)
-			.whereIn('i', ids)
-			.where('date', date)
-
-		return res && res.map((r: any) => {
-			return {
-				id: r.i,	
-				score: r.score
-			}
-		})
-	}
 
 	static async getScoreOfUser(strategyId: number, id: number, date?: string): Promise<number> {
 		date = date || await this.getLatestDateByStrategyId(strategyId)

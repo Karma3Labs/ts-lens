@@ -4,7 +4,7 @@ info:
   description: ts-lens
   version: 0.0.3
 servers:
-  - url: 'https://lens-api.k3l.io'
+  - url: "https://lens-api.k3l.io"
 paths:
   /profile_score:
     get:
@@ -33,6 +33,33 @@ paths:
                       The profile's score, between `0.0` and `1.0`.
                 required:
                   - score
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+  /profile_scores_by_users:
+    get:
+      summary: All scores for a given list of users
+      description: |
+        Returns the global profile scores of a list of users, ordered by the
+        highest scoring profiles, according to a given strategy.
+      operationId: getScoresByusers
+      parameters:
+        - $ref: "#/components/parameters/Strategy"
+          required: true
+        - $ref: "#/components/parameters/ProfileHandles"
+        - $ref: "#/components/parameters/Backdate"
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+                description: |
+                  The requested profiles along with their scores and ranks.
         400:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
@@ -72,11 +99,10 @@ paths:
       summary: Return the total population size of profiles scored
       description: |
         Returns the number of profiles available for a given strategy.
-        
+
         As an example, this can be used to display the number of 
         pages on a paginated dashboard.
-      operationId:
-        getNumberOfProfiles
+      operationId: getNumberOfProfiles
       parameters:
         - $ref: "#/components/parameters/Strategy"
           required: true
@@ -143,12 +169,18 @@ components:
       schema:
         type: string
       description: The Lens profile handle (with or without the `.lens` extension).
+    ProfileHandles:
+      name: handles
+      in: query
+      schema:
+        type: string
+      description: A list of comma separated profile handles (with or without the `.lens` extension).
     PaginationOffset:
       name: offset
       in: query
       schema:
         type: integer
-      description: Return results starting from this offset position.  Defaults to start at `0`, the first result.
+      description: Return results starting from this offset position. Defaults to start at `0`, the first result.
     PaginationLimit:
       name: limit
       in: query

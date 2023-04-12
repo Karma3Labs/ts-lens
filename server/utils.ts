@@ -54,6 +54,12 @@ export const getIdsFromQueryParams = async (query: any): Promise<number[]> => {
 	}
 
 	const handles = (query.handles as string).split(',')
+	handles.forEach((handle: string, i: number) => {
+		if (!handle.endsWith('.lens')) {
+			handles[i] = handle + '.lens'
+		}
+	})
+
 	let records = await db('profiles').select('id').whereIn('handle', handles)
 	if (records.length !== handles.length) {
 		throw new Error('Invalid handles')
