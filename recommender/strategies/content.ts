@@ -19,7 +19,7 @@ export const bestPostsOfPersonalized = async (strategyId: number, id: number, li
 				COALESCE(num_comments, 0) AS num_comments,
 				COALESCE(num_collects, 0) AS num_collects,
 				EXTRACT(epoch FROM NOW() - posts.block_timestamp) / 3600 AS age_hours,
-				(0.5 * COALESCE(num_mirrors, 0)) + (0.2 * COALESCE(num_collects, 0)) + (0.5 * COALESCE(num_comments, 0)) - (0.5 * (EXTRACT(epoch FROM NOW() - posts.block_timestamp) / 3600)) AS weighted_average
+				(0.5 * COALESCE(num_mirrors, 0)) + (0.2 * COALESCE(num_collects, 0)) + (0.5 * COALESCE(num_comments, 0)) - (1 * (EXTRACT(epoch FROM NOW() - posts.block_timestamp) / 3600)) AS weighted_average
 			FROM posts
 			LEFT JOIN (
 				SELECT to_profile_id, to_pub_id, COUNT(*) as num_mirrors 
