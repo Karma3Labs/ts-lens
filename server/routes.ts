@@ -2,12 +2,10 @@ import { Express, Request, Response } from 'express'
 import Rankings from '../recommender/RankingsRecommender'
 import UserRecommender from '../recommender/UserRecommender'
 import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
-import { getIds } from '../recommender/utils'
-
 
 export default async (app: Express) => {
 	// TODO: move to config
-	const userRecommender = new UserRecommender(3, 1)
+	const userRecommender = new UserRecommender()
 	await userRecommender.init()
 
 	app.get('/suggest', async (req: Request, res: Response) => {

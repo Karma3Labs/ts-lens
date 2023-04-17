@@ -4,6 +4,7 @@ import { Pretrust, LocalTrust, GlobalTrust } from '../types'
 import { getIds, objectFlip } from "./utils"
 import { getDB } from '../utils'
 import Rankings from './RankingsRecommender'
+import { config } from './config'
 const db = getDB()
 
 // TODO: Fix that ugly thingie
@@ -12,21 +13,23 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 export default class UserRecommender {
 	private strategyId: number
 	private ltStrategyId: number
+	private limitGlobaltrust: number
 
 	private ids: number[] = []
 	private localtrust: LocalTrust = []
 	private initialtrust: Pretrust = []
 
-	constructor(strategyId: number, ltStrategyId: number) {
-		this.strategyId = strategyId
-		this.ltStrategyId = ltStrategyId
-	}
+	constructor() {
+		this.strategyId = config.personalization.globaltrust
+		this.ltStrategyId = config.personalization.ltStrategyId
+		this.limitGlobaltrust = config.personalization.limitGlobaltrust
+	} 
 
 	async init() {
 		console.time("initializing user recommender")
 		this.ids = await getIds()
 		this.localtrust = await UserRecommender.getLocaltrust(this.ltStrategyId)
-		this.initialtrust = await Rankings.getRawGlobaltrust(this.strategyId, 10)
+		this.initialtrust = await Rankings.getRawGlobaltrust(this.strategyId, this.limitGlobaltrust)
 		console.timeEnd("initializing user recommender")
 	}
 
