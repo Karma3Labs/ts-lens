@@ -5,21 +5,19 @@ import { objectFlip, getIds } from "./utils"
 import { strategies as ptStrategies  } from './strategies/pretrust'
 import { strategies as ltStrategies  } from './strategies/localtrust'
 import { getDB } from '../utils'
-import { PersonalizationStrategy } from './strategies/personalization'
 import { ContentStrategy } from './strategies/content'
 const db = getDB()
 
 // TODO: Fix that ugly thingie
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
-export default class Recommender {
+export default class Rankings {
 	public ids: number[] = []
 	public idsToIndex: Record<number, number> = {}
 	public globaltrust: GlobalTrust = []
 
 	constructor(
 		public strategyId: number,
-		public personalizationStrategy?: PersonalizationStrategy,
 		public contentStrategy?: ContentStrategy
 	) {}
 
@@ -51,41 +49,27 @@ export default class Recommender {
 		save && await this.saveGlobaltrust()
 	}
 
-	async recommend(limit = 20, id: number): Promise<number[]> {
-		if (!this.personalizationStrategy) {
-			throw Error('Recommending but no personalization strategy set')
-		}
-
-		return this.personalizationStrategy(this.strategyId, id, limit)
-	}
-
-	async recommendCasts(limit = 20, id: number): Promise<number[]> {
-		if (!this.contentStrategy) {
-			throw Error('Recommending but no content strategy set')
-		}
-
-		return this.contentStrategy(this.strategyId, id, limit)
-	}
-
-	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, alpha: number, id?: number): Promise<GlobalTrust> => {
+	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, alpha: number, initial?: Pretrust, maxIterations?: number): Promise<GlobalTrust> => {
 		const convertedPretrust = this.convertPretrustToIndeces(pretrust)
 		const convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
+		const convertedInitialtrust = initial ? this.convertPretrustToIndeces(initial) : undefined
 
 		const res = await this.requestEigentrust(
 			convertedLocaltrust,
 			convertedPretrust,
-			alpha
+			alpha,
+			convertedInitialtrust,
+			maxIterations
 		)
 
 		return this.parseGlobaltrust(res)
 	}
 
-	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust, alpha: number): Promise<GlobalTrust> {
+	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust, alpha: number, initialTrust?: Pretrust, maxIterations?: number): Promise<GlobalTrust> {
 		try {
 			console.time('calculation')
 
-			const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/compute`
-			const res = await axios.post(eigentrustAPI, {
+			const opts: any = {
 				localTrust: {
 					scheme: 'inline',
 					size: this.ids.length,
@@ -99,8 +83,22 @@ export default class Recommender {
 				alpha: alpha,
 				epsilon: 1.0,
 				flatTail: 2
-			})
+			}
 
+			if (initialTrust) {
+				opts['initialTrust'] = {
+					scheme: 'inline',
+					size: this.ids.length,
+					entries: initialTrust,
+				}
+			}
+
+			if (maxIterations) {
+				opts['maxIterations'] = maxIterations
+			}
+
+			const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/compute`
+			const res = await axios.post(eigentrustAPI, opts)
 			console.timeEnd('calculation')
 			return res.data.entries
 		}
@@ -110,7 +108,7 @@ export default class Recommender {
 	}
 
 	async loadFromDB() {
-		this.globaltrust = await Recommender.getGlobaltrustByStrategyId(this.strategyId)
+		this.globaltrust = await Rankings.getGlobaltrustByStrategyId(this.strategyId)
 		console.log(`Loaded ${this.globaltrust.length} globaltrust entries from DB`)
 	}
 
@@ -165,7 +163,10 @@ export default class Recommender {
 	}
 
 	static async getGlobaltrustByStrategyId(strategyId: number, date?: string, hex = false, limit = 50, offset = 0): Promise<GlobalTrust> {
+		console.log("DATE:", date)
 		date = date || await this.getLatestDateByStrategyId(strategyId)
+		console.log("STRATEGY ID: ", strategyId)
+		console.log("DATE: ", date)
 
 		const globaltrust = await db('globaltrust')
 			.where({ strategyId, date })
@@ -235,7 +236,6 @@ export default class Recommender {
 		return res && res.rank
 	}
 
-
 	static async getScoreOfUser(strategyId: number, id: number, date?: string): Promise<number> {
 		date = date || await this.getLatestDateByStrategyId(strategyId)
 
@@ -253,7 +253,9 @@ export default class Recommender {
 			.where('strategy_id', strategyId)
 			.max('date as date')
 			.first()
-		
+		console.log("STRATEGY ID: ", strategyId)
+		console.log("Date: ", date)
+
 		return date
 	}
 }

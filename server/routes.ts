@@ -1,8 +1,8 @@
 import { Express, Request, Response } from 'express'
-import Recommender from '../recommender/index'
+import Rankings from '../recommender/Rankings'
 import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
 
-export default (app: Express, recommender: Recommender) => {
+export default (app: Express) => {
 	app.get('/suggest', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let id: number, hex: boolean
@@ -17,7 +17,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} personalized for id: ${id}`)
 
 		try {
-			const ids = await recommender.recommend(50, id)
+			const ids = await Rankings.recommend(50, id)
 			const profiles = await getProfilesFromIdsOrdered(ids, hex)
 			profiles.map((profile: any, i: number) => {
 				profile.rank = i
@@ -60,7 +60,7 @@ export default (app: Express, recommender: Recommender) => {
 
 		try {
 			strategyId = await getStrategyIdFromQueryParams(req.query)
-			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Rankings.getLatestDateByStrategyId(strategyId)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
@@ -68,7 +68,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} for strategyId: ${strategyId}`)
 
 		try {
-			const count = await Recommender.getGlobaltrustLength(strategyId, date)
+			const count = await Rankings.getGlobaltrustLength(strategyId, date)
 			return res.send({ count })
 		}
 		catch (e: any) {
@@ -85,7 +85,7 @@ export default (app: Express, recommender: Recommender) => {
 		try {
 			id = await getIdFromQueryParams(req.query)
 			strategyId = await getStrategyIdFromQueryParams(req.query)
-			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Rankings.getLatestDateByStrategyId(strategyId)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
@@ -93,7 +93,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} for id: ${id} and strategyId: ${strategyId}`)
 
 		try {
-			const score = await Recommender.getScoreOfUser(strategyId, id, date);
+			const score = await Rankings.getScoreOfUser(strategyId, id, date);
 			return res.send({ score })
 		}
 		catch (e: any) {
@@ -111,7 +111,7 @@ export default (app: Express, recommender: Recommender) => {
 			hex	= req.query.hex === 'true'
 			ids = await getIdsFromQueryParams(req.query)
 			strategyId = await getStrategyIdFromQueryParams(req.query)
-			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Rankings.getLatestDateByStrategyId(strategyId)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
@@ -119,7 +119,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} for ids: ${ids} and strategyId: ${strategyId}`)
 
 		try {
-			const scores = await Recommender.getGlobaltrustByStrategyIdAndIds(strategyId, ids, hex, date);
+			const scores = await Rankings.getGlobaltrustByStrategyIdAndIds(strategyId, ids, hex, date);
 			return res.send(scores)
 		}
 		catch (e: any) {
@@ -136,7 +136,7 @@ export default (app: Express, recommender: Recommender) => {
 		try {
 			id = await getIdFromQueryParams(req.query)
 			strategyId = await getStrategyIdFromQueryParams(req.query)
-			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Rankings.getLatestDateByStrategyId(strategyId)
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
@@ -144,7 +144,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} for id: ${id} and strategyId: ${strategyId}`)
 
 		try {
-			const rank = await Recommender.getRankOfUser(strategyId, id, date);
+			const rank = await Rankings.getRankOfUser(strategyId, id, date);
 			return res.send({ rank })
 		}
 		catch (e: any) {
@@ -161,7 +161,7 @@ export default (app: Express, recommender: Recommender) => {
 
 		try {
 			strategyId = await getStrategyIdFromQueryParams(req.query)
-			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Recommender.getLatestDateByStrategyId(strategyId)
+			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Rankings.getLatestDateByStrategyId(strategyId)
 			hex = req.query.hex === 'true'
 		}
 		catch (e: any) {
@@ -170,7 +170,7 @@ export default (app: Express, recommender: Recommender) => {
 		console.log(`${reqUri} for strategyId: ${strategyId} on ${date} ranging from [${offset} to ${offset + limit}]`)
 
 		try {
-			const globaltrust = await Recommender.getGlobaltrustByStrategyId(strategyId, date, hex, limit, offset)
+			const globaltrust = await Rankings.getGlobaltrustByStrategyId(strategyId, date, hex, limit, offset)
 			return res.send(globaltrust)
 		}
 		catch (e: any) {

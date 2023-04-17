@@ -1,6 +1,5 @@
 import express, { Request } from 'express'
 import cors from 'cors'
-import Recommender from '../recommender/index'
 import getRoutes from './routes'
 import * as Sentry from "@sentry/node";
 
@@ -13,7 +12,7 @@ const options: cors.CorsOptions = {
 }
 app.use(cors<Request>(options))
 
-export default (recommender: Recommender) => {
+export default () => {
 	Sentry.init({
 		dsn: process.env.SENTRY_DSN,
 		integrations: [
@@ -27,7 +26,7 @@ export default (recommender: Recommender) => {
 	app.use(Sentry.Handlers.requestHandler());
 	app.use(Sentry.Handlers.tracingHandler());
 
-	getRoutes(app, recommender)
+	getRoutes(app)
 
 	app.use(Sentry.Handlers.errorHandler());
 
