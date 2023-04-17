@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs'
 import { getDB } from '../utils'
 import RankingsRecommender from '../recommender/RankingsRecommender'
+import { getIds } from '../recommender/utils'
 
 const db = getDB()
 
@@ -31,7 +32,11 @@ const main = async () => {
 
 	console.log(`Getting global trust for pretrust: ${argv.pretrust}, localtrust: ${argv.localtrust}, alpha: ${argv.alpha}`)
 
-	const globaltrust = await RankingsRecommender.calculateByStrategy({ pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha, strategyId: 0 }, false)
+	const globaltrust = await RankingsRecommender.calculateByStrategy(
+		await getIds(),
+		{ pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha },
+		false
+	)
  	//recommender.globaltrust = [{i: 1, v: 2}, {i: 3, v: 1}, {i: 2, v: 0.5}]
 
 

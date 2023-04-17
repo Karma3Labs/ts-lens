@@ -6,7 +6,7 @@ exports.up = function (knex) {
 	return knex.schema.createTable('globaltrust', (table) => {
 		table.integer('strategy_id')
 		table.bigInteger('i')
-		table.float('v')
+		table.double('v')
 		table.index('strategy_id', 'globaltrust_id_idx')
 		table.unique(['strategy_id', 'i'], 'globaltrust_id_i_idx')
 	})

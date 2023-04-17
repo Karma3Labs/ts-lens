@@ -1,9 +1,15 @@
 import { Express, Request, Response } from 'express'
 import Rankings from '../recommender/RankingsRecommender'
+import UserRecommender from '../recommender/UserRecommender'
 import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
+import { getIds } from '../recommender/utils'
 
-export default (app: Express) => {
-	/*
+
+export default async (app: Express) => {
+	// TODO: move to config
+	const userRecommender = new UserRecommender(3, 1)
+	await userRecommender.init()
+
 	app.get('/suggest', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let id: number, hex: boolean
@@ -18,8 +24,9 @@ export default (app: Express) => {
 		console.log(`${reqUri} personalized for id: ${id}`)
 
 		try {
-			const ids = await Rankings.recommend(50, id)
-			const profiles = await getProfilesFromIdsOrdered(ids, hex)
+			const re = await userRecommender.recommend(id)
+			console.log(re)
+			const profiles = await getProfilesFromIdsOrdered(re, hex)
 			profiles.map((profile: any, i: number) => {
 				profile.rank = i
 			})
@@ -31,6 +38,7 @@ export default (app: Express) => {
 		}
 	})
 
+	/*
 	app.get('/suggest_posts', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		const limit = req.query.limit ? +req.query.limit : 50

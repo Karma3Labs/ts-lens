@@ -1,7 +1,7 @@
 import  path from 'path'
 import axios from "axios"
 import { Pretrust, LocalTrust, GlobalTrust } from '../types'
-import { objectFlip, getIds } from "./utils"
+import { objectFlip } from "./utils"
 import { strategies as ptStrategies  } from './strategies/pretrust'
 import { strategies as ltStrategies  } from './strategies/localtrust'
 import { getDB } from '../utils'
@@ -11,21 +11,21 @@ const db = getDB()
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class Rankings {
-	static async calculate(strategyId: number, save: boolean = true): Promise<GlobalTrust> {
+	static async calculate(ids: number[], strategyId: number, save: boolean = true): Promise<GlobalTrust> {
 		const strategy = await db('strategies').where({ id: strategyId }).first()
 		if (!strategy) throw new Error(`Strategy with id ${strategyId} not found`);
 	
-		return await Rankings.calculateByStrategy(strategy, save)
+		return await Rankings.calculateByStrategy(ids, strategy, save)
 	}
 
-	static calculateByStrategy = async (strategy: { pretrust: string, localtrust: string, alpha: number, strategyId: number }, save: boolean = true): Promise<GlobalTrust> => {
-		const ids = await getIds()
-
+	static calculateByStrategy = async (ids: number[], strategy: { pretrust: string, localtrust: string, alpha: number, id?: number }, save: boolean = true): Promise<GlobalTrust> => {
 		const localtrustStrategy = ltStrategies[strategy.localtrust]
 		const pretrustStrategy = ptStrategies[strategy.pretrust]
 
+		console.log("Calculating localtrust")
 		console.time('localtrust_generation')
 		const localtrust = await localtrustStrategy()
+		save && await Rankings.saveLocaltrust(strategy.localtrust, localtrust);
 		console.timeEnd('localtrust_generation')
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 
@@ -39,7 +39,7 @@ export default class Rankings {
 		const globaltrust = await Rankings.runEigentrust(ids, pretrust, localtrust, strategy.alpha)
 		console.log("Generated globaltrust")
 
-		save && await Rankings.saveGlobaltrust(strategy.strategyId, globaltrust)
+		save && await Rankings.saveGlobaltrust(strategy.id || 0, globaltrust)
 
 		return globaltrust
 	}
@@ -106,9 +106,39 @@ export default class Rankings {
 		}
 	}
 
+	static async saveLocaltrust(localtrustName: string, localtrust: LocalTrust) {
+		const ltStrategy = await db('localtrust_strategies').where({ name: localtrustName }).first()
+		if (!ltStrategy) throw new Error(`Localtrust strategy with name ${localtrustName} not found`);
+
+		const CHUNK_SIZE = 1000
+		if (!localtrust.length) {
+			return
+		}
+
+		// Delete previous
+		await db('localtrust').where({ strategy_id: ltStrategy.id }).del();
+
+		for (let i = 0; i < localtrust.length; i += CHUNK_SIZE) {
+			console.log("Working on chunk", i, i + CHUNK_SIZE)
+			const chunk = localtrust
+				.slice(i, i + CHUNK_SIZE)
+				.map(g => ({
+					strategyId: ltStrategy.id,
+					...g
+				}));
+
+			console.log("Saving chunk", i, i + CHUNK_SIZE, chunk)
+			
+			await db('localtrust')
+				.insert(chunk)
+		}
+		console.timeEnd("Saving localtrust")
+	}
+
+
 	static async saveGlobaltrust(strategyId: number, globaltrust: GlobalTrust) {
 		const CHUNK_SIZE = 1000
-		if (globaltrust.length) {
+		if (!globaltrust.length) {
 			return
 		}
 
@@ -127,10 +157,7 @@ export default class Rankings {
 	}
 
 	static async getGlobaltrustByStrategyId(strategyId: number, date?: string, hex = false, limit = 50, offset = 0): Promise<GlobalTrust> {
-		console.log("DATE:", date)
 		date = date || await Rankings.getLatestDateByStrategyId(strategyId)
-		console.log("STRATEGY ID: ", strategyId)
-		console.log("DATE: ", date)
 
 		const globaltrust = await db('globaltrust')
 			.where({ strategyId, date })
@@ -217,9 +244,26 @@ export default class Rankings {
 			.where('strategy_id', strategyId)
 			.max('date as date')
 			.first()
-		console.log("STRATEGY ID: ", strategyId)
-		console.log("Date: ", date)
 
 		return date
+	}
+
+	static async getRawGlobaltrust(strategyId: number, limit ?: number): Promise<GlobalTrust> {
+		const q = db('globaltrust')
+			.where({ strategyId })
+			.select('v', 'i')
+
+		if (limit) {
+			q.modify((q: any) => q.orderBy('v', 'desc').limit(limit))
+		}
+
+		const globaltrust = await q
+		globaltrust.forEach((g: any) => g.v = +g.v)
+
+		if (!globaltrust.length) {
+			throw new Error(`No globaltrust found in DB for strategy id: ${strategyId}`)
+		}
+
+		return globaltrust
 	}
 }
