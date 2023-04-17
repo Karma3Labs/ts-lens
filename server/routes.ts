@@ -1,8 +1,9 @@
 import { Express, Request, Response } from 'express'
-import Rankings from '../recommender/Rankings'
+import Rankings from '../recommender/RankingsRecommender'
 import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
 
 export default (app: Express) => {
+	/*
 	app.get('/suggest', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let id: number, hex: boolean
@@ -53,6 +54,7 @@ export default (app: Express) => {
 			res.status(500).send(`Could not get ${reqUri}`)	
 		}
 	})
+	*/
 
 	app.get(['/rankings_count', '/profile_count'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()

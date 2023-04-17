@@ -5,29 +5,21 @@ import { objectFlip, getIds } from "./utils"
 import { strategies as ptStrategies  } from './strategies/pretrust'
 import { strategies as ltStrategies  } from './strategies/localtrust'
 import { getDB } from '../utils'
-import { ContentStrategy } from './strategies/content'
 const db = getDB()
 
 // TODO: Fix that ugly thingie
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class Rankings {
-	public ids: number[] = []
-	public idsToIndex: Record<number, number> = {}
-	public globaltrust: GlobalTrust = []
+	static async calculate(strategyId: number, save: boolean = true): Promise<GlobalTrust> {
+		const strategy = await db('strategies').where({ id: strategyId }).first()
+		if (!strategy) throw new Error(`Strategy with id ${strategyId} not found`);
+	
+		return await Rankings.calculateByStrategy(strategy, save)
+	}
 
-	constructor(
-		public strategyId: number,
-		public contentStrategy?: ContentStrategy
-	) {}
-
-	async recalculate(save = true, strategy?: { pretrust: string, localtrust: string, alpha: number }) {
-		this.ids = await getIds()
-		this.idsToIndex = objectFlip(this.ids)
-
-		strategy = strategy || await db('strategies')
-			.where('id', this.strategyId)
-			.first() as { pretrust: string, localtrust: string, alpha: number }
+	static calculateByStrategy = async (strategy: { pretrust: string, localtrust: string, alpha: number, strategyId: number }, save: boolean = true): Promise<GlobalTrust> => {
+		const ids = await getIds()
 
 		const localtrustStrategy = ltStrategies[strategy.localtrust]
 		const pretrustStrategy = ptStrategies[strategy.pretrust]
@@ -40,61 +32,68 @@ export default class Rankings {
 		console.time('pretrust_generation')
 		const pretrust = await pretrustStrategy()
 		console.timeEnd('pretrust_generation')
+
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
-		this.globaltrust = await this.runEigentrust(pretrust, localtrust, strategy.alpha)
+		const globaltrust = await Rankings.runEigentrust(ids, pretrust, localtrust, strategy.alpha)
 		console.log("Generated globaltrust")
 
-		save && await this.saveGlobaltrust()
+		save && await Rankings.saveGlobaltrust(strategy.strategyId, globaltrust)
+
+		return globaltrust
 	}
 
-	private runEigentrust = async (pretrust: Pretrust, localtrust: LocalTrust, alpha: number, initial?: Pretrust, maxIterations?: number): Promise<GlobalTrust> => {
-		const convertedPretrust = this.convertPretrustToIndeces(pretrust)
-		const convertedLocaltrust = this.convertLocaltrustToIndeces(localtrust)
-		const convertedInitialtrust = initial ? this.convertPretrustToIndeces(initial) : undefined
+	static async runEigentrust(ids: number[], pretrust: Pretrust, localtrust: LocalTrust, alpha: number, initial?: Pretrust, maxIterations?: number): Promise<GlobalTrust> {
+		const idsToIndex = objectFlip(ids)
 
-		const res = await this.requestEigentrust(
+		const convertedPretrust = pretrust.map(({ i, v }) => {
+			return {
+				i: +idsToIndex[i], v: +v 
+			}
+		}) 
+
+		const convertedLocaltrust = localtrust.map(({ i, j, v }) => {
+			return {
+				i: +idsToIndex[i], j: +idsToIndex[j], v: +v
+			}
+		})
+
+		const res = await Rankings.requestEigentrust(
+			ids.length,
 			convertedLocaltrust,
 			convertedPretrust,
 			alpha,
-			convertedInitialtrust,
-			maxIterations
 		)
 
-		return this.parseGlobaltrust(res)
+		const parsedGlobaltrust = res.map(({ i, v }) => {
+			return {
+				i: ids[i],
+				v: +v
+			}
+		})
+
+		return parsedGlobaltrust.sort((a, b) => b.v - a.v)
 	}
 
-	async requestEigentrust(localTrust: LocalTrust, pretrust: Pretrust, alpha: number, initialTrust?: Pretrust, maxIterations?: number): Promise<GlobalTrust> {
+	static async requestEigentrust(peerslength: number, localTrust: LocalTrust, pretrust: Pretrust, alpha: number): Promise<GlobalTrust> {
 		try {
 			console.time('calculation')
 
 			const opts: any = {
 				localTrust: {
 					scheme: 'inline',
-					size: this.ids.length,
+					size: peerslength,
 					entries: localTrust,
 				},
 				pretrust: {
 					scheme: 'inline',
-					size: this.ids.length,
+					size: peerslength,
 					entries: pretrust,
 				},
 				alpha: alpha,
 				epsilon: 1.0,
 				flatTail: 2
-			}
-
-			if (initialTrust) {
-				opts['initialTrust'] = {
-					scheme: 'inline',
-					size: this.ids.length,
-					entries: initialTrust,
-				}
-			}
-
-			if (maxIterations) {
-				opts['maxIterations'] = maxIterations
 			}
 
 			const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/compute`
@@ -107,22 +106,17 @@ export default class Rankings {
 		}
 	}
 
-	async loadFromDB() {
-		this.globaltrust = await Rankings.getGlobaltrustByStrategyId(this.strategyId)
-		console.log(`Loaded ${this.globaltrust.length} globaltrust entries from DB`)
-	}
-
-	private async saveGlobaltrust() {
+	static async saveGlobaltrust(strategyId: number, globaltrust: GlobalTrust) {
 		const CHUNK_SIZE = 1000
-		if (!this.globaltrust.length) {
+		if (globaltrust.length) {
 			return
 		}
 
-		for (let i = 0; i < this.globaltrust.length; i += CHUNK_SIZE) {
-			const chunk = this.globaltrust
+		for (let i = 0; i < globaltrust.length; i += CHUNK_SIZE) {
+			const chunk = globaltrust
 				.slice(i, i + CHUNK_SIZE)
 				.map(g => ({
-					strategyId: this.strategyId,
+					strategyId,
 					...g
 				}))
 			
@@ -132,39 +126,9 @@ export default class Rankings {
 		}
 	}
 
-	private convertLocaltrustToIndeces(localTrust: LocalTrust): LocalTrust {
-		return localTrust.map(({ i, j, v }) => {
-			return {
-				i: +this.idsToIndex[i],
-				j: +this.idsToIndex[j],
-				v
-			}
-		}) 
-	}
-	
-	private convertPretrustToIndeces(preTrust: Pretrust): Pretrust {
-		return preTrust.map(({ i, v }) => {
-			return {
-				i: +this.idsToIndex[i],
-				v
-			}
-		}) 
-	}
-
-	private parseGlobaltrust(globaltrust: GlobalTrust): GlobalTrust {
-		const parsedGlobaltrust = globaltrust.map(({ i, v }) => {
-			return {
-				i: this.ids[i],
-				v: +v
-			}
-		})
-
-		return parsedGlobaltrust.sort((a, b) => b.v - a.v)
-	}
-
 	static async getGlobaltrustByStrategyId(strategyId: number, date?: string, hex = false, limit = 50, offset = 0): Promise<GlobalTrust> {
 		console.log("DATE:", date)
-		date = date || await this.getLatestDateByStrategyId(strategyId)
+		date = date || await Rankings.getLatestDateByStrategyId(strategyId)
 		console.log("STRATEGY ID: ", strategyId)
 		console.log("DATE: ", date)
 
@@ -186,7 +150,7 @@ export default class Rankings {
 	}	
 
 	static async getGlobaltrustByStrategyIdAndIds(strategyId: number, ids: number[], hex = false, date?: string): Promise<GlobalTrust> {
-		date = date || await this.getLatestDateByStrategyId(strategyId)
+		date = date || await Rankings.getLatestDateByStrategyId(strategyId)
 
 		const globaltrust = await db.with('g', (q: any) => {
 			return q.from('globaltrust')
@@ -210,7 +174,7 @@ export default class Rankings {
 	}
 
 	static async getGlobaltrustLength(strategyId: number, date?: string): Promise<number> {
-		date = date || await this.getLatestDateByStrategyId(strategyId)
+		date = date || await Rankings.getLatestDateByStrategyId(strategyId)
 
 		// TODO: Investigate why count is different without joins
 		const { count } = await db('globaltrust')
@@ -224,7 +188,7 @@ export default class Rankings {
 	}	
 
 	static async getRankOfUser(strategyId: number, id: number, date?: string): Promise<number> {
-		date = date || await this.getLatestDateByStrategyId(strategyId)
+		date = date || await Rankings.getLatestDateByStrategyId(strategyId)
 
 		const res = await db.with('globaltrust_ranks', (qb: any) => {
 			return qb.from('globaltrust')
@@ -237,7 +201,7 @@ export default class Rankings {
 	}
 
 	static async getScoreOfUser(strategyId: number, id: number, date?: string): Promise<number> {
-		date = date || await this.getLatestDateByStrategyId(strategyId)
+		date = date || await Rankings.getLatestDateByStrategyId(strategyId)
 
 		const res = await db('globaltrust')
 			.select(db.raw('v as score'))

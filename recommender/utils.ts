@@ -10,7 +10,6 @@ export const getIds = async (): Promise<number[]> => {
 	return res.map((r: { id: number }) => r.id)
 }
 
-
 export const objectFlip = (obj: Record<number, number>): Record<number, number> => {
 	const ret: Record<string, number> = {}
 	Object.keys(obj).forEach(key => {

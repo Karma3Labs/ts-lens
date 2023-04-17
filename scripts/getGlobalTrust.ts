@@ -2,7 +2,7 @@ import yargs from 'yargs'
 import path from 'path'
 import fs from 'fs'
 import { getDB } from '../utils'
-import Recommender from '../recommender'
+import RankingsRecommender from '../recommender/RankingsRecommender'
 
 const db = getDB()
 
@@ -27,16 +27,16 @@ const main = async () => {
 		})
 		.help()
 		.argv as { pretrust: string, localtrust: string, alpha: number }
+	
 
 	console.log(`Getting global trust for pretrust: ${argv.pretrust}, localtrust: ${argv.localtrust}, alpha: ${argv.alpha}`)
 
-	const recommender = new Recommender(0, undefined)
-	await recommender.recalculate(false, argv)
+	const globaltrust = await RankingsRecommender.calculateByStrategy({ pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha, strategyId: 0 }, false)
  	//recommender.globaltrust = [{i: 1, v: 2}, {i: 3, v: 1}, {i: 2, v: 0.5}]
 
 
 	console.log("Calculation finished. Saving to CSV...")
-	const ids = recommender.globaltrust.map((t: any) =>  t.i)
+	const ids = globaltrust.map((t: any) =>  t.i)
 
 	const profiles = await db.raw(`select profiles.id, handle from profiles join unnest('{${ids.join(',')}}'::int[]) with ordinality t(id,ord) using (id) order by t.ord`)
 
