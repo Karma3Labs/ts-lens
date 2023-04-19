@@ -52,7 +52,7 @@ export default async (app: Express) => {
 		console.log(`${reqUri} personalized for id: ${id}`)
 
 		try {
-			const ids = await contentRecommender.recommend(limit, id)
+			const ids = await contentRecommender.recommend(id, limit)
 			return res.send(ids)
 		}
 		catch (e: any) {
