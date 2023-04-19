@@ -12,20 +12,18 @@ export default class ContentRecommender {
 	private strategy: ContentStrategy
 	private limitUsers: number
 
-	constructor(strategy = "viralPosts") {
+	constructor(userRecommender: UserRecommender, strategy = "viralPosts") {
 		this.strategyName = strategy || config.content.strategy
 
 		if (!strategies[this.strategyName]) throw new Error(`Strategy ${this.strategyName} not found`)
 		this.strategy = strategies[this.strategyName]
 
 		this.limitUsers = config.content.limitUsers
-
-		const { globaltrust, ltStrategyId, limitGlobaltrust } = config.content.personalization
-		this.userRecommender = new UserRecommender(globaltrust, ltStrategyId, limitGlobaltrust)
+		this.userRecommender = userRecommender
 	} 
 
-	async recommend(limit: number = 50) {
-		const users = await this.userRecommender.recommend(this.limitUsers)
+	async recommend(userId: number, limit: number = 50) {
+		const users = await this.userRecommender.recommend(userId, this.limitUsers)
 		return this.strategy(users, limit)
 	}
 }

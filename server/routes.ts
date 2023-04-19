@@ -2,11 +2,12 @@ import { Express, Request, Response } from 'express'
 import Rankings from '../recommender/RankingsRecommender'
 import UserRecommender from '../recommender/UserRecommender'
 import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
+import ContentRecommender from '../recommender/ContentRecommender'
 
 export default async (app: Express) => {
-	// TODO: move to config
 	const userRecommender = new UserRecommender()
 	await userRecommender.init()
+	const contentRecommender = new ContentRecommender(userRecommender)
 
 	app.get('/suggest', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
@@ -36,7 +37,6 @@ export default async (app: Express) => {
 		}
 	})
 
-	/*
 	app.get('/suggest_posts', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		const limit = req.query.limit ? +req.query.limit : 50
@@ -52,7 +52,7 @@ export default async (app: Express) => {
 		console.log(`${reqUri} personalized for id: ${id}`)
 
 		try {
-			const ids = await recommender.recommendCasts(limit, id)
+			const ids = await contentRecommender.recommend(limit, id)
 			return res.send(ids)
 		}
 		catch (e: any) {
@@ -60,7 +60,6 @@ export default async (app: Express) => {
 			res.status(500).send(`Could not get ${reqUri}`)	
 		}
 	})
-	*/
 
 	app.get(['/rankings_count', '/profile_count'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()

@@ -7,10 +7,5 @@ export const config = {
 	content: {
 		strategy: "viralPosts",
 		limitUsers: 50,
-		personalization: {
-			globaltrust: 3,
-			ltStrategyId: 1,
-			limitGlobaltrust: 100
-		},
 	}
 }
