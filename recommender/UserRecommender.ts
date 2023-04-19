@@ -19,10 +19,10 @@ export default class UserRecommender {
 	private localtrust: LocalTrust = []
 	private initialtrust: Pretrust = []
 
-	constructor() {
-		this.strategyId = config.personalization.globaltrust
-		this.ltStrategyId = config.personalization.ltStrategyId
-		this.limitGlobaltrust = config.personalization.limitGlobaltrust
+	constructor(strategyId?: number, ltStrategyId?: number, limitGlobaltrust?: number) {
+		this.strategyId = strategyId || config.personalization.globaltrust
+		this.ltStrategyId = ltStrategyId || config.personalization.ltStrategyId
+		this.limitGlobaltrust = limitGlobaltrust || config.personalization.limitGlobaltrust
 	} 
 
 	async init() {

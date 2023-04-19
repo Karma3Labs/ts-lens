@@ -1,12 +1,10 @@
-import { useFollowsRecursive } from "./personalization"
 import { getDB } from '../../utils'
-export type ContentStrategy = (strategyId: number, id: number, limit: number) => Promise<number[]>
+
+export type ContentStrategy = (fromUsers: number[], limit: number) => Promise<number[]>
 
 const db = getDB()
 
-export const bestPostsOfPersonalized = async (strategyId: number, id: number, limit: number) => {
-	const users = await useFollowsRecursive(strategyId, id, 100)
-
+export const viralPosts = async (fromUsers: number[], limit: number) => {
 	const res = await db.raw(`
 		WITH hot_posts AS (
 			SELECT 
@@ -37,7 +35,7 @@ export const bestPostsOfPersonalized = async (strategyId: number, id: number, li
 				where price > 0
 				GROUP BY profile_id, pub_id
 			) collects_count ON posts.profile_id = collects_count.profile_id AND posts.pub_id = collects_count.pub_id
-			WHERE posts.profile_id IN (${users.join(', ')})
+			WHERE posts.profile_id IN (${fromUsers.join(', ')})
 			ORDER BY weighted_average DESC
 		)
 	SELECT id, content_uri, profile_id, pub_id, timestamp FROM hot_posts limit :limit
@@ -47,5 +45,5 @@ export const bestPostsOfPersonalized = async (strategyId: number, id: number, li
 }
 
 export const strategies: Record<string, ContentStrategy> = {
-	bestPostsOfPersonalized,
+	viralPosts,
 }
