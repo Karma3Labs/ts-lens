@@ -14,6 +14,7 @@ export const viralPosts = async (fromUsers: number[], limit: number) => {
 				MAX(collects_count) AS max_collects_count
 			FROM
 				posts
+			WHERE profile_id IN (${fromUsers.join(',')})
 		)
 		
 		SELECT
@@ -33,6 +34,7 @@ export const viralPosts = async (fromUsers: number[], limit: number) => {
 			) AS score
 		FROM
 			posts, max_values
+		WHERE profile_id IN (${fromUsers.join(',')})
 		ORDER BY
 			score DESC
 		LIMIT :limit;
