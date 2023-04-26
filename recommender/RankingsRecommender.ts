@@ -26,6 +26,7 @@ export default class Rankings {
 		console.time('localtrust_generation')
 		const localtrust = await localtrustStrategy()
 		save && await Rankings.saveLocaltrust(strategy.localtrust, localtrust);
+		save && await Rankings.uploadLocaltrust(ids, strategy.localtrust, localtrust)
 		console.timeEnd('localtrust_generation')
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 
@@ -36,7 +37,7 @@ export default class Rankings {
 		console.log(`Generated localtrust with ${localtrust.length} entries`)
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
-		const globaltrust = await Rankings.runEigentrust(ids, pretrust, localtrust, strategy.alpha)
+		const globaltrust = await Rankings.runEigentrust(ids, pretrust, strategy.localtrust, strategy.alpha)
 		console.log("Generated globaltrust")
 
 		save && await Rankings.saveGlobaltrust(strategy.id || 0, globaltrust)
@@ -44,7 +45,7 @@ export default class Rankings {
 		return globaltrust
 	}
 
-	static async runEigentrust(ids: number[], pretrust: Pretrust, localtrust: LocalTrust, alpha: number, initial?: Pretrust, maxIterations?: number): Promise<GlobalTrust> {
+	static async runEigentrust(ids: number[], pretrust: Pretrust, localtrustName: string, alpha: number): Promise<GlobalTrust> {
 		const idsToIndex = objectFlip(ids)
 
 		const convertedPretrust = pretrust.map(({ i, v }) => {
@@ -53,15 +54,9 @@ export default class Rankings {
 			}
 		}) 
 
-		const convertedLocaltrust = localtrust.map(({ i, j, v }) => {
-			return {
-				i: +idsToIndex[i], j: +idsToIndex[j], v: +v
-			}
-		})
-
 		const res = await Rankings.requestEigentrust(
 			ids.length,
-			convertedLocaltrust,
+			localtrustName,
 			convertedPretrust,
 			alpha,
 		)
@@ -76,15 +71,14 @@ export default class Rankings {
 		return parsedGlobaltrust.sort((a, b) => b.v - a.v)
 	}
 
-	static async requestEigentrust(peerslength: number, localTrust: LocalTrust, pretrust: Pretrust, alpha: number): Promise<GlobalTrust> {
+	static async requestEigentrust(peerslength: number, localTrustName: string, pretrust: Pretrust, alpha: number): Promise<GlobalTrust> {
 		try {
 			console.time('calculation')
 
 			const opts: any = {
 				localTrust: {
-					scheme: 'inline',
-					size: peerslength,
-					entries: localTrust,
+					scheme: 'stored',
+					id: localTrustName,
 				},
 				pretrust: {
 					scheme: 'inline',
@@ -106,6 +100,26 @@ export default class Rankings {
 		}
 	}
 
+	static async uploadLocaltrust(ids: number[], localtrustName: string, localtrust: LocalTrust) {
+		console.time("Uploading localtrust")
+		const idsToIndex = objectFlip(ids)
+		const convertedLocaltrust = localtrust.map(({ i, j, v }) => {
+			return {
+				i: +idsToIndex[i], j: +idsToIndex[j], v: +v
+			}
+		})
+
+		const opts: any = {
+			scheme: 'inline',
+			size: ids.length,
+			entries: convertedLocaltrust,
+		}
+
+		const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${localtrustName}`
+		await axios.put(eigentrustAPI, opts)
+		console.timeEnd("Uploading localtrust")
+	}
+
 	static async saveLocaltrust(localtrustName: string, localtrust: LocalTrust) {
 		const ltStrategy = await db('localtrust_strategies').where({ name: localtrustName }).first()
 		if (!ltStrategy) throw new Error(`Localtrust strategy with name ${localtrustName} not found`);
@@ -119,7 +133,6 @@ export default class Rankings {
 		await db('localtrust').where({ strategy_id: ltStrategy.id }).del();
 
 		for (let i = 0; i < localtrust.length; i += CHUNK_SIZE) {
-			console.log("Working on chunk", i, i + CHUNK_SIZE)
 			const chunk = localtrust
 				.slice(i, i + CHUNK_SIZE)
 				.map(g => ({
@@ -127,12 +140,9 @@ export default class Rankings {
 					...g
 				}));
 
-			console.log("Saving chunk", i, i + CHUNK_SIZE, chunk)
-			
 			await db('localtrust')
 				.insert(chunk)
 		}
-		console.timeEnd("Saving localtrust")
 	}
 
 

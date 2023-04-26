@@ -12,35 +12,33 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class UserRecommender {
 	private strategyId: number
-	private ltStrategyId: number
+	private ltStrategyName: string
 	private limitGlobaltrust: number
 
 	private ids: number[] = []
-	private localtrust: LocalTrust = []
 	private initialtrust: Pretrust = []
 
-	constructor(strategyId?: number, ltStrategyId?: number, limitGlobaltrust?: number) {
+	constructor(strategyId?: number, ltStrategyName?: string, limitGlobaltrust?: number) {
 		this.strategyId = strategyId || config.personalization.globaltrust
-		this.ltStrategyId = ltStrategyId || config.personalization.ltStrategyId
+		this.ltStrategyName = ltStrategyName || config.personalization.ltStrategyName
 		this.limitGlobaltrust = limitGlobaltrust || config.personalization.limitGlobaltrust
 	} 
 
 	async init() {
 		console.time("initializing user recommender")
 		this.ids = await getIds()
-		this.localtrust = await UserRecommender.getLocaltrust(this.ltStrategyId)
 		this.initialtrust = await Rankings.getRawGlobaltrust(this.strategyId, this.limitGlobaltrust)
 		console.timeEnd("initializing user recommender")
 	}
 
 	async recommend(id: number, limit = 50) {
 		const pretrust = await UserRecommender.getFollowsPretrust(id)
-		const globaltrust = await UserRecommender.runEigentrust(this.ids, pretrust, this.localtrust, this.initialtrust, 0.5, 2)
+		const globaltrust = await UserRecommender.runEigentrust(this.ids, pretrust, this.ltStrategyName, this.initialtrust, 0.5, 2)
 
 		return globaltrust.map(({ i }) => +i).slice(0, limit)
 	}
 
-	static async runEigentrust(ids: number[], pretrust: Pretrust, localtrust: LocalTrust, initialtrust: Pretrust, alpha: number, maxIterations: number): Promise<GlobalTrust> {
+	static async runEigentrust(ids: number[], pretrust: Pretrust, localtrustName: string, initialtrust: Pretrust, alpha: number, maxIterations: number): Promise<GlobalTrust> {
 		const idsToIndex = objectFlip(ids)
 
 		const convertedPretrust = pretrust.map(({ i, v }) => {
@@ -48,12 +46,6 @@ export default class UserRecommender {
 				i: +idsToIndex[i], v: +v 
 			}
 		}) 
-
-		const convertedLocaltrust = localtrust.map(({ i, j, v }) => {
-			return {
-				i: +idsToIndex[i], j: +idsToIndex[j], v: +v
-			}
-		})
 
 		const convertedInitialtrust = initialtrust.map(({ i, v }) => {
 			return {
@@ -63,7 +55,7 @@ export default class UserRecommender {
 
 		const res = await this.requestEigentrust(
 			ids.length,
-			convertedLocaltrust,
+			localtrustName,
 			convertedPretrust,
 			convertedInitialtrust,
 			alpha,
@@ -82,7 +74,7 @@ export default class UserRecommender {
 
 	static async requestEigentrust(
 		peersCount: number,
-		localTrust: LocalTrust,
+		localTrustName: string,
 		pretrust: Pretrust, 
 		initialTrust: Pretrust,
 		alpha: number,
@@ -92,9 +84,8 @@ export default class UserRecommender {
 
 			const opts: any = {
 				localTrust: {
-					scheme: 'inline',
-					size: peersCount,
-					entries: localTrust,
+					scheme: 'stored',
+					id: localTrustName,
 				},
 				pretrust: {
 					scheme: 'inline',
