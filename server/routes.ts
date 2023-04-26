@@ -24,7 +24,6 @@ export default async (app: Express) => {
 
 		try {
 			const re = await userRecommender.recommend(id)
-			console.log(re)
 			const profiles = await getProfilesFromIdsOrdered(re, hex)
 			profiles.map((profile: any, i: number) => {
 				profile.rank = i
