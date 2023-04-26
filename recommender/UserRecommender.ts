@@ -31,9 +31,9 @@ export default class UserRecommender {
 		console.timeEnd("initializing user recommender")
 	}
 
-	async recommend(id: number, limit = 50) {
+	async recommend(id: number, limit = 50, alpha = 0.8) {
 		const pretrust = await UserRecommender.getFollowsPretrust(id)
-		const globaltrust = await UserRecommender.runEigentrust(this.ids, pretrust, this.ltStrategyName, this.initialtrust, 0.5, 2)
+		const globaltrust = await UserRecommender.runEigentrust(this.ids, pretrust, this.ltStrategyName, this.initialtrust, alpha, 2)
 
 		return globaltrust.map(({ i }) => +i).slice(0, limit)
 	}

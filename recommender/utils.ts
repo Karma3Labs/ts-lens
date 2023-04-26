@@ -6,8 +6,12 @@ const db = getDB()
  * Get ids
  */
 export const getIds = async (): Promise<number[]> => {
+	console.time('Getting ids')
 	const res = await db('profiles').select('id')
-	return res.map((r: { id: number }) => r.id)
+	const ids =  res.map((r: { id: number }) => r.id)
+	console.timeEnd('Getting ids')
+
+	return ids
 }
 
 export const objectFlip = (obj: Record<number, number>): Record<number, number> => {
