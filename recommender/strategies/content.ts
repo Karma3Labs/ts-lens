@@ -1,51 +1,49 @@
-import { useFollowsRecursive } from "./personalization"
 import { getDB } from '../../utils'
-export type ContentStrategy = (strategyId: number, id: number, limit: number) => Promise<number[]>
+
+export type ContentStrategy = (fromUsers: number[], limit: number) => Promise<number[]>
 
 const db = getDB()
 
-export const bestPostsOfPersonalized = async (strategyId: number, id: number, limit: number) => {
-	const users = await useFollowsRecursive(strategyId, id, 100)
-
+export const viralPosts = async (fromUsers: number[], limit: number) => {
 	const res = await db.raw(`
-		WITH hot_posts AS (
-			SELECT 
-				posts.id,
-				posts.content_uri,
-				posts.profile_id, 
-				posts.pub_id, 
-				posts.block_timestamp as timestamp,
-				COALESCE(num_mirrors, 0) AS num_mirrors, 
-				COALESCE(num_comments, 0) AS num_comments,
-				COALESCE(num_collects, 0) AS num_collects,
-				EXTRACT(epoch FROM NOW() - posts.block_timestamp) / 3600 AS age_hours,
-				(0.5 * COALESCE(num_mirrors, 0)) + (0.2 * COALESCE(num_collects, 0)) + (0.5 * COALESCE(num_comments, 0)) - (1 * (EXTRACT(epoch FROM NOW() - posts.block_timestamp) / 3600)) AS weighted_average
-			FROM posts
-			LEFT JOIN (
-				SELECT to_profile_id, to_pub_id, COUNT(*) as num_mirrors 
-				FROM mirrors 
-				GROUP BY to_profile_id, to_pub_id
-			) mirrors_count ON posts.profile_id = mirrors_count.to_profile_id AND posts.pub_id = mirrors_count.to_pub_id
-			LEFT JOIN (
-				SELECT to_profile_id, to_pub_id, COUNT(*) as num_comments 
-				FROM comments 
-				GROUP BY to_profile_id, to_pub_id
-			) comments_count ON posts.profile_id = comments_count.to_profile_id AND posts.pub_id = comments_count.to_pub_id
-			LEFT JOIN (
-				SELECT profile_id, pub_id, COUNT(*) as num_collects 
-				FROM collects
-				where price > 0
-				GROUP BY profile_id, pub_id
-			) collects_count ON posts.profile_id = collects_count.profile_id AND posts.pub_id = collects_count.pub_id
-			WHERE posts.profile_id IN (${users.join(', ')})
-			ORDER BY weighted_average DESC
+		WITH max_values AS (
+			SELECT
+				MAX(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - block_timestamp))/(60*60*24))::integer AS max_age_days,
+				MAX(mirrors_count) AS max_mirrors_count,
+				MAX(comments_count) AS max_comments_count,
+				MAX(collects_count) AS max_collects_count
+			FROM
+				posts
+			WHERE profile_id IN (${fromUsers.join(',')})
 		)
-	SELECT id, content_uri, profile_id, pub_id, timestamp FROM hot_posts limit :limit
+		
+		SELECT
+			id,
+			content_uri,
+			profile_id,
+			pub_id,
+			block_timestamp as timestamp,
+			mirrors_count,
+			comments_count,
+			collects_count,
+			(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - block_timestamp))/(60*60*24))::integer AS age_days,
+			(1 * (mirrors_count::numeric / max_values.max_mirrors_count) +
+			1 * (collects_count::numeric / max_values.max_collects_count) +
+			3 * (comments_count::numeric / max_values.max_comments_count) -
+			5 * ((EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - block_timestamp))/(60*60*24))::integer::numeric / max_values.max_age_days)
+			) AS score
+		FROM
+			posts, max_values
+		WHERE profile_id IN (${fromUsers.join(',')})
+		ORDER BY
+			score DESC
+		LIMIT :limit;
+
 	`, { limit })
 
 	return res.rows
 }
 
 export const strategies: Record<string, ContentStrategy> = {
-	bestPostsOfPersonalized,
+	viralPosts,
 }

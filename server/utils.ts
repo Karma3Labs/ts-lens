@@ -16,7 +16,7 @@ export const getProfilesFromIdsOrdered = async (ids: number[], hex = false): Pro
 		.innerJoin('follower_counts', 'follower_counts.profile_id', 'profiles.id')
 		.whereIn('id', ids)
 	
-	profiles.sort((a: any, b: any) => ids.indexOf(a.id) - ids.indexOf(b.id))
+	profiles.sort((a: any, b: any) => ids.indexOf(+a.id) - ids.indexOf(+b.id))
 
 	if (hex) {
 		profiles.forEach((profile: any) => {

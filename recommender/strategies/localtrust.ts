@@ -162,6 +162,7 @@ const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust> =>
 }
 
 const f6c3m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust> => {
+	console.log("Calculating localtrust with enhanced connections")
 	return getLocaltrust({ followsWeight: 6, commentsWeight: 3, mirrorsWeight: 8 })
 }
 
