@@ -3,11 +3,13 @@ import Rankings from '../recommender/RankingsRecommender'
 import UserRecommender from '../recommender/UserRecommender'
 import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyIdFromQueryParams, isValidDate } from './utils'
 import ContentRecommender from '../recommender/ContentRecommender'
+import FeedRecommender from '../recommender/FeedRecommender'
 
 export default async (app: Express) => {
 	const userRecommender = new UserRecommender()
 	await userRecommender.init()
 	const contentRecommender = new ContentRecommender(userRecommender)
+	const feedRecommender = new FeedRecommender()
 
 	app.get('/suggest', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
@@ -159,6 +161,19 @@ export default async (app: Express) => {
 		}
 	})
 
+	app.get(['/feed'], async (req: Request, res: Response) => {
+		const reqUri = req.originalUrl.split("?").shift()
+
+		try {
+			const feed = await feedRecommender.recommend()
+			return res.send(feed)
+		}
+		catch (e: any) {
+			console.log(`Error in ${reqUri}`, e)
+			return res.status(500).send(`Could not get ${reqUri}`)
+		}
+	})
+
 	app.get(['/rankings', '/profile_scores'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		const limit = req.query.limit ? +req.query.limit : 50
@@ -176,7 +191,7 @@ export default async (app: Express) => {
 		console.log(`${reqUri} for strategyId: ${strategyId} on ${date} ranging from [${offset} to ${offset + limit}]`)
 
 		try {
-			const globaltrust = await Rankings.getGlobaltrustByStrategyId(strategyId, date, hex, limit, offset)
+			const globaltrust = await Rankings.getGlobaltrustByStrategyId(strategyId, limit, offset, date, hex)
 			return res.send(globaltrust)
 		}
 		catch (e: any) {
