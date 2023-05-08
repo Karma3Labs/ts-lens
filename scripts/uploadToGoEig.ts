@@ -1,20 +1,19 @@
-import { getDB } from '../utils'
 import { getIds } from '../recommender/utils'
-import Rankings from '../recommender/RankingsRecommender'
 import { config } from '../recommender/config'
+import LocaltrustGenerator from '../recommender/LocaltrustGenerator'
 
 const main = async () => {
-	const db = getDB()
+	const generator = new LocaltrustGenerator()
 	const strategies = config.localtrustStrategies
 	const ids = await getIds()
 
 	for (const name of Object.values(strategies)) {
-		const localtrust = await db('localtrust').select('i', 'j', 'v').where({ strategy_name: name })
+		const localtrust = await generator.getLocaltrust(name)
 		if (!localtrust.length) {
 			console.log(`No localtrust for ${name} found, skipping`)
 			continue
 		}
-		await Rankings.uploadLocaltrust(ids, name, localtrust)
+		await generator.uploadLocaltrust(name, localtrust, ids)
 	}
 }
 
