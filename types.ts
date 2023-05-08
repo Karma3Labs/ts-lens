@@ -6,10 +6,13 @@ export type Profile = {
 }
 
 export type Post = {
-	id: string,
-	pubId: number
-	fromProfile: number
-	timestamp: Date
+	postId: string,
+	contentUri: string,
+	createdAt: number
+	v: number
+	mirrorsCount?: number
+	collectsCount?: number
+	commentsCount?: number
 }
 
 export type Comment = {
