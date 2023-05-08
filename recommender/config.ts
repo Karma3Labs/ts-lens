@@ -1,17 +1,17 @@
 export const config = {
-	localtrustStrategies: {
-		1: 'existingConnections',
-		2: 'f6c3m8enhancedConnections',
-		3: 'f6c3m8col12enhancedConnections'
-	},
-	pretrustStrategies: {
-		1: 'pretrustOGs',
-		2: 'pretrustFirstFifty',
-		3: 'pretrustAllEqually'
-	},
-	contentStrategies: {
-		1: 'viralPosts',
-	},
+	localtrustStrategies: [
+		'existingConnections',
+		'f6c3m8enhancedConnections',
+		'f6c3m8col12enhancedConnections'
+	],
+	pretrustStrategies: [
+		'pretrustOGs',
+		'pretrustFirstFifty',
+		'pretrustAllEqually'
+	],
+	contentStrategies: [
+		'viralPosts',
+	],
 	rankingStrategies: [{
 			name: 'followship',
 			pretrust: 'pretrustOGs',
@@ -29,6 +29,13 @@ export const config = {
 			alpha: 0.5
 		}
 	],
+	feedStrategies: [{
+		name: "followship-viralPosts",
+		globaltrust: "followship",
+		feed: "viralPosts",
+		globaltrustSize: 100,
+		limit: 100
+	}],
 	personalization: {
 		globaltrust: 'followship',
 		ltStrategyName: 'existingConnections',
@@ -38,11 +45,4 @@ export const config = {
 		strategy: "viralPosts",
 		limitUsers: 50,
 	},
-	feed: [{
-		name: "followship-viralPosts",
-		globaltrust: "followship",
-		feed: "viralPosts",
-		globaltrustSize: 100,
-		limit: 100
-	}]
 }

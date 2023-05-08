@@ -1,5 +1,5 @@
 import  path from 'path'
-import { strategies, ContentStrategy} from './strategies/content'
+import { strategies } from './strategies/content'
 import { config } from './config'
 import RankingsRecommender from './RankingsRecommender'
 import { Post } from '../types'
@@ -86,7 +86,9 @@ export default class FeedRecommender {
 	}
 
 	static getStrategy(strategyName: string) {
-		const strategy = config.feed.find((s) => s.name === strategyName)
+		console.log(strategyName)
+		const strategy = config.feedStrategies.find((s) => s.name === strategyName)
+		console.log(strategy)
 		if (!strategy) {
 			throw new Error("Invalid feed strategy")
 		}
@@ -94,14 +96,3 @@ export default class FeedRecommender {
 		return strategy
 	}
 }
-
-const main = async () => {
-	// const posts = await FeedRecommender.calculateByStrategy('followship-viralPosts')
-	// await FeedRecommender.saveFeed('followship-viralPosts', posts)
-
-	const feed = await FeedRecommender.getFeed('followship-viralPosts')
-	console.log(feed)
-	process.exit()
-}
-
-main()

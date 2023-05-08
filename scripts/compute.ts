@@ -1,16 +1,15 @@
-import Recommender from '../recommender/RankingsRecommender'
 import { getIds } from '../recommender/utils'
 import { config } from '../recommender/config'
 import LocaltrustGenerator from '../recommender/LocaltrustGenerator'
 import Rankings from '../recommender/RankingsRecommender'
+import Feed from '../recommender/FeedRecommender'
 
 const main = async () => {
 	const ids = await getIds()
 	const localtrustGenerator = new LocaltrustGenerator()
 
-	const localtrustStrategies = Object.values(config.localtrustStrategies)
 	console.time("Generated localtrust")
-	for (const ltStrategy of localtrustStrategies) {
+	for (const ltStrategy of config.localtrustStrategies) {
 		console.log(`Generating localtrust for ${ltStrategy}`)
 		const localtrust = await localtrustGenerator.generateLocaltrust(ltStrategy)
 		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust)
@@ -19,11 +18,18 @@ const main = async () => {
 	console.timeEnd("Generated localtrust")
 
 	console.time("Generated rankings")
-	const rankingStrategies = config.rankingStrategies
-	for (const rkStrategy of rankingStrategies) {
+	for (const rkStrategy of config.rankingStrategies) {
 		console.log(`Generating rankings for ${rkStrategy.name}`)
-		const rankings = await Recommender.calculateByStrategy(ids, rkStrategy)
+		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy)
 		await Rankings.saveGlobaltrust(rkStrategy.name, rankings)
+	}
+	console.timeEnd("Generated rankings")
+
+	console.time("Generated feed")
+	for (const fStrategy of config.feedStrategies) {
+		console.log(`Generating rankings for ${fStrategy.name}`)
+		const feed = await Feed.calculateByStrategy(fStrategy.name)
+		await Feed.saveFeed(fStrategy.name, feed)
 	}
 	console.timeEnd("Generated rankings")
 }

@@ -7,7 +7,7 @@ const main = async () => {
 	const strategies = config.localtrustStrategies
 	const ids = await getIds()
 
-	for (const name of Object.values(strategies)) {
+	for (const name of strategies) {
 		const localtrust = await generator.getLocaltrust(name)
 		if (!localtrust.length) {
 			console.log(`No localtrust for ${name} found, skipping`)

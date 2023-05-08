@@ -7,9 +7,8 @@ import FeedRecommender from '../recommender/FeedRecommender'
 
 export default async (app: Express) => {
 	const userRecommender = new UserRecommender()
-	await userRecommender.init()
 	const contentRecommender = new ContentRecommender(userRecommender)
-	const feedRecommender = new FeedRecommender()
+	await userRecommender.init()
 
 	app.get('/suggest', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
@@ -162,7 +161,7 @@ export default async (app: Express) => {
 		const reqUri = req.originalUrl.split("?").shift()
 
 		try {
-			const feed = await feedRecommender.recommend()
+			const feed = await FeedRecommender.calculateByStrategy('followship-viralPosts')
 			return res.send(feed)
 		}
 		catch (e: any) {
