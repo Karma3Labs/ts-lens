@@ -2,14 +2,6 @@ import { getDB } from "../utils"
 
 const db = getDB()
 
-// Newly defined mapping of strategy names to numeric strategy IDs
-const strategyNameToId: Record<string, number> = {
-	'followship' : 6,
-	'engagement' : 3,
-	'influencer' : 6,
-	'creator'    : 7
-}
-
 export const getProfilesFromIdsOrdered = async (ids: string[], hex = false): Promise<{id: number, handle: string}[]> => {
 	console.log('ids', ids)
 	const profiles = await db('k3l_profiles')

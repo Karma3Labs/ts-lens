@@ -1,9 +1,8 @@
 import  path from 'path'
 import axios from "axios"
-import { Pretrust, LocalTrust, GlobalTrust } from '../types'
+import { Pretrust, GlobalTrust } from '../types'
 import { objectFlip } from "./utils"
 import { strategies as ptStrategies  } from './strategies/pretrust'
-import { strategies as ltStrategies  } from './strategies/localtrust'
 import { getDB } from '../utils'
 const db = getDB()
 
@@ -12,32 +11,20 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class Rankings {
 	static calculateByStrategy = async (ids: string[], strategy: { pretrust: string, localtrust: string, alpha: number, name: string }, save: boolean = true): Promise<GlobalTrust<string>> => {
-		const localtrustStrategy = ltStrategies[strategy.localtrust]
 		const pretrustStrategy = ptStrategies[strategy.pretrust]
 
-		if (!localtrustStrategy || !pretrustStrategy) {
-			throw new Error("Invalid lcoaltrust and pretrust strategies")
+		if (!pretrustStrategy) {
+			throw new Error("Invalid pretrust strategy")
 		}
-
-		console.log("Calculating localtrust")
-		console.time('localtrust_generation')
-		const localtrust = await localtrustStrategy()
-		console.timeEnd('localtrust_generation')
-		save && await Rankings.saveLocaltrust(strategy.localtrust, localtrust);
-		save && await Rankings.uploadLocaltrust(ids, strategy.localtrust, localtrust)
-		console.log(`Generated localtrust with ${localtrust.length} entries`)
 
 		console.time('pretrust_generation')
 		const pretrust = await pretrustStrategy()
 		console.timeEnd('pretrust_generation')
 
-		console.log(`Generated localtrust with ${localtrust.length} entries`)
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
 		const globaltrust = await Rankings.runEigentrust(ids, pretrust, strategy.localtrust, strategy.alpha)
 		console.log("Generated globaltrust")
-
-		save && await Rankings.saveGlobaltrust(strategy.name, globaltrust)
 
 		return globaltrust
 	}
@@ -96,49 +83,6 @@ export default class Rankings {
 			throw new Error('Calculation did not succeed');
 		}
 	}
-
-	static async uploadLocaltrust(ids: string[], localtrustName: string, localtrust: LocalTrust<string>) {
-		console.time("Uploading localtrust")
-		const idsToIndex = objectFlip(ids)
-		const convertedLocaltrust: LocalTrust<number> = localtrust.map(({ i, j, v }) => {
-			return {
-				i: +idsToIndex[i], j: +idsToIndex[j], v: +v
-			}
-		})
-
-		const opts: any = {
-			scheme: 'inline',
-			size: ids.length,
-			entries: convertedLocaltrust,
-		}
-
-		const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${localtrustName}`
-		await axios.put(eigentrustAPI, opts)
-		console.timeEnd("Uploading localtrust")
-	}
-
-	static async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>) {
-		const CHUNK_SIZE = 1000
-		if (!localtrust.length) {
-			return
-		}
-
-		// Delete previous
-		await db('localtrust').where({ strategy_name: strategyName}).del();
-
-		for (let i = 0; i < localtrust.length; i += CHUNK_SIZE) {
-			const chunk = localtrust
-				.slice(i, i + CHUNK_SIZE)
-				.map(g => ({
-					strategyName,
-					...g
-				}));
-
-			await db('localtrust')
-				.insert(chunk)
-		}
-	}
-
 
 	static async saveGlobaltrust(strategyName: string, globaltrust: GlobalTrust<string>) {
 		const CHUNK_SIZE = 1000
