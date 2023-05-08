@@ -166,7 +166,8 @@ export default class Rankings {
 		}
 	}
 
-	static async getGlobaltrustByStrategyId(strategyId: number, date?: string, hex = false, limit = 50, offset = 0): Promise<GlobalTrust> {
+	// TODO: Type that
+	static async getGlobaltrustByStrategyId(strategyId: number, limit = 50, offset = 0, date?: string, hex = false): Promise<any> {
 		date = date || await Rankings.getLatestDateByStrategyId(strategyId)
 
 		const globaltrust = await db('globaltrust')

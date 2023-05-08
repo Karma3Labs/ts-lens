@@ -8,5 +8,10 @@ export const config = {
 	content: {
 		strategy: "viralPosts",
 		limitUsers: 50,
+	},
+	feed: {
+		strategy: "viralPosts",
+		globaltrust: 3,
+		globaltrustSize: 100,
 	}
 }
