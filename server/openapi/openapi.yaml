@@ -77,7 +77,6 @@ paths:
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/PaginationLimit"
         - $ref: "#/components/parameters/Backdate"
-        - $ref: "#/components/parameters/Hex"
       responses:
         200:
           description: Query succeeded.
@@ -194,13 +193,6 @@ components:
         type: string
       description: |
         A date, in `YYYY-MM-DD` format, for which to return the historic result.  Defaults to the most recent date.
-    Hex:
-      name: hex
-      in: query
-      schema:
-        type: boolean
-      description: |
-        Set to `true` in order to return the Lens Profile IDs in hexadecimal format `0x...`, defaults to numeric IDs
   responses:
     HTTP400ErrorMessage:
       description: |
@@ -228,7 +220,7 @@ components:
           oneOf:
             - type: integer
             - type: string
-          description: Lens profile ID, returns a hexadecimal string when `hex` is set to `true`
+          description: Lens profile ID
         handle:
           type: string
           description: Lens profile handle.
