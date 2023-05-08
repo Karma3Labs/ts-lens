@@ -21,7 +21,6 @@ const getFollows = async () => {
 
 	const follows = await db('k3l_follows')
 		.select('profile_id as following_id', 'to_profile_id as follower_id')
-		.limit(10)
 
 	console.time('parsing follows')
 	let followsMap: any = {}
@@ -39,7 +38,6 @@ const getCommentCounts = async () => {
 	const comments = await db('k3l_comments')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
-		.limit(10)
 	
 	let commentsMap: any = {}
 	for (const { profileId, toProfileId, count } of comments) {
@@ -56,7 +54,6 @@ const getMirrorCounts = async () => {
 	const mirrors = await db('k3l_mirrors')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
-		.limit(10)
 
 	let mirrorsMap: any = {}
 	for (const { profileId, toProfileId, count } of mirrors) {
@@ -73,7 +70,6 @@ const getCollectCounts = async () => {
 	const collects = await db('k3l_collect_nft')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
-		.limit(10)
 
 	let collectsMap: any = {}
 	for (const { fromProfileId, toProfileId, count } of collects) {
