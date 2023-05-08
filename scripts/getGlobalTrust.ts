@@ -34,7 +34,7 @@ const main = async () => {
 
 	const globaltrust = await RankingsRecommender.calculateByStrategy(
 		await getIds(),
-		{ pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha },
+		{ name: 'test', pretrust: argv.pretrust, localtrust: argv.localtrust, alpha: argv.alpha },
 		false
 	)
  	//recommender.globaltrust = [{i: 1, v: 2}, {i: 3, v: 1}, {i: 2, v: 0.5}]

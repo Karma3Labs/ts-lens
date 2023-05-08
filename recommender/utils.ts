@@ -5,16 +5,16 @@ const db = getDB()
 /**
  * Get ids
  */
-export const getIds = async (): Promise<number[]> => {
+export const getIds = async (): Promise<string[]> => {
 	console.time('Getting ids')
-	const res = await db('profiles').select('id')
-	const ids =  res.map((r: { id: number }) => r.id)
+	const res = await db('k3l_profiles').select('profile_id')
+	const ids =  res.map((r: { profileId: string }) => r.profileId)
 	console.timeEnd('Getting ids')
 
 	return ids
 }
 
-export const objectFlip = (obj: Record<number, number>): Record<number, number> => {
+export const objectFlip = (obj: Record<number, string>): Record<string, number> => {
 	const ret: Record<string, number> = {}
 	Object.keys(obj).forEach(key => {
 	  //@ts-expect-error

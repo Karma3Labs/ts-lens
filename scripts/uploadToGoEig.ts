@@ -1,15 +1,15 @@
 import { getDB } from '../utils'
-import RankingsRecommender from '../recommender/RankingsRecommender'
 import { getIds } from '../recommender/utils'
 import Rankings from '../recommender/RankingsRecommender'
+import { config } from '../recommender/config'
 
 const main = async () => {
 	const db = getDB()
-	const strategies = await db('localtrust_strategies').select()
+	const strategies = config.localtrustStrategies
 	const ids = await getIds()
 
-	for (const { id, name } of strategies) {
-		const localtrust = await db('localtrust').select('i', 'j', 'v').where({ strategy_id: id })
+	for (const name of Object.values(strategies)) {
+		const localtrust = await db('localtrust').select('i', 'j', 'v').where({ strategy_name: name })
 		if (!localtrust.length) {
 			console.log(`No localtrust for ${name} found, skipping`)
 			continue

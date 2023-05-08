@@ -4,29 +4,18 @@
  */
 exports.up = function (knex) {
 	return knex.schema.raw(`
-		create materialized view profile_follows as (
+		create materialized view if not exists k3l_follow_counts as (
 			SELECT
-				follower.id AS follower,
-				follows.profile_id AS following
-			FROM follows
-			JOIN
-				profiles follower
-			ON
-				follows.follower_address::text = follower.owner_address::text
-		);
-		create index profile_follows_follower_idx on profile_follows(follower);
-		create index profile_follows_following_idx on profile_follows(following);
-
-		create materialized view follower_counts as (
-			SELECT
-				profile_follows.following AS profile_id,
+				profile_id,
 				count(*) AS count
 			FROM
-				profile_follows
+				k3l_follows
 			GROUP BY
 				profile_id
 		);
-		create index follower_counts_profile_id_idx on follower_counts(profile_id);
+		create index k3l_follow_counts_profile_id_idx on k3l_follow_counts(profile_id);
+
+		refresh materialized view k3l_follow_counts;
 	`)
 };
 
@@ -35,5 +24,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-	return knex.schema.dropMaterializedViewIfExists('follower_counts').dropMaterializedView('profile_follows')
+	return knex.schema.dropMaterializedViewIfExists('k3l_follow_counts');
 };

@@ -1,5 +1,5 @@
 export type Profile = {
-	id: number
+	profileid: string
 	handle: string
 	followings: number[]
 	createdAt: number
@@ -30,9 +30,9 @@ export type Mirror = {
 }
 
 export type EthAddress = string
-export type Pretrust = { i: number, v: number }[]
-export type GlobalTrust = { i: number, v: number, rank?: number }[]
-export type LocalTrust =  { i: number, j: number, v: number }[]
-export type GlobalTrustEntries = [number, number][]
+export type Pretrust<T> = { i: T, v: number }[]
+export type GlobalTrust<T> = { i: T, v: number, rank?: number }[]
+export type LocalTrust<T> =  { i: T, j: T, v: number }[]
+export type GlobalTrustEntries = [string, number][]
 export type Entry = [ number, number ] 
 export type AdjacencyMap = Record<number, Set<number>>

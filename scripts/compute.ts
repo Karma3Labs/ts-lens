@@ -1,16 +1,16 @@
 import Recommender from '../recommender/RankingsRecommender'
 import { getIds } from '../recommender/utils'
-import { generateStrategies } from './utils'
+import { config } from '../recommender/config'
 
 const main = async () => {
-	const strategies = await generateStrategies()
 	const ids = await getIds()
-	console.log(strategies)
-	for (const strategy of strategies) {
-		console.log(`Recalculating with [${strategy.pretrust},${strategy.localtrust},${strategy.alpha}]`)
+	const strategies = config.rankingStrategies
+
+	for (const st of Object.values(strategies)) {
+		console.log(`Recalculating with [${st.pretrust},${st.localtrust},${st.alpha}]`)
 
 		console.time('recalculation')
-		await Recommender.calculate(ids, strategy.id)
+		await Recommender.calculateByStrategy(ids, st)
 		console.timeEnd('recalculation')
 	}
 }
