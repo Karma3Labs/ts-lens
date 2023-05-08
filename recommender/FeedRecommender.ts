@@ -19,9 +19,9 @@ export default class FeedRecommender {
 	} 
 
 	async recommend(limit: number = 50) {
-		const users = await RankingsRecommender.getGlobaltrustByStrategyId(config.feed.globaltrust, config.feed.globaltrustSize)
+		const users = await RankingsRecommender.getGlobaltrustByStrategyName(config.feed.globaltrust, config.feed.globaltrustSize)
 		console.log(users)
-		const userIds = users.map(({ id }: {id: string}) => +id)
+		const userIds = users.map(({ id }: {id: string}) => id)
 		return this.strategy(userIds, limit)
 	}
 }

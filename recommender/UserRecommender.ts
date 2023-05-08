@@ -11,15 +11,15 @@ const db = getDB()
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class UserRecommender {
-	private strategyId: number
+	private rankingsStrategyName: string
 	private ltStrategyName: string
 	private limitGlobaltrust: number
 
-	private ids: number[] = []
-	private initialtrust: Pretrust = []
+	private ids: string[] = []
+	private initialtrust: Pretrust<string> = []
 
-	constructor(strategyId?: number, ltStrategyName?: string, limitGlobaltrust?: number) {
-		this.strategyId = strategyId || config.personalization.globaltrust
+	constructor(rankingsStrategyName?: string, ltStrategyName?: string, limitGlobaltrust?: number) {
+		this.rankingsStrategyName = rankingsStrategyName || config.personalization.globaltrust
 		this.ltStrategyName = ltStrategyName || config.personalization.ltStrategyName
 		this.limitGlobaltrust = limitGlobaltrust || config.personalization.limitGlobaltrust
 	} 
@@ -27,7 +27,7 @@ export default class UserRecommender {
 	async init() {
 		console.time("initializing user recommender")
 		this.ids = await getIds()
-		this.initialtrust = await Rankings.getRawGlobaltrust(this.strategyId, this.limitGlobaltrust)
+		this.initialtrust = await Rankings.getRawGlobaltrust(this.rankingsStrategyName, this.limitGlobaltrust)
 		console.timeEnd("initializing user recommender")
 	}
 
@@ -35,23 +35,23 @@ export default class UserRecommender {
 		const pretrust = await UserRecommender.getFollowsPretrust(id)
 		const globaltrust = await UserRecommender.runEigentrust(this.ids, pretrust, this.ltStrategyName, this.initialtrust, alpha, 2)
 
-		return globaltrust.map(({ i }) => +i).slice(0, limit)
+		return globaltrust.map(({ i }) => i).slice(0, limit)
 	}
 
-	static async runEigentrust(ids: number[], pretrust: Pretrust, localtrustName: string, initialtrust: Pretrust, alpha: number, maxIterations: number): Promise<GlobalTrust> {
+	static async runEigentrust(ids: string[], pretrust: Pretrust<string>, localtrustName: string, initialtrust: Pretrust<string>, alpha: number, maxIterations: number): Promise<GlobalTrust<string>> {
 		const idsToIndex = objectFlip(ids)
 
 		const convertedPretrust = pretrust.map(({ i, v }) => {
 			return {
 				i: +idsToIndex[i], v: +v 
 			}
-		}) 
+		}) as Pretrust<number>
 
 		const convertedInitialtrust = initialtrust.map(({ i, v }) => {
 			return {
 				i: +idsToIndex[i], v: +v
 			}
-		})
+		}) as Pretrust<number>
 
 		const res = await this.requestEigentrust(
 			ids.length,
@@ -75,10 +75,10 @@ export default class UserRecommender {
 	static async requestEigentrust(
 		peersCount: number,
 		localTrustName: string,
-		pretrust: Pretrust, 
-		initialTrust: Pretrust,
+		pretrust: Pretrust<number>, 
+		initialTrust: Pretrust<number>,
 		alpha: number,
-		maxIterations: number): Promise<GlobalTrust> {
+		maxIterations: number): Promise<GlobalTrust<number>> {
 		try {
 			console.time('calculation')
 
@@ -111,15 +111,18 @@ export default class UserRecommender {
 		}
 	}
 
-	static async getFollowsPretrust(profileId: number): Promise<Pretrust> {
-		const follows = await db('profile_follows').where({ follower: profileId })
-
-		return follows.map((f: any) => {
+	static async getFollowsPretrust(profileId: number): Promise<Pretrust<string>> {
+		const follows = await db('k3l_follows').where({  profileId })
+		console.log(follows.length)
+		const f = follows.map((f: any) => {
 			return {
-				i: +f.following,
+				i: f.toProfileId,
 				v: 1
 			}
 		})
+
+		console.log(f)
+		return f
 	}
 
 	static async getLocaltrust(ltStrategyId: number) {

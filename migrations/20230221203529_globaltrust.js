@@ -2,21 +2,25 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function (knex) {
-	return knex.schema.createTable('globaltrust', (table) => {
-		table.integer('strategy_id')
-		table.bigInteger('i')
+exports.up = async function (knex) {
+	await knex.schema.createTable('globaltrust', (table) => {
+		table.string('strategy_name')
+		table.string('i')
 		table.double('v')
-		table.index('strategy_id', 'globaltrust_id_idx')
-		table.unique(['strategy_id', 'i'], 'globaltrust_id_i_idx')
+		table.date('date').defaultTo(knex.fn.now());
+
+		table.index(['strategy_name', 'date']);
+		table.unique(['strategy_name', 'date', 'i']);
 	})
-		.createTable('strategies', (table) => {
-			table.increments('id')
-			table.text('pretrust')
-			table.text('localtrust')
-			table.float('alpha')
-			table.unique(['pretrust', 'localtrust', 'alpha'], 'strategies_pt_lt_a_idx')
-		});
+
+	await knex.schema.createTable('localtrust', (table) => {
+		table.string('strategy_name');
+		table.string('i').notNullable();
+		table.string('j').notNullable();
+		table.double('v').notNullable();
+		table.date('date').notNullable().defaultTo(knex.fn.now());
+		table.index('strategy_name', 'localtrust_id_idx');
+	})
 }
 
 /**
@@ -24,5 +28,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-	return knex.schema.dropTable('globaltrust').dropTable('strategies');
+	return knex.schema.dropTable('globaltrust').dropTable('localtrust');
 };

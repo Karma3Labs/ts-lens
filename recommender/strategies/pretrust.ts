@@ -1,7 +1,7 @@
 import { Pretrust } from '../../types'
 import { getDB } from '../../utils';
 
-export type PretrustStrategy = () => Promise<Pretrust>
+export type PretrustStrategy = () => Promise<Pretrust<string>>
 
 const db = getDB()
 
@@ -10,12 +10,12 @@ const pretrustAllEqually: PretrustStrategy = async () => {
 }
 
 const pretrustFirstFifty: PretrustStrategy = async () => {
-	const ids = await db('profiles').select('id').orderBy('id', 'asc').limit(50)
-	const pretrust: Pretrust = []
+	const ids = await db('k3l_profiles').select('profile_id').orderBy('profile_id', 'asc').limit(50)
+	const pretrust: Pretrust<string> = []
 
-	ids.forEach(({ id }: { id: number }) => {
+	ids.forEach(({ profileId }: { profileId: string }) => {
 		pretrust.push({
-			i: id,
+			i: profileId,
 			v: 1 / ids.length
 		})
 	})
@@ -28,12 +28,12 @@ const pretrustOGs: PretrustStrategy = async () => {
 	"bradorbradley.lens", "blackdave.lens", "goodkrak.lens", "levychain.lens",
 	"ryanfox.lens", "stani.lens", "jamesfinnerty.lens" ]
 
-	const ids = await db('profiles').select('id').whereIn('handle', ogs)
-	const pretrust: Pretrust = []
+	const ids = await db('k3l_profiles').select('profile_id').whereIn('handle', ogs)
+	const pretrust: Pretrust<string> = []
 
-	ids.forEach(({ id }: { id: number }) => {
+	ids.forEach(({ profileId }: { profileId: string }) => {
 		pretrust.push({
-			i: id,
+			i: profileId,
 			v: 1 / ids.length
 		})
 	})

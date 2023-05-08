@@ -4,7 +4,6 @@
  */
 exports.up = function (knex) {
 	return knex.schema.alterTable('globaltrust', (table) => {
-		table.date('date').defaultTo(knex.fn.now());
 		table.index(['strategy_id', 'date']);
 		table.unique(['strategy_id', 'date', 'i']);
 	})
