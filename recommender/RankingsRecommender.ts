@@ -106,6 +106,8 @@ export default class Rankings {
 
 	// TODO: Type that
 	static async getGlobaltrustByStrategyName(strategyName: string, limit = 50, offset = 0, date?: string): Promise<any> {
+		console.log(`Getting globaltrust for strategy: ${strategyName}`)
+
 		date = date || await Rankings.getLatestDateByStrategyName(strategyName)
 
 		const globaltrust = await db('globaltrust')

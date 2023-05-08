@@ -38,9 +38,11 @@ export const config = {
 		strategy: "viralPosts",
 		limitUsers: 50,
 	},
-	feed: {
-		strategy: "viralPosts",
+	feed: [{
+		name: "followship-viralPosts",
 		globaltrust: "followship",
+		feed: "viralPosts",
 		globaltrustSize: 100,
-	}
+		limit: 100
+	}]
 }

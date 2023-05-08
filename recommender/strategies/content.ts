@@ -1,6 +1,7 @@
 import { getDB } from '../../utils'
+import { Post } from '../../types'
 
-export type ContentStrategy = (fromUsers: string[], limit: number) => Promise<number[]>
+export type ContentStrategy = (fromUsers: string[], limit: number) => Promise<Post[]>
 
 const db = getDB()
 
@@ -51,12 +52,12 @@ export const viralPosts = async (fromUsers: string[], limit: number) => {
 				1 * (collects_count::numeric / max_values.max_collects_count) +
 				3 * (comments_count::numeric / max_values.max_comments_count) -
 				5 * ((EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at))/(60*60*24))::integer::numeric / max_values.max_age_days)
-			) AS score
+			) AS v
 		FROM
 			posts_with_stats, max_values
 		WHERE profile_id IN (${toSQLList(fromUsers)})
 		ORDER BY
-			score DESC
+			v DESC
 		LIMIT :limit;
 
 	`, { limit })
