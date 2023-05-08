@@ -13,7 +13,7 @@ export default class LocaltrustGenerator {
 
 	constructor(ids: string[] = []) {
 		this.ids = ids
-		this.localtrustStrategies = Object.values(config.localtrustStrategies)
+		this.localtrustStrategies = config.localtrustStrategies
 	}
 
 	async compute() {
