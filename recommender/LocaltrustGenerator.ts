@@ -37,7 +37,7 @@ export default class LocaltrustGenerator {
 	}
 
 	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>) {
-		const CHUNK_SIZE = 1000
+		const CHUNK_SIZE = 10000
 		if (!localtrust.length) {
 			return
 		}
@@ -59,26 +59,31 @@ export default class LocaltrustGenerator {
 	}
 
 	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = []) {
+		const CHUNK_SIZE = 2500000
 		if (!ids.length) {
-			ids = await getIds()
+				ids = await getIds()
 		}
 
 		console.time("Uploading localtrust")
 		const idsToIndex = objectFlip(ids)
 		const convertedLocaltrust: LocalTrust<number> = localtrust.map(({ i, j, v }) => {
-			return {
-				i: +idsToIndex[i], j: +idsToIndex[j], v: +v
-			}
+				return {
+						i: +idsToIndex[i], j: +idsToIndex[j], v: +v
+				}
 		})
 
-		const opts: any = {
-			scheme: 'inline',
-			size: ids.length,
-			entries: convertedLocaltrust,
-		}
+		for (let i = 0; i < convertedLocaltrust.length; i += CHUNK_SIZE) {
+				const chunk = convertedLocaltrust.slice(i, i + CHUNK_SIZE)
+				const opts: any = {
+						scheme: 'inline',
+						size: ids.length,
+						entries: chunk,
+				}
+				console.log(`IDs: ${ids.length}, entries: ${chunk.length}`)
 
-		const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${strategyName}`
-		await axios.put(eigentrustAPI, opts)
+				const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${strategyName}`
+				await axios.put(eigentrustAPI, opts)
+		}
 		console.timeEnd("Uploading localtrust")
 	}
 
