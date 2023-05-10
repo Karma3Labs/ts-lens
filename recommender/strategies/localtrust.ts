@@ -121,7 +121,6 @@ const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, coll
 		}
 	}
 
-	console.timeEnd('localtrust')
 	console.log('Length of localtrust', localtrust.length)
 
 	return localtrust
