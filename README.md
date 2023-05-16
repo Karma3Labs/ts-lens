@@ -8,7 +8,7 @@ Eigentrust is a reputation-based trust algorithm, commonly used in peer-to-peer 
 
 ### Localtrust
 
-Localtrust represents the reputation or trustworthiness of a peer as perceived by another peer. It is a local view of trust and is calculated based on the direct interactions and experiences between peers. Each peer maintains a localtrust value for every other peer it has interacted with. The localtrust value reflects the level of trust or confidence that a peer has in another peer based on their past interactions.
+Localtrust is a graph representinhg the reputation or trustworthiness of a peer as perceived by another peer. This It is a local view of trust and is calculated based on the direct interactions and experiences between peers. Each peer maintains a localtrust value for every other peer it has interacted with. The localtrust value reflects the level of trust or confidence that a peer has in another peer based on their past interactions.
 
 ### Pretrust
 
@@ -34,10 +34,17 @@ recommendation endpoints:
 
 ### Non-Personalized User Recommendation (Global Rankings):
 
-This endpoint generates a global list of rankings based on different strategies
-specified in the configuration file. The API computes and caches the global
-rankings using the `yarn compute` command. Clients can fetch the cached global
-rankings for each strategy through the exposed server.
+The Non-Personalized User Recommendation, also known as Global Rankings, provides a list of globally popular users. These rankings are created through different strategies as defined in the configuration file. By running the `yarn compute` command, the API calculates and caches these global rankings. Clients can subsequently access the cached global rankings for each strategy via the exposed server.
+
+All the strategies currently supported share the same pretrust list which includes the protocol's Originals (OGs), but each strategy employs different localtrust matrices.
+
+- `Followship`: This strategy is based solely on user followings. For every instance where user A follows user B, an edge is created in the localtrust graph with a weight of 1.
+
+- `Engagement`: This strategy takes into account follows, mirrors, and comments to generate the localtrust. If user A interacts with user B in any of these ways, an edge is created with a weight calculated as: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3`.
+
+- `Creator`: This strategy works similarly to the Engagement strategy but also incorporates collectsNFTs. The weight of each edge is calculated as follows: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3 + collectNFT_count * 12`.
+
+Each of these strategies provides a unique perspective on user reputation, allowing for diverse and dynamic global rankings.
 
 ### Personalized User Recommendation (Who to Follow): The
 
@@ -51,12 +58,21 @@ Lens platform.
 
 ### Non-Personalized Content Recommendation (Feed):
 
-The "Feed" recommendation focuses on non-personalized content suggestions. The
-API selects the most viral posts using an SQL-based heuristic that considers
-mirrors, posts, and comments. To determine which users' posts to include in the
-feed, the top 100 users from the global rankings are chosen. Personalized
+The "Feed" recommendation is designed to provide users with non-personalized content suggestions. This service employs two distinct strategies to curate content for the user.
 
-### Content Recommendation (For You):
+`Latest`: This strategy presents a live feed of the most recent posts, arranged in descending order of their posting time. It offers users a real-time view of the latest content being shared across the platform.
+
+`Popular`: This strategy is designed to highlight the most viral posts based on an SQL-driven heuristic that takes into account mirrors, posts, and comments. The content for this feed is selected from the top 100 users as determined by the `Engagement` strategy in the global rankings.
+
+The SQL heuristic works as follows:
+
+- It first compiles a list of all posts from these top users.
+- Next, it calculates a score for each post based on the formula: `1 * mirrors_count + 1 * collect_count + 3 * comments_count - 5 * age_hours_post`.
+- Finally, it sorts the posts in descending order of their scores.
+
+Given this formula, which factors in the popularity of each post and includes a time decay function, the Popular strategy surfaces the most viral posts from the most reputable users within the network.
+
+### Personalized Content Recommendation (For You):
 
 Similar to the feed, the "For You" recommendation provides personalized content
 suggestions. The API applies a simple heuristic to select posts from the top
