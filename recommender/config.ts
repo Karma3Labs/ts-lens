@@ -33,8 +33,14 @@ export const config = {
 		name: "followship-viralPosts",
 		globaltrust: "followship",
 		feed: "viralPosts",
-		globaltrustSize: 100,
-		limit: 100
+		globaltrustSize: 1000,
+		limit: 100,
+	}, {
+		name: "latest",
+		feed: "latest",
+		limit: 100,
+		globaltrust: "followship",  // Not used in this strategy
+		globaltrustSize: 1000, // Not used in this strategy
 	}],
 	personalization: {
 		globaltrust: 'followship',
