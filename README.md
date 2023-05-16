@@ -4,11 +4,11 @@ Here's a typescript wrapper of the [Eigentrust Basic API](https://k3l.io/docs/ap
 
 ## Eigentrust
 
-Eigentrust is a reputation-based trust algorithm, commonly used in peer-to-peer systems. Eigentrust can be used in the Lens protocol to establish trust among peers and facilitate reliable user, content recommendations in both personalized and non personalized context. For understanding the implementation, 3 eigentrust concepts must my introduced. Here's an explanation of each:
+Eigentrust is a reputation-based trust algorithm, commonly used in peer-to-peer systems. Eigentrust can be used in the Lens protocol to establish trust among peers and facilitate reliable user, content recommendations in both personalized and non personalized contexts. For understanding the implementation, three eigentrust concepts must my introduced. Here's an explanation of each:
 
 ### Localtrust
 
-Localtrust is a graph representinhg the reputation or trustworthiness of a peer as perceived by another peer. This It is a local view of trust and is calculated based on the direct interactions and experiences between peers. Each peer maintains a localtrust value for every other peer it has interacted with. The localtrust value reflects the level of trust or confidence that a peer has in another peer based on their past interactions.
+Localtrust is a graph representing the reputation or trustworthiness of a peer as perceived by another peer. It is a local view of trust and is calculated based on the direct interactions and experiences between peers. Each peer maintains a localtrust value for every other peer it has interacted with. The localtrust value reflects the level of trust or confidence that a peer has in another peer based on their past interactions.
 
 ### Pretrust
 
@@ -27,26 +27,26 @@ trust throughout the system.
 
 By incorporating Eigentrust within the Lens Recommendation API, users can
 benefit from both non-personalized and personalized recommendations, enhancing
-their content and user discovery within the Lens platform.
+their content and user discovery within Lens protocol.
 
 The Lens Recommendation API utilizes the Eigentrust algorithm to provide various
 recommendation endpoints:
 
-### Non-Personalized User Recommendation (Global Rankings):
+### Non-Personalized User Recommendation (Global Rankings)
 
 The Non-Personalized User Recommendation, also known as Global Rankings, provides a list of globally popular users. These rankings are created through different strategies as defined in the configuration file. By running the `yarn compute` command, the API calculates and caches these global rankings. Clients can subsequently access the cached global rankings for each strategy via the exposed server.
 
-All the strategies currently supported share the same pretrust list which includes the protocol's Originals (OGs), but each strategy employs different localtrust matrices.
+The existing strategies share the same pretrust list which includes some hand selected trustworthy profiles, all of which can be easily removed or changed by a developer. Although each strategy employs different localtrust matrices, or algorithm weights to generate rankings. 
 
-- `Followship`: This strategy is based solely on user followings. For every instance where user A follows user B, an edge is created in the localtrust graph with a weight of 1.
+- `Followship`: This strategy is based solely on user follows graph. For every instance where user A follows user B, an edge is created in the localtrust graph with a weight of 1.
 
-- `Engagement`: This strategy takes into account follows, mirrors, and comments to generate the localtrust. If user A interacts with user B in any of these ways, an edge is created with a weight calculated as: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3`.
+- `Engagement`: This strategy takes into account follows, mirrors, and comments to generate the localtrust. If user A interacts with user B in any of these ways, an edge is created with a weight calculated as: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3`. Developers can change the weights of the parameters in this algorithm. 
 
 - `Creator`: This strategy works similarly to the Engagement strategy but also incorporates collectsNFTs. The weight of each edge is calculated as follows: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3 + collectNFT_count * 12`.
 
 Each of these strategies provides a unique perspective on user reputation, allowing for diverse and dynamic global rankings.
 
-### Personalized User Recommendation (Who to Follow): The
+### Personalized User Recommendation (Who to Follow)
 
 The "Who to Follow" recommendation is personalized for each user. It leverages
 the global rankings and the list of people that a given user follows. The API
@@ -62,7 +62,7 @@ The "Feed" recommendation is designed to provide users with non-personalized con
 
 `Latest`: This strategy presents a live feed of the most recent posts, arranged in descending order of their posting time. It offers users a real-time view of the latest content being shared across the platform.
 
-`Popular`: This strategy is designed to highlight the most viral posts based on an SQL-driven heuristic that takes into account mirrors, posts, and comments. The content for this feed is selected from the top 100 users as determined by the `Engagement` strategy in the global rankings.
+`Popular`: This strategy is designed to highlight the most viral posts based on an SQL-driven heuristic that takes into account mirrors, posts, and comments. The content for this feed is selected from the top 'x' (1000 in the demo) users as determined by the `Engagement` strategy in the global rankings.
 
 The SQL heuristic works as follows:
 
