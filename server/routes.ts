@@ -152,7 +152,7 @@ export default async (app: Express) => {
 			return res.send({ rank })
 		}
 		catch (e: any) {
-			console.error(`Error in ${reqUri} for handle: ${id} and strategyId: ${strategyName}`, e)
+			console.error(`Error in ${reqUri} for handle: ${id} and strategyName: ${strategyName}`, e)
 			res.status(500).send(`Could not get ${reqUri}`)
 		}
 	})
