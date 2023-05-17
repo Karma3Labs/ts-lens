@@ -72,6 +72,7 @@ export default class LocaltrustGenerator {
 				}
 		})
 
+		let merge = false;
 		for (let i = 0; i < convertedLocaltrust.length; i += CHUNK_SIZE) {
 				const chunk = convertedLocaltrust.slice(i, i + CHUNK_SIZE)
 				const opts: any = {
@@ -81,8 +82,9 @@ export default class LocaltrustGenerator {
 				}
 				console.log(`IDs: ${ids.length}, entries: ${chunk.length}`)
 
-				const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${strategyName}`
+				const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${strategyName}?merge=${merge}`
 				await axios.put(eigentrustAPI, opts)
+				merge = true;
 		}
 		console.timeEnd("Uploading localtrust")
 	}
