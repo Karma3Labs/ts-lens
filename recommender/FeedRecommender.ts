@@ -86,9 +86,7 @@ export default class FeedRecommender {
 	}
 
 	static getStrategy(strategyName: string) {
-		console.log(strategyName)
 		const strategy = config.feedStrategies.find((s) => s.name === strategyName)
-		console.log(strategy)
 		if (!strategy) {
 			throw new Error("Invalid feed strategy")
 		}
