@@ -159,9 +159,10 @@ export default async (app: Express) => {
 
 	app.get(['/feed'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
+		const strategy = req.query.strategy ? req.query.strategy as string : 'followship-viralPosts'
 
 		try {
-			const feed = await FeedRecommender.getFeed('followship-viralPosts')
+			const feed = await FeedRecommender.getFeed(strategy)
 			return res.send(feed)
 		}
 		catch (e: any) {
