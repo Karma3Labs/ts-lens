@@ -65,7 +65,7 @@ export const viralPosts = async (fromUsers: string[], limit: number) => {
 	return res.rows
 }
 
-export const latestPosts = async (fromUsers: string[], limit: number) => {
+export const latest = async (fromUsers: string[], limit: number) => {
 	const res = await db.raw(`
 		WITH posts_with_stats AS (
 			SELECT
@@ -80,6 +80,9 @@ export const latestPosts = async (fromUsers: string[], limit: number) => {
 				k3l_posts
 			INNER JOIN publication_stats
 			ON publication_id = k3l_posts.post_id
+			ORDER BY
+				created_at DESC
+			LIMIT :limit;
 		)
 		SELECT
 			post_id,
@@ -102,4 +105,5 @@ export const latestPosts = async (fromUsers: string[], limit: number) => {
 
 export const strategies: Record<string, ContentStrategy> = {
 	viralPosts,
+	latest,
 }

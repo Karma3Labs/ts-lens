@@ -13,8 +13,8 @@ const db = getDB()
 export default class FeedRecommender {
 	static async calculateByStrategy(name: string): Promise<any> {
 		const strategy = FeedRecommender.getStrategy(name)
-		const contentStrategy = strategies[strategy.feed]
-		if (!contentStrategy) {	
+		const feedStrategy = strategies[strategy.feed]
+		if (!feedStrategy) {	
 			throw new Error("Invalid content strategy")
 		}
 
@@ -22,7 +22,7 @@ export default class FeedRecommender {
 		const userIds = globaltrust.map(({ id }: {id: string}) => id)
 		console.log(`Generated globaltrust with ${userIds.length} entries`)
 
-		const content = await contentStrategy(userIds, strategy.limit)
+		const content = await feedStrategy(userIds, strategy.limit)
 		console.log(`Generated content with ${content.length} entries`)
 
 		return content
