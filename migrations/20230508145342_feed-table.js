@@ -5,7 +5,7 @@
 exports.up = function (knex) {
 	return knex.schema.createTable('feed', function (table) {
 		table.text('strategy_name')
-		table.text('post_id').primary()
+		table.text('post_id');
 		table.double('v')
 
 		table.index(['strategy_name'])
