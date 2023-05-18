@@ -82,7 +82,7 @@ export const latest = async (fromUsers: string[], limit: number) => {
 			ON publication_id = k3l_posts.post_id
 			ORDER BY
 				created_at DESC
-			LIMIT :limit;
+			LIMIT :limit
 		)
 		SELECT
 			post_id,
