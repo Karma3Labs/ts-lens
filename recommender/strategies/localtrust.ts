@@ -20,13 +20,13 @@ const getFollows = async () => {
 	const  { totalCount } = await db('k3l_follows').count('profile_id as totalCount').first()
 
 	const follows = await db('k3l_follows')
-		.select('profile_id as following_id', 'to_profile_id as follower_id')
+		.select('profile_id', 'to_profile_id')
 
 	console.time('parsing follows')
 	let followsMap: any = {}
-	for (const { followerId, followingId } of follows) {
-		followsMap[followerId] = followsMap[followerId] || []
-		followsMap[followerId][followingId] = 1 / totalCount
+	for (const { profileId, toProfileId } of follows) {
+		followsMap[profileId] = followsMap[profileId] || []
+		followsMap[profileId][toProfileId] = 1 / totalCount
 	}
 	console.timeEnd('parsing follows')
 
@@ -72,9 +72,9 @@ const getCollectCounts = async () => {
 		.groupBy('profile_id', 'to_profile_id')
 
 	let collectsMap: any = {}
-	for (const { fromProfileId, toProfileId, count } of collects) {
-		collectsMap[fromProfileId] = collectsMap[fromProfileId] || {}
-		collectsMap[fromProfileId][toProfileId] = +count / totalCount
+	for (const { profileId, toProfileId, count } of collects) {
+		collectsMap[profileId] = collectsMap[profileId] || {}
+		collectsMap[profileId][toProfileId] = +count / totalCount
 	}
 
 	console.log('length of collects', collects.length)
