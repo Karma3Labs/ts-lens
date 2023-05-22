@@ -30,17 +30,13 @@ export const config = {
 		}
 	],
 	feedStrategies: [{
-		name: "followship-viralPosts",
-		globaltrust: "followship",
-		feed: "viralPosts",
-		globaltrustSize: 1000,
+		name: "engagement-viralPosts",
+		feed: "viralFeedWithEngagement",
 		limit: 100,
 	}, {
 		name: "latest",
-		feed: "latest",
+		feed: "latestFeed",
 		limit: 100,
-		globaltrust: "followship",  // Not used in this strategy
-		globaltrustSize: 1000, // Not used in this strategy
 	}],
 	personalization: {
 		globaltrust: 'followship',

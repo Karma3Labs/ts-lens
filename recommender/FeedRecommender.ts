@@ -1,7 +1,6 @@
 import  path from 'path'
-import { strategies } from './strategies/content'
+import { strategies } from './strategies/feed'
 import { config } from './config'
-import RankingsRecommender from './RankingsRecommender'
 import { Post } from '../types'
 import { getDB } from '../utils'
 
@@ -18,11 +17,7 @@ export default class FeedRecommender {
 			throw new Error("Invalid content strategy")
 		}
 
-		const globaltrust = await RankingsRecommender.getGlobaltrustByStrategyName(strategy.globaltrust, strategy.globaltrustSize)
-		const userIds = globaltrust.map(({ id }: {id: string}) => id)
-		console.log(`Generated globaltrust with ${userIds.length} entries`)
-
-		const content = await feedStrategy(userIds, strategy.limit)
+		const content = await feedStrategy(strategy.limit)
 		console.log(`Generated content with ${content.length} entries`)
 
 		return content
