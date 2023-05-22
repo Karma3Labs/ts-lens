@@ -105,6 +105,7 @@ const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, coll
 		])
 
 		for (const j of to) {
+			if (i === j) continue
 			const follow = follows && follows[i] && follows[i][j] || 0
 			const commentsCount = commentsMap && commentsMap[i] && commentsMap[i][j] || 0
 			const mirrorsCount = mirrorsMap && mirrorsMap[i] && mirrorsMap[i][j] || 0
