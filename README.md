@@ -36,11 +36,11 @@ recommendation endpoints:
 
 The Non-Personalized User Recommendation, also known as Global Rankings, provides a list of globally popular users. These rankings are created through different strategies as defined in the configuration file. By running the `yarn compute` command, the API calculates and caches these global rankings. Clients can subsequently access the cached global rankings for each strategy via the exposed server.
 
-The existing strategies share the same pretrust list which includes some hand selected trustworthy profiles, all of which can be easily removed or changed by a developer. Although each strategy employs different localtrust matrices, or algorithm weights to generate rankings. 
+The existing strategies share the same pretrust list which includes some hand selected trustworthy profiles, all of which can be easily removed or changed by a developer. Although each strategy employs different localtrust matrices, or algorithm weights to generate rankings.
 
 - `Followship`: This strategy is based solely on user follows graph. For every instance where user A follows user B, an edge is created in the localtrust graph with a weight of 1.
 
-- `Engagement`: This strategy takes into account follows, mirrors, and comments to generate the localtrust. If user A interacts with user B in any of these ways, an edge is created with a weight calculated as: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3`. Developers can change the weights of the parameters in this algorithm. 
+- `Engagement`: This strategy takes into account follows, mirrors, and comments to generate the localtrust. If user A interacts with user B in any of these ways, an edge is created with a weight calculated as: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3`. Developers can change the weights of the parameters in this algorithm.
 
 - `Creator`: This strategy works similarly to the Engagement strategy but also incorporates collectsNFTs. The weight of each edge is calculated as follows: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3 + collectNFT_count * 12`.
 
@@ -84,3 +84,53 @@ tailored specifically to each user's preferences and interests.
 - `yarn compute`. Generates localtrust using different strategies speicified in the configuration, stores it in the database and uploads it on the go-eigentrust service. Subsequently, generates and saves in the database both global rankings and the feed. This script is made to be run on interval (e.g once every couple of hours)
 
 - `yarn serve`. Considering that the localtrust is uploaded to the go-eigentrust service and that the database is populated with global rankings and the cached feed, a server is being started that contains endpoints for every recommendation. The endpoints can be found [here](https://openapi.lens.k3l.io)
+
+## Adding a new strategy
+
+To add a new strategy to the recommender system, follow the instructions below:
+
+### Localtrust strategy
+
+- Open the file recommender/strategies/localtrust.ts.
+- Implement your new strategy in this file.
+- Export the implemented strategy.
+- Go to the file recommender/config.ts.
+- Add the name of your localtrust strategy to the localtrustStrategies array.
+
+To load the new localtrust strategy into the database and the go-eigentrust service, you need to rerun the command `yarn compute`.
+
+### Pretrust strategy
+
+- Open the file recommender/strategies/pretrust.ts.
+- Implement your new pretrust strategy in this file.
+- Export the implemented strategy.
+- Go to the file recommender/config.ts.
+- Add the name of your pretrust strategy to the `pretrustStrategies` array.
+
+If you include this pretrust strategy in rankings or followers calculation, you might need to rerun yarn compute.
+
+### Rankings strategy
+
+The rankings strategy exports rankings based on a localtrust and a pretrust strategy. To set up a new rankings strategy, follow these steps:
+
+- Open the file recommender/config.ts.
+- Add the name of your rankings strategy to the rankingStrategies array.
+- Provide the name of your pretrust strategy and localtrust strategy.
+- Set the alpha value for your strategy.
+- Save the changes.
+- Run yarn compute to update the globaltrust table.
+
+You can now query the new rankings strategy from the `/rankings` endpoint using the provided name.
+
+### Feed strategy
+
+- To add a new feed strategy, follow these steps:
+- Open the file recommender/config/feed.ts.
+- Implement and export your new strategy in this file.
+- Go to the file recommender/config.ts and add your new strategy to the feedStrategies array.
+- Provide a custom name for your strategy (used when querying the `/feed` endpoint).
+- Set the implemented `feedStrategy` and specify the limit of posts to generate and store in the database.
+- Save the changes.
+- Run yarn compute to load the new feed strategy into the database.
+
+You should now see the new feed either by requesting the `/feed` endpoint or querying the `feeds` database table.
