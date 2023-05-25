@@ -47,8 +47,9 @@ export default class FeedRecommender {
 
 	static async getFeed(strategyName: string, limit?: number): Promise<Post[]> {
 		console.log(`Getting feed for ${strategyName}`)
-		const strategy = FeedRecommender.getStrategy(strategyName)
-		limit = limit || strategy.limit 
+		// const strategy = FeedRecommender.getStrategy(strategyName)
+		// limit = limit || strategy.limit
+		limit = limit || 100
 
 		const res = await db('feed')
 			.select(
