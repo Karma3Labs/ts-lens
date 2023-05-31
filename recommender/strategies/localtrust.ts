@@ -95,8 +95,6 @@ const getCollectsPrice = async () => {
 	return collectsMap
 }
 
-getCollectsPrice().then(t => console.log(JSON.stringify(t, null, 2)))
-
 const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, collectsWeight}: LocaltrustPrams, withPrice = false): Promise<LocalTrust<string>> => {
 	const follows = followsWeight ? await getFollows() : null
 	const commentsMap = commentsWeight ? await getCommentCounts() : null
