@@ -24,9 +24,9 @@ const pretrustFirstFifty: PretrustStrategy = async () => {
 }
 
 const pretrustOGs: PretrustStrategy = async () => {
-	const ogs = ["chriscomrie.lens", "christina.lens", "cristinaspinei.lens",
-	"bradorbradley.lens", "blackdave.lens", "goodkrak.lens", "levychain.lens",
-	"ryanfox.lens", "stani.lens", "jamesfinnerty.lens" ]
+	const ogs = ["yoginth.lens", "christina.lens", "mariariivari.lens",
+	"bradorbradley.lens", "wagmi.lens", "levychain.lens", "nicolo.lens",
+	"sasicodes.lens", "stani.lens", "davidev.lens" ]
 
 	const ids = await db('k3l_profiles').select('profile_id').whereIn('handle', ogs)
 	const pretrust: Pretrust<string> = []
