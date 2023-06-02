@@ -2,7 +2,8 @@ export const config = {
 	localtrustStrategies: [
 		'existingConnections',
 		'f6c3m8enhancedConnections',
-		'f6c3m8col12enhancedConnections'
+		'f6c3m8col12enhancedConnections',
+		'f6c3m8col12Price',
 	],
 	pretrustStrategies: [
 		'pretrustOGs',
@@ -27,7 +28,12 @@ export const config = {
 			pretrust: 'pretrustOGs',
 			localtrust: 'f6c3m8col12enhancedConnections',
 			alpha: 0.5
-		}
+		}, {
+			name: 'creator',
+			pretrust: 'pretrustOGs',
+			localtrust: 'f6c3m8col12Price',
+			alpha: 0.5
+		},
 	],
 	feedStrategies: [{
 		name: "engagement-viralPosts",
