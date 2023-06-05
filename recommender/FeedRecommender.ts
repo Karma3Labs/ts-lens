@@ -57,6 +57,7 @@ export default class FeedRecommender {
 				'total_amount_of_mirrors as mirrors_count',
 				'total_amount_of_comments as comments_count',
 				'total_amount_of_collects as collects_count',
+				'total_upvotes as upvote_count',
 				'v',
 				'created_at',
 				'content_uri'
@@ -64,6 +65,7 @@ export default class FeedRecommender {
 			.where({ strategy_name: strategyName })
 			.innerJoin('k3l_posts', 'k3l_posts.post_id', 'feed.post_id')
 			.innerJoin('publication_stats', 'feed.post_id', 'publication_stats.publication_id')
+			.orderBy('created_at', 'desc')
 			.orderBy('v', 'desc')
 			.limit(limit)
 		
@@ -72,6 +74,7 @@ export default class FeedRecommender {
 			mirrorsCount: +r.mirrorsCount,
 			commentsCount: +r.commentsCount,
 			collectsCount: +r.collectsCount,
+			upvoteCount: +r.upvoteCount,
 		}))
 
 		if (!feed.length) {
