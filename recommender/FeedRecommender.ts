@@ -57,7 +57,7 @@ export default class FeedRecommender {
 				'total_amount_of_mirrors as mirrors_count',
 				'total_amount_of_comments as comments_count',
 				'total_amount_of_collects as collects_count',
-				'total_upvotes as upvote_count',
+				'total_upvotes as upvotes_count',
 				'v',
 				'created_at',
 				'content_uri'
@@ -74,7 +74,7 @@ export default class FeedRecommender {
 			mirrorsCount: +r.mirrorsCount,
 			commentsCount: +r.commentsCount,
 			collectsCount: +r.collectsCount,
-			upvoteCount: +r.upvoteCount,
+			upvotesCount: +r.upvotesCount,
 		}))
 
 		if (!feed.length) {
