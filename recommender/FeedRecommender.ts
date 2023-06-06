@@ -65,7 +65,7 @@ export default class FeedRecommender {
 			.where({ strategy_name: strategyName })
 			.innerJoin('k3l_posts', 'k3l_posts.post_id', 'feed.post_id')
 			.innerJoin('publication_stats', 'feed.post_id', 'publication_stats.publication_id')
-			.orderByRaw('(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))', 'asc')
+			.orderByRaw('(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - k3l_posts.created_at)) / (60 * 60 * 24))', 'asc')
 			.orderBy('v', 'desc')
 			.limit(limit)
 		
