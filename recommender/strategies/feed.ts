@@ -15,10 +15,16 @@ export const viralFeedWithEngagement = async (limit: number) => {
 					MAX(total_amount_of_collects) AS max_collects_count
 			FROM
 					publication_stats
-			INNER JOIN
-					k3l_posts
-			ON publication_id = post_id
-			WHERE created_at > now() - interval '14 days'
+				INNER JOIN
+					k3l_posts as k3l
+					ON publication_id = k3l.post_id
+				INNER JOIN 
+					profile_post as post
+					ON publication_id = post.post_id
+			WHERE 
+				k3l.created_at > now() - interval '14 days'
+				AND post.is_related_to_post IS NULL
+				AND post.is_related_to_comment IS NULL
 		),
 		posts_with_stats AS (
 				SELECT
@@ -34,13 +40,18 @@ export const viralFeedWithEngagement = async (limit: number) => {
 				FROM
 						k3l_posts p
 				INNER JOIN publication_stats ps ON ps.publication_id = p.post_id
+				INNER JOIN profile_post post ON post.post_id = p.post_id
 				INNER JOIN globaltrust gt ON gt.i = p.profile_id
 				WHERE
-						gt.strategy_name = 'engagement'
+					gt.strategy_name = 'engagement'
 				AND
-						gt.date = (select max(date) from globaltrust)
+					gt.date = (select max(date) from globaltrust)
 				AND
 					p.created_at > now() - interval '14 days'
+				AND
+					post.is_related_to_post IS NULL
+				AND 
+					post.is_related_to_comment IS NULL
 		)
 		SELECT
 				post_id,
