@@ -60,7 +60,7 @@ export default class FeedRecommender {
 				'total_amount_of_collects as collects_count',
 				'total_upvotes as upvotes_count',
 				'v',
-				'created_at',
+				'k3l_posts.created_at',
 				'content_uri'
 			)
 			.where({ strategy_name: strategyName })
