@@ -39,7 +39,9 @@ export const viralFeedWithEngagement = async (limit: number) => {
 						gt.v AS globaltrust_v
 				FROM
 						k3l_posts p
-				INNER JOIN publication_stats ps ON ps.publication_id = p.post_id
+				INNER JOIN publication_stats ps 
+					ON (ps.publication_id = p.post_id AND 
+								(ps.total_amount_of_mirrors + ps.total_amount_of_comments + ps.total_amount_of_collects) > 0)
 				INNER JOIN profile_post post ON post.post_id = p.post_id
 				INNER JOIN globaltrust gt ON gt.i = p.profile_id
 				WHERE
