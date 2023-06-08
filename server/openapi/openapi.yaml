@@ -161,7 +161,7 @@ components:
       in: query
       schema:
         type: string
-      description: The strategy name to use such as 'followship', 'engagement', 'influencer'.
+      description: The strategy name to use such as 'followship', 'engagement', 'influencer', or 'creator'.
     ProfileHandle:
       name: handle
       in: query
