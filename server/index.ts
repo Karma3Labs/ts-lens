@@ -30,6 +30,11 @@ export default () => {
 
 	app.use(Sentry.Handlers.errorHandler());
 
+	app.use((req, res, next) => {
+		console.log(req);
+		next();
+	});
+
 	app.listen(PORT, () => console.log(`Magic is happening on port: ${PORT}`))
 }
 
