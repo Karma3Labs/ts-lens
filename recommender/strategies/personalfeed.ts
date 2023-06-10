@@ -36,6 +36,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 						ps.total_amount_of_mirrors AS mirrors_count,
 						ps.total_amount_of_comments AS comments_count,
 						ps.total_amount_of_collects AS collects_count,
+      			ps.total_upvotes AS upvotes_count,
 						(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::integer AS age_days,
 						gt.v AS globaltrust_v
 				FROM
