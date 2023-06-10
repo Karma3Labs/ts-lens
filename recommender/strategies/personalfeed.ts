@@ -32,6 +32,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 						p.content_uri,
 						p.profile_id,
 						p.created_at,
+      			prof.handle,
 						ps.total_amount_of_mirrors AS mirrors_count,
 						ps.total_amount_of_comments AS comments_count,
 						ps.total_amount_of_collects AS collects_count,
@@ -44,6 +45,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 								(ps.total_amount_of_mirrors + ps.total_amount_of_comments + ps.total_amount_of_collects) > 0)
 				INNER JOIN profile_post post ON post.post_id = p.post_id
 				INNER JOIN globaltrust gt ON gt.i = p.profile_id
+      	INNER JOIN k3l_profiles prof ON prof.profile_id = p.profile_id
 				WHERE
 					gt.strategy_name = 'engagement'
 				AND
@@ -62,17 +64,12 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 				END as following_post,
 				post_id,
 				content_uri,
-				stats.profile_id,
+				stats.handle,
 				stats.created_at,
 				mirrors_count,
 				comments_count,
 				collects_count,
-				2 * (comments_count::numeric / max_values.max_comments_count) as comments_weight,
-				5 * (mirrors_count::numeric / max_values.max_mirrors_count) as mirrors_weight,
-				3 * (collects_count::numeric / max_values.max_collects_count) as collects_weight,
-				10 * globaltrust_v as globaltrust_weight,
-				2 * (age_days::numeric / max_values.max_age_days) as days_weight,
-				age_days,
+        upvotes_count,
 				(
 						2 * (comments_count::numeric / max_values.max_comments_count) +
 						5 * (mirrors_count::numeric / max_values.max_mirrors_count) +
