@@ -31,7 +31,7 @@ export default () => {
 	app.use(Sentry.Handlers.errorHandler());
 
 	app.use((req, res, next) => {
-		console.log(req.originalUrl);
+		console.log(new Date().toISOString(), req.originalUrl);
 		next();
 	});
 
