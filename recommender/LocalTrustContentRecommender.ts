@@ -6,7 +6,12 @@ import UserRecommender from './UserRecommender'
 // TODO: Fix that ugly thingie
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
-export default class ContentRecommender {
+/**
+ * User-specific GlobalTrust is computed on-demand using 
+ * the profiles that the user follows as a PreTrust. 
+ * Posts by the top profiles in the GlobalTrust are then recommended.
+ */
+export default class LocalTrustContentRecommender {
 	private userRecommender: UserRecommender
 	private strategyName: string
 	private strategy: ContentStrategy

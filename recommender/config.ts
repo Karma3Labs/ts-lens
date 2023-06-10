@@ -44,6 +44,11 @@ export const config = {
 		feed: "latestFeed",
 		limit: 100,
 	}],
+	personalFeedStrategies: [{
+		name: "following-posts",
+		feed: "followingViralFeedWithEngagement",
+		limit: 100,
+	}],
 	personalization: {
 		globaltrust: 'followship',
 		ltStrategyName: 'existingConnections',

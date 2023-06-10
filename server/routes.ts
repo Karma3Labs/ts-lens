@@ -1,13 +1,20 @@
 import { Express, Request, Response } from 'express'
 import Rankings from '../recommender/RankingsRecommender'
 import UserRecommender from '../recommender/UserRecommender'
-import { getIdFromQueryParams, getIdsFromQueryParams, getProfilesFromIdsOrdered, getStrategyNameFromQueryParams, isValidDate } from './utils'
-import ContentRecommender from '../recommender/ContentRecommender'
+import { 
+	getIdFromQueryParams, 
+	getProfileIdFromQueryParams, 
+	getIdsFromQueryParams, 
+	getProfilesFromIdsOrdered, 
+	getStrategyNameFromQueryParams, 
+	isValidDate } from './utils'
+import LocalTrustContentRecommender from '../recommender/LocalTrustContentRecommender'
 import FeedRecommender from '../recommender/FeedRecommender'
+import PersonalFeedRecommender from '../recommender/PersonalFeedRecommender'
 
 export default async (app: Express) => {
 	const userRecommender = new UserRecommender()
-	const contentRecommender = new ContentRecommender(userRecommender)
+	const localTrustContentRecommender = new LocalTrustContentRecommender(userRecommender)
 	await userRecommender.init()
 
 	app.get('/suggest', async (req: Request, res: Response) => {
@@ -50,7 +57,7 @@ export default async (app: Express) => {
 		console.log(`${reqUri} personalized for id: ${id}`)
 
 		try {
-			const ids = await contentRecommender.recommend(id, limit)
+			const ids = await localTrustContentRecommender.recommend(id, limit)
 			return res.send(ids)
 		}
 		catch (e: any) {
@@ -163,6 +170,29 @@ export default async (app: Express) => {
 
 		try {
 			const feed = await FeedRecommender.getFeed(strategy)
+			return res.send(feed)
+		}
+		catch (e: any) {
+			console.log(`Error in ${reqUri}`, e)
+			return res.status(500).send(`Could not get ${reqUri}`)
+		}
+	})
+
+	app.get(['/personal_feed'], async (req: Request, res: Response) => {
+		const reqUri = req.originalUrl.split("?").shift()
+		const limit = req.query.limit ? +req.query.limit : 100
+		const strategy = req.query.strategy ? req.query.strategy as string : 'following-posts'
+		let profileId: string
+
+		try {
+			profileId = await getProfileIdFromQueryParams(req.query)
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
+		}
+		console.log(`${reqUri} personalized for id: ${profileId}`)
+		try {
+			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, profileId)
 			return res.send(feed)
 		}
 		catch (e: any) {
