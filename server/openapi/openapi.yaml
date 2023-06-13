@@ -356,7 +356,7 @@ components:
         - id
         - handle
         - followersCount
-      example:
+      examples:
         - id: 0x5
           handle: stani.lens
           followersCount: 49371
@@ -407,7 +407,7 @@ components:
           description: URI where the post content is stored.
       required:
         - postId
-      example:
+      examples:
         - postId: 0x05-0x1e5a-DA-76b7ad36
           handle: stani.lens
           mirrorsCount: 0
