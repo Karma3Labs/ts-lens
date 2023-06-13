@@ -49,7 +49,7 @@ export const config = {
 		feed: "ml-xgb-followship",
 		limit: 100,
 	},{
-		name: "crownsourced",
+		name: "crowdsourced",
 		feed: "hubs-and-authorities",
 		limit: 100,
 	}],
