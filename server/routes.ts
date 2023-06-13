@@ -66,7 +66,7 @@ export default async (app: Express) => {
 		}
 	})
 
-	app.get(['/rankings_count', '/profile_count'], async (req: Request, res: Response) => {
+	app.get(['/profile_count', '/profile/count'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let strategyName: string, date: string
 
@@ -89,7 +89,7 @@ export default async (app: Express) => {
 		}
 	})
 	
-	app.get(['/profile_score'], async (req: Request, res: Response) => {
+	app.get(['/profile_score','/profile/score'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let id: number, strategyName: string
 		let date: string
@@ -114,7 +114,7 @@ export default async (app: Express) => {
 		}
 	})
 
-	app.get(['/profile_scores_by_users'], async (req: Request, res: Response) => {
+	app.get(['/profile_scores_by_users','/profile/scores_by_users'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let ids: number[], strategyName: string
 		let date: string
@@ -139,7 +139,7 @@ export default async (app: Express) => {
 		}
 	})
 
-	app.get(['/ranking_index', '/profile_rank'], async (req: Request, res: Response) => {
+	app.get(['/profile_rank', '/profile/rank'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let id: number, strategyName: string
 		let date: string
@@ -203,7 +203,7 @@ export default async (app: Express) => {
 		}
 	})
 
-	app.get(['/rankings', '/profile_scores'], async (req: Request, res: Response) => {
+	app.get(['/profile_scores', '/profile/scores'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		const limit = req.query.limit ? +req.query.limit : 50
 		const offset = req.query.offset ? +req.query.offset : 0
