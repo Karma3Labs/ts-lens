@@ -35,17 +35,26 @@ export const config = {
 			alpha: 0.5
 		},
 	],
-	feedStrategies: [{
-		name: "engagement-viralPosts",
+	sqlFeedStrategies: [{
+		name: "popular",
 		feed: "viralFeedWithEngagement",
 		limit: 100,
 	}, {
-		name: "latest",
+		name: "recent",
 		feed: "latestFeed",
 		limit: 100,
 	}],
+	algoFeedStrategies: [{
+		name: "recommended",
+		feed: "ml-xgb-followship",
+		limit: 100,
+	},{
+		name: "crownsourced",
+		feed: "hubs-and-authorities",
+		limit: 100,
+	}],
 	personalFeedStrategies: [{
-		name: "following-posts",
+		name: "following",
 		feed: "followingViralFeedWithEngagement",
 		limit: 100,
 	}],

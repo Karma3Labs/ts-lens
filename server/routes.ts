@@ -3,7 +3,7 @@ import Rankings from '../recommender/RankingsRecommender'
 import UserRecommender from '../recommender/UserRecommender'
 import { 
 	getIdFromQueryParams, 
-	getProfileIdFromQueryParams, 
+	getProfileIdFromParam, 
 	getIdsFromQueryParams, 
 	getProfilesFromIdsOrdered, 
 	getStrategyNameFromQueryParams, 
@@ -164,12 +164,21 @@ export default async (app: Express) => {
 		}
 	})
 
-	app.get(['/feed'], async (req: Request, res: Response) => {
-		const reqUri = req.originalUrl.split("?").shift()
-		const strategy = req.query.strategy ? req.query.strategy as string : 'engagement-viralPosts'
+	app.get(['/fee/personal/:profile/:strategy?'], async (req: Request, res: Response) => {
+		const reqUri = req.originalUrl
+		const limit = req.query.limit ? +req.query.limit : 100
+		const strategy = req.params.strategy ? req.query.strategy as string : 'following'
+		let profileId: string
 
 		try {
-			const feed = await FeedRecommender.getFeed(strategy)
+			profileId = await getProfileIdFromParam(req.params.profile)
+		}
+		catch (e: any) {
+			return res.status(400).send(e.message)
+		}
+		console.log(`${reqUri} personalized for id: ${profileId}`)
+		try {
+			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, profileId)
 			return res.send(feed)
 		}
 		catch (e: any) {
@@ -178,21 +187,14 @@ export default async (app: Express) => {
 		}
 	})
 
-	app.get(['/personal_feed'], async (req: Request, res: Response) => {
-		const reqUri = req.originalUrl.split("?").shift()
+
+	app.get(['/feed/:strategy?'], async (req: Request, res: Response) => {
+		const reqUri = req.originalUrl
 		const limit = req.query.limit ? +req.query.limit : 100
-		const strategy = req.query.strategy ? req.query.strategy as string : 'following-posts'
-		let profileId: string
+		const strategy_name = req.params.strategy ? req.params.strategy as string : 'popular'
 
 		try {
-			profileId = await getProfileIdFromQueryParams(req.query)
-		}
-		catch (e: any) {
-			return res.status(400).send(e.message)
-		}
-		console.log(`${reqUri} personalized for id: ${profileId}`)
-		try {
-			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, profileId)
+			const feed = await FeedRecommender.getFeed(strategy_name, limit)
 			return res.send(feed)
 		}
 		catch (e: any) {

@@ -72,28 +72,15 @@ export const getIdFromQueryParams = async (query: any): Promise<number> => {
 	throw new Error('Handle does not exist')
 }
 
-export const getProfileIdFromQueryParams = async (query: any): Promise<string> => {
-	if (!query.handle && !query.id) {
-		throw Error('Handle or id is required')
-	}
+export const getProfileIdFromParam = async (param: string): Promise<string> => {
 
-	if (query.id) {
-		const record = await db('k3l_profiles').select('profile_id').where('profile_id', query.id).first()	
-		if (!record) {
-			throw new Error('Profile ID does not exist')
-		}
-		return query.id
-	}
-
-	const handle = (query.handle as string).trim()
-	let record = await db('k3l_profiles').select('profile_id').where({ handle }).first()
+	let record = await db('k3l_profiles').select('profile_id').where({ handle: param }).first()
 	if (record) return record.profileId
 
-	const handleLens = `${handle}.lens`
-	record = await db('k3l_profiles').select('profile_id').where({ handle: handleLens }).first()
+	record = await db('k3l_profiles').select('profile_id').where('profile_id', param).first()
 	if (record) return record.profileId
 
-	throw new Error('Handle does not exist')
+	throw new Error('neither Handle nor ProfileId exist')
 }
 
 export const getStrategyNameFromQueryParams = async (query: any): Promise<string> => {

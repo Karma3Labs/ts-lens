@@ -45,8 +45,10 @@ export default class FeedRecommender {
 		}
 	}
 
-	static async getFeed(strategyName: string, limit?: number): Promise<Post[]> {
-		console.log(`Getting feed for ${strategyName}`)
+	static async getFeed(strategyName: string, limit: number): Promise<Post[]> {
+		const strategy = FeedRecommender.getStrategy(strategyName)
+
+		console.log(`Getting feed for ${JSON.stringify(strategy)}`)
 		// const strategy = FeedRecommender.getStrategy(strategyName)
 		// limit = limit || strategy.limit
 		limit = limit || 100
@@ -63,7 +65,7 @@ export default class FeedRecommender {
 				'k3l_posts.created_at',
 				'content_uri'
 			)
-			.where({ strategy_name: strategyName })
+			.where({ strategy_name: strategy.feed })
 			.innerJoin('k3l_posts', 'k3l_posts.post_id', 'feed.post_id')
 			.innerJoin('publication_stats', 'feed.post_id', 'publication_stats.publication_id')
 			.innerJoin('k3l_profiles', 'k3l_posts.profile_id', 'k3l_profiles.profile_id')
@@ -87,11 +89,13 @@ export default class FeedRecommender {
 	}
 
 	static getStrategy(strategyName: string) {
-		const strategy = config.feedStrategies.find((s) => s.name === strategyName)
+		let strategy = config.sqlFeedStrategies.find((s) => s.name === strategyName)
 		if (!strategy) {
-			throw new Error("Invalid feed strategy")
+			strategy = config.algoFeedStrategies.find((s) => s.name === strategyName)
 		}
-
+		if (!strategy) {
+			throw new Error(`Invalid feed strategy ${strategyName}`)
+		}
 		return strategy
 	}
 }

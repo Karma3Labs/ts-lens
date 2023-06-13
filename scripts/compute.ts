@@ -26,10 +26,10 @@ const main = async () => {
 	console.timeEnd("Generated rankings")
 
 	console.time("Generated feed")
-	for (const fStrategy of config.feedStrategies) {
+	for (const fStrategy of config.sqlFeedStrategies) {
 		console.log(`Generating rankings for ${fStrategy.name}`)
 		const feed = await Feed.calculateByStrategy(fStrategy.name)
-		await Feed.saveFeed(fStrategy.name, feed)
+		await Feed.saveFeed(fStrategy.feed, feed)
 	}
 	console.timeEnd("Generated rankings")
 }
