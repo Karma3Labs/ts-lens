@@ -6,7 +6,7 @@ info:
 servers:
   - url: "https://lens-api.k3l.io"
 paths:
-  /profile_score:
+  /profile/score:
     get:
       summary: Display a user's profile score
       description: |
@@ -37,7 +37,7 @@ paths:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
-  /profile_scores_by_users:
+  /profile/scores_by_users:
     get:
       summary: All scores for a given list of users
       description: |
@@ -64,7 +64,7 @@ paths:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
-  /profile_scores:
+  /profile/scores:
     get:
       summary: Return a paginated list of all profile scores
       description: |
@@ -93,7 +93,7 @@ paths:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
-  /profile_count:
+  /profile/count:
     get:
       summary: Return the total population size of profiles scored
       description: |
@@ -124,7 +124,7 @@ paths:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
-  /profile_rank:
+  /profile/rank:
     get:
       summary: Provide the ranked position of a given profile
       description: |
