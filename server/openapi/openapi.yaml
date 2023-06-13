@@ -154,6 +154,102 @@ paths:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
+  /feed:
+    get:
+      summary: Default non-personalized content feed
+      description: |
+        Returns a list of posts based on the default 'popular' strategy.
+      operationId: getDefaultFeed
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+                description: |
+                  The requested profiles, whose scores are
+                  within the `[limit, limit+offset)` range.
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+  /feed/{strategy}:
+    get:
+      summary: Non-personalized content feed
+      description: |
+        Returns a list of posts based on a strategy that is not personalized.
+      operationId: getFeed
+      parameters:
+        - $ref: "#/components/parameters/FeedStrategyPath"
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+                description: |
+                  The requested profiles, whose scores are
+                  within the `[limit, limit+offset)` range.
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+  /feed/personal/{profile}:
+    get:
+      summary: Default personalized content feed
+      description: |
+        Returns a list of posts based on the default 'following' strategy 
+        personalized for the given profile.
+      operationId: getDefaultPersonalFeed
+      parameters:
+        - $ref: "#/components/parameters/ProfilePath"
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+                description: |
+                  The requested profiles, whose scores are
+                  within the `[limit, limit+offset)` range.
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
+  /feed/personal/{profile}/{strategy}:
+    get:
+      summary: Personalized content feed
+      description: |
+        Returns a list of posts based on a strategy that is personalized for the given profile.
+      operationId: getPersonalFeed
+      parameters:
+        - $ref: "#/components/parameters/ProfilePath"
+        - $ref: "#/components/parameters/PersonalFeedStrategyPath"
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+                description: |
+                  The requested profiles, whose scores are
+                  within the `[limit, limit+offset)` range.
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
 components:
   parameters:
     Strategy:
@@ -162,6 +258,22 @@ components:
       schema:
         type: string
       description: The strategy name to use such as 'followship', 'engagement', 'influencer', or 'creator'.
+    FeedStrategyPath:
+      name: strategy
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [recent, popular, recommended, crowdsourced]
+      description: The strategy name to use such as 'recent', 'popular', 'recommended', or 'crowdsourced'.
+    PersonalFeedStrategyPath:
+      name: strategy
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [following, for-you]
+      description: The strategy name to use such as 'following' or 'for-you'.
     ProfileHandle:
       name: handle
       in: query
@@ -174,6 +286,13 @@ components:
       schema:
         type: string
       description: A list of comma separated profile handles (with or without the `.lens` extension).
+    ProfilePath:
+      name: profile
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The Lens profile handle (with or without the `.lens` extension) or hex Id.
     PaginationOffset:
       name: offset
       in: query
@@ -237,7 +356,7 @@ components:
         - id
         - handle
         - followersCount
-      examples:
+      example:
         - id: 0x5
           handle: stani.lens
           followersCount: 49371
@@ -253,3 +372,57 @@ components:
           followersCount: 813
           score: 0.05656492
           rank: 2
+    Post:
+      description: A post by user.
+      type: object
+      properties:
+        postId:
+          type: string
+          description: Lens Post ID
+        handle:
+          type: string
+          description: Lens profile handle.
+        mirrorsCount:
+          type: integer
+          description: Number of mirrors.
+        commentsCount:
+          type: integer
+          description: Number of comments.
+        collectsCount:
+          type: integer
+          description: Number of collects.
+        upvotesCount:
+          type: integer
+          description: Number of upvotes.
+        v:
+          type: number
+          format: float
+          description: The internal score generated by the strategy for the post.
+        createdAt:
+          type: string
+          format: date-time
+          description: Block timestamp of when the post was created.
+        contentUri:
+          type: string
+          description: URI where the post content is stored.
+      required:
+        - postId
+      example:
+        - postId: 0x05-0x1e5a-DA-76b7ad36
+          handle: stani.lens
+          mirrorsCount: 0
+          commentsCount: 10
+          collectsCount: 0
+          upvotesCount: 57
+          v: 0.8563457328149917
+          createdAt: 2023-06-13T17:38:04.000Z
+          contentUri: ar://-aYLr71AMyMnjtvjq0daDWDg3SrDytTWPMd4GMw8W98
+        - postId: 0x8e-0x0b63-DA-b3c22037
+          handle: christina.lens
+          mirrorsCount: 1
+          commentsCount: 0
+          collectsCount: 0
+          upvotesCount: 53
+          v: 0.5692248264518938
+          createdAt: 2023-06-13T14:24:20.000Z
+          contentUri: ar://ecOcywtirkZFm6O3SJQNIvUtFj6As9VTnMMaXIUw2WM
