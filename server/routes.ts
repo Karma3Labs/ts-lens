@@ -164,7 +164,7 @@ export default async (app: Express) => {
 		}
 	})
 
-	app.get(['/fee/personal/:profile/:strategy?'], async (req: Request, res: Response) => {
+	app.get(['/feed/personal/:profile/:strategy?'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl
 		const limit = req.query.limit ? +req.query.limit : 100
 		const strategy = req.params.strategy ? req.query.strategy as string : 'following'
