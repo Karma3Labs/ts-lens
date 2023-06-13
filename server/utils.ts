@@ -80,7 +80,11 @@ export const getProfileIdFromParam = async (param: string): Promise<string> => {
 	record = await db('k3l_profiles').select('profile_id').where('profile_id', param).first()
 	if (record) return record.profileId
 
-	throw new Error('neither Handle nor ProfileId exist')
+	const handleLens = `${param}.lens`
+	record = await db('k3l_profiles').select('profile_id').where({ handle: param }).first()
+	if (record) return record.profileId
+
+	throw new Error(`Handle or ProfileId ${param} not found`)
 }
 
 export const getStrategyNameFromQueryParams = async (query: any): Promise<string> => {
