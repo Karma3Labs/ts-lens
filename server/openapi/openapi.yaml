@@ -416,7 +416,7 @@ components:
           upvotesCount: 57
           v: 0.8563457328149917
           createdAt: 2023-06-13T17:38:04.000Z
-          contentUri: ar://-aYLr71AMyMnjtvjq0daDWDg3SrDytTWPMd4GMw8W98
+          contentUri: "ar://-aYLr71AMyMnjtvjq0daDWDg3SrDytTWPMd4GMw8W98"
         - postId: 0x8e-0x0b63-DA-b3c22037
           handle: christina.lens
           mirrorsCount: 1
@@ -425,4 +425,4 @@ components:
           upvotesCount: 53
           v: 0.5692248264518938
           createdAt: 2023-06-13T14:24:20.000Z
-          contentUri: ar://ecOcywtirkZFm6O3SJQNIvUtFj6As9VTnMMaXIUw2WM
+          contentUri: "ar://ecOcywtirkZFm6O3SJQNIvUtFj6As9VTnMMaXIUw2WM"
