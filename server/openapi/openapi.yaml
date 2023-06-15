@@ -160,6 +160,8 @@ paths:
       description: |
         Returns a list of posts based on the default 'popular' strategy.
       operationId: getDefaultFeed
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
       responses:
         200:
           description: Query succeeded.
@@ -184,6 +186,7 @@ paths:
       operationId: getFeed
       parameters:
         - $ref: "#/components/parameters/FeedStrategyPath"
+        - $ref: "#/components/parameters/PaginationLimit"
       responses:
         200:
           description: Query succeeded.
@@ -209,6 +212,7 @@ paths:
       operationId: getDefaultPersonalFeed
       parameters:
         - $ref: "#/components/parameters/ProfilePath"
+        - $ref: "#/components/parameters/PaginationLimit"
       responses:
         200:
           description: Query succeeded.
@@ -234,6 +238,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/ProfilePath"
         - $ref: "#/components/parameters/PersonalFeedStrategyPath"
+        - $ref: "#/components/parameters/PaginationLimit"
       responses:
         200:
           description: Query succeeded.
