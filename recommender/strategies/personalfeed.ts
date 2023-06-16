@@ -93,7 +93,8 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 				posts_with_stats AS stats
 				LEFT OUTER JOIN
 					k3l_follows AS follows
-					ON (stats.profile_id = follows.to_profile_id AND follows.profile_id = :id)
+					ON (stats.profile_id = follows.to_profile_id 
+								AND follows.profile_id = :id AND follows.to_profile_id != :id)
 		WHERE r_num < 10
 		ORDER BY
 			following_post DESC, v DESC
