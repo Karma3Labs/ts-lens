@@ -72,6 +72,9 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 					ORDER BY p.profile_id, v DESC
 			) AS pstats
 		)
+		SELECT 
+			* 
+		FROM (
 		SELECT
 				CASE 
 					WHEN (follows.profile_id IS NOT NULL) THEN 1
@@ -91,9 +94,12 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 				LEFT OUTER JOIN
 					k3l_follows AS follows
 					ON (stats.profile_id = follows.to_profile_id AND follows.profile_id = :id)
-		WHERE r_num = 1
+		WHERE r_num < 10
 		ORDER BY
 			following_post DESC, v DESC
+		LIMIT 5 * :limit
+		) top_posts
+		ORDER BY random()
 		LIMIT :limit;
 	`, { limit, id })
 

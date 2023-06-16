@@ -69,21 +69,27 @@ export const viralFeedWithEngagement = async (limit: number) => {
 					ORDER BY p.profile_id, v DESC
 				) AS pstats)
 		SELECT
-				r_num,
-				post_id,
-				content_uri,
-				profile_id,
-				created_at,
-				mirrors_count,
-				comments_count,
-				collects_count,
-				age_days,
-				v
-		FROM
-			posts_with_stats
-		WHERE r_num = 1
-		ORDER BY
-				v DESC
+			* 
+		FROM (
+			SELECT
+					r_num,
+					post_id,
+					content_uri,
+					profile_id,
+					created_at,
+					mirrors_count,
+					comments_count,
+					collects_count,
+					age_days,
+					v
+			FROM
+				posts_with_stats
+			WHERE r_num < 10
+			ORDER BY
+					v DESC
+			LIMIT 5 * :limit
+		) top_posts
+		ORDER BY random()
 		LIMIT :limit;
 	`, { limit })
 
