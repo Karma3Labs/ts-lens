@@ -99,7 +99,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 			following_post DESC, v DESC
 		LIMIT 5 * :limit
 		) top_posts
-		ORDER BY random()
+		ORDER BY following_post DESC, random()
 		LIMIT :limit;
 	`, { limit, id })
 
