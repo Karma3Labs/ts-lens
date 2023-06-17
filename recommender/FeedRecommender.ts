@@ -87,7 +87,7 @@ export default class FeedRecommender {
 			LIMIT :limit;
 		`, { limit })
 			
-		const feed = res.map((r: any) => ({
+		const feed = res.rows.map((r: any) => ({
 			...r,
 			mirrorsCount: +r.mirrorsCount,
 			commentsCount: +r.commentsCount,
