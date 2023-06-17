@@ -53,26 +53,40 @@ export default class FeedRecommender {
 		// limit = limit || strategy.limit
 		limit = limit || 100
 
-		const res = await db('feed')
-			.select(
-				'k3l_posts.post_id',
-				'handle',
-				'total_amount_of_mirrors as mirrors_count',
-				'total_amount_of_comments as comments_count',
-				'total_amount_of_collects as collects_count',
-				'total_upvotes as upvotes_count',
-				'v',
-				'k3l_posts.created_at',
-				'content_uri'
-			)
-			.where({ strategy_name: strategy.feed })
-			.innerJoin('k3l_posts', 'k3l_posts.post_id', 'feed.post_id')
-			.innerJoin('publication_stats', 'feed.post_id', 'publication_stats.publication_id')
-			.innerJoin('k3l_profiles', 'k3l_posts.profile_id', 'k3l_profiles.profile_id')
-			.orderByRaw('(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - k3l_posts.created_at)) / (60 * 60 * 24))::integer asc')
-			.orderBy('v', 'desc')
-			.limit(limit)
-		
+		const res = await db.raw(`
+			SELECT		
+				k3l_posts.post_id,
+				handle,
+				rank,
+				total_amount_of_mirrors as mirrors_count,
+				total_amount_of_comments as comments_count,
+				total_amount_of_collects as collects_count,
+				total_upvotes as upvotes_count,
+				feed.v,
+				k3l_posts.created_at,
+				content_uri
+			FROM
+				feed
+				INNER JOIN k3l_posts on (k3l_posts.post_id = feed.post_id)
+				INNER JOIN publication_stats ON (feed.post_id = publication_stats.publication_id)
+				INNER JOIN k3l_profiles ON (k3l_posts.profile_id = k3l_profiles.profile_id)
+				INNER JOIN 
+					( SELECT 
+							ROW_NUMBER() OVER (ORDER BY v DESC) AS rank,
+							i as profile_id
+						FROM globaltrust
+						WHERE 
+							strategy_name = 'engagement'
+							AND date = (select max(date) from globaltrust)
+					) as gt ON (gt.profile_id = k3l_posts.profile_id)
+			WHERE 
+				feed.strategy_name = 'engagement-viralPosts'
+			ORDER BY
+				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - k3l_posts.created_at)) / (60 * 60 * 24))::integer ASC,
+				feed.v DESC
+			LIMIT :limit;
+		`, { limit })
+			
 		const feed = res.map((r: any) => ({
 			...r,
 			mirrorsCount: +r.mirrorsCount,
