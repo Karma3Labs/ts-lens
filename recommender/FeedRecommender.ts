@@ -49,9 +49,8 @@ export default class FeedRecommender {
 		const strategy = FeedRecommender.getStrategy(strategyName)
 
 		console.log(`Getting feed for ${JSON.stringify(strategy)}`)
-		// const strategy = FeedRecommender.getStrategy(strategyName)
-		// limit = limit || strategy.limit
-		limit = limit || 100
+		const stratName = strategy.feed
+		limit = limit || strategy.limit
 
 		const res = await db.raw(`
 			SELECT		
@@ -80,12 +79,12 @@ export default class FeedRecommender {
 							AND date = (select max(date) from globaltrust)
 					) as gt ON (gt.profile_id = k3l_posts.profile_id)
 			WHERE 
-				feed.strategy_name = :strategyName
+				feed.strategy_name = :stratName
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - k3l_posts.created_at)) / (60 * 60 * 24))::integer ASC,
 				feed.v DESC
 			LIMIT :limit;
-		`, { strategyName, limit })
+		`, { stratName, limit })
 			
 		const feed = res.rows.map((r: any) => ({
 			...r,
