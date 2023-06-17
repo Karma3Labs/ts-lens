@@ -80,12 +80,12 @@ export default class FeedRecommender {
 							AND date = (select max(date) from globaltrust)
 					) as gt ON (gt.profile_id = k3l_posts.profile_id)
 			WHERE 
-				feed.strategy_name = 'engagement-viralPosts'
+				feed.strategy_name = :strategyName
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - k3l_posts.created_at)) / (60 * 60 * 24))::integer ASC,
 				feed.v DESC
 			LIMIT :limit;
-		`, { limit })
+		`, { strategyName, limit })
 			
 		const feed = res.rows.map((r: any) => ({
 			...r,
