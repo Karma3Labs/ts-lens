@@ -28,7 +28,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 								5 * (ps.total_amount_of_mirrors::numeric / max_values.max_mirrors_count) +
 								3 * (ps.total_amount_of_collects::numeric / max_values.max_collects_count) +
 								10 * gt_v -
-								2 * ((EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::numeric
+								2 * ((EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::integer
 																												/ max_values.max_age_days)
 							) AS v,
 							rank
