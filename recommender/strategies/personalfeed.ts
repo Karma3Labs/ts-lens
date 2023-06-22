@@ -27,6 +27,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 								2 * (ps.total_amount_of_comments::numeric / max_values.max_comments_count) +
 								5 * (ps.total_amount_of_mirrors::numeric / max_values.max_mirrors_count) +
 								3 * (ps.total_amount_of_collects::numeric / max_values.max_collects_count) +
+								0.5 * (ps.total_upvotes::numeric / max_values.max_upvotes_count) +
 								10 * gt_v -
 								2 * ((EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::integer
 																												/ max_values.max_age_days)
@@ -38,7 +39,8 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 										MAX(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at))/(60*60*24))::integer AS max_age_days,
 										MAX(total_amount_of_mirrors) AS max_mirrors_count,
 										MAX(total_amount_of_comments) AS max_comments_count,
-										MAX(total_amount_of_collects) AS max_collects_count
+										MAX(total_amount_of_collects) AS max_collects_count,
+										MAX(total_upvotes) AS max_upvotes_count
 								FROM
 										publication_stats
 									INNER JOIN
@@ -55,7 +57,8 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 							k3l_posts p
 					INNER JOIN publication_stats ps 
 						ON (ps.publication_id = p.post_id AND 
-									(ps.total_amount_of_mirrors + ps.total_amount_of_comments + ps.total_amount_of_collects) > 0)
+									(ps.total_amount_of_mirrors + ps.total_amount_of_comments 
+										+ ps.total_amount_of_collects + ps.total_upvotes) > 0)
 					INNER JOIN profile_post post ON post.post_id = p.post_id
 					INNER JOIN ( 
 						SELECT 
