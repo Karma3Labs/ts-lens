@@ -94,7 +94,8 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 					comments_count,
 					collects_count,
 					upvotes_count,
-					v
+					v,
+					age_days
 			FROM
 					posts_with_stats AS stats
 					LEFT OUTER JOIN
@@ -106,7 +107,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 				following_post DESC, v DESC
 			LIMIT 5 * :limit
 		) top_posts
-		ORDER BY following_post DESC, random()
+		ORDER BY following_post DESC, age_days, random()
 		LIMIT :limit;
 	`, { limit, id })
 
