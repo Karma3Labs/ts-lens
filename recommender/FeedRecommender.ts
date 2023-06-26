@@ -1,11 +1,7 @@
-import  path from 'path'
 import { strategies } from './strategies/feed'
 import { config } from './config'
 import { Post } from '../types'
 import { getDB } from '../utils'
-
-// TODO: Fix that ugly thingie
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 const db = getDB()
 

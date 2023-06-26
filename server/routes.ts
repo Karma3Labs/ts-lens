@@ -17,6 +17,10 @@ export default async (app: Express) => {
 	const localTrustContentRecommender = new LocalTrustContentRecommender(userRecommender)
 	await userRecommender.init()
 
+	app.get('/_health', async (req: Request, res: Response) => {
+		res.status(200).json({ status: 'ok' });
+	});	
+
 	app.get('/suggest', async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let id: number
