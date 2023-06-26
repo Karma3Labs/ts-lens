@@ -1,8 +1,11 @@
+import  path from 'path'
 import humps from 'humps'
-import 'dotenv'
+require('dotenv').config({ path: path.resolve(__dirname, './.env') })
 
 export const getDB = () => {
-	const config = require('./knexfile.js')['development'];
+	const env = (process.env.ENVIRONMENT || 'default').toLowerCase()
+	console.log(env)
+	const config = require('./knexfile.js')[env]
 	let options: Record<string, any> = {
 		...config,
 		wrapIdentifier: (value: any, origImpl: Function, _: any) =>
