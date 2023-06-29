@@ -42,7 +42,9 @@ The existing strategies share the same pretrust list which includes some hand se
 
 - `Engagement`: This strategy takes into account follows, mirrors, and comments to generate the localtrust. If user A interacts with user B in any of these ways, an edge is created with a weight calculated as: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3`. Developers can change the weights of the parameters in this algorithm.
 
-- `Creator`: This strategy works similarly to the Engagement strategy but also incorporates collectsNFTs. The weight of each edge is calculated as follows: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3 + collectNFT_count * 12`.
+- `Influencer`: This strategy works similarly to the Engagement strategy but also incorporates collectsNFTs. The weight of each edge is calculated as follows: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3 + collectNFT_count * 12`.
+
+- `Creator`: This strategy works similarly to the Engagement strategy but also incorporates collectsNFTs. The weight of each edge is calculated as follows: `follow (which is always 1) * 6 + mirrors_count * 8 + comment_count * 3 + collectNFT_norm_price * 12`.
 
 Each of these strategies provides a unique perspective on user reputation, allowing for diverse and dynamic global rankings.
 
