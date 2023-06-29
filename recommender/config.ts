@@ -34,12 +34,6 @@ export const config = {
 			localtrust: 'f6c3m8col12Price',
 			alpha: 0.5
 		},
-		{
-			name: 'npcreator',
-			pretrust: 'pretrustOGs',
-			localtrust: 'f6c3m8col12Price',
-			alpha: 0.1
-		},
 	],
 	sqlFeedStrategies: [{
 		name: "popular",
