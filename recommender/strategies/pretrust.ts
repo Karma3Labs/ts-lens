@@ -27,13 +27,7 @@ const pretrustFirstFifty: PretrustStrategy = async () => {
 };
 
 const pretrustOGs: PretrustStrategy = async () => {
-  const ogs = [
-    "orbapp.lens",
-    "nilesh.lens",
-    "kipto.lens",
-    "sankalpk.lens",
-    "rohukr.lens",
-  ];
+  const ogs = ["orbapp.lens", "nilesh.lens", "kipto.lens", "sankalpk.lens"];
 
   const ids = await db("k3l_profiles")
     .select("profile_id")
