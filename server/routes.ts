@@ -171,6 +171,7 @@ export default async (app: Express) => {
 	app.get(['/feed/personal/:profile/:strategy?'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl
 		const limit = req.query.limit ? +req.query.limit : 100
+		const offset = req.query.offset ? +req.query.offset : 0
 		const strategy = req.params.strategy ? req.params.strategy as string : 'following'
 		let profileId: string
 
@@ -182,7 +183,7 @@ export default async (app: Express) => {
 		}
 		console.log(`${reqUri} personalized for id: ${profileId}`)
 		try {
-			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, profileId)
+			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, offset, profileId)
 			return res.send(feed)
 		}
 		catch (e: any) {
@@ -195,10 +196,11 @@ export default async (app: Express) => {
 	app.get(['/feed/:strategy?'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl
 		const limit = req.query.limit ? +req.query.limit : 100
+		const offset = req.query.offset ? +req.query.offset : 0
 		const strategy_name = req.params.strategy ? req.params.strategy as string : 'popular'
 
 		try {
-			const feed = await FeedRecommender.getFeed(strategy_name, limit)
+			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset)
 			return res.send(feed)
 		}
 		catch (e: any) {
