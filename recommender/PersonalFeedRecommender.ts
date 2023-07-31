@@ -7,13 +7,13 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class PersonalFeedRecommender {
 
-	static async getFeed(strategyName:string, limit: number, profileId: string) {
+	static async getFeed(strategyName:string, limit: number, offset: number, profileId: string) {
 		const strategy = config.personalFeedStrategies.find((s) => s.name === strategyName)
 		if (!strategy) {
 			throw new Error(`Invalid feed strategy ${strategyName}`)
 		}
 		const feedStrategy = strategies[strategy.feed]
-		const content = await feedStrategy(limit, profileId)
+		const content = await feedStrategy(limit, offset, profileId)
 		console.log(`Generated content with ${content.length} entries for ${profileId} using ${strategyName} strategy`)
 
 		return content

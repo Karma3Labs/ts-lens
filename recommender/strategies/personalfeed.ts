@@ -1,11 +1,11 @@
 import { getDB } from '../../utils'
 import { Post } from '../../types'
 
-export type PersonalFeedStrategy = (limit: number, id:string) => Promise<Post[]>
+export type PersonalFeedStrategy = (limit: number, offset: number, id:string) => Promise<Post[]>
 
 const db = getDB()
 
-export const followingViralFeedWithEngagement = async (limit: number, id: string) => {
+export const followingViralFeedWithEngagement = async (limit: number, offset: number, id: string) => {
 	const res = await db.raw(`
 		WITH posts_with_stats AS (
 			SELECT
@@ -22,6 +22,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 							ps.total_amount_of_comments AS comments_count,
 							ps.total_amount_of_collects AS collects_count,
 							ps.total_upvotes AS upvotes_count,
+							(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)))::integer AS age_time,
 							(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::integer AS age_days,
 							(
 								2 * (ps.total_amount_of_comments::numeric / max_values.max_comments_count) +
@@ -50,7 +51,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 										profile_post as post
 										ON publication_id = post.post_id
 								WHERE 
-									k3l.created_at > now() - interval '14 days'
+									k3l.created_at > now() - interval '30 days'
 									AND post.is_related_to_post IS NULL
 									AND post.is_related_to_comment IS NULL
 							) max_values,
@@ -72,7 +73,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 			 		) as gt ON (gt.profile_id = p.profile_id)
 					INNER JOIN k3l_profiles prof ON prof.profile_id = p.profile_id
 					WHERE
-						p.created_at > now() - interval '14 days'
+						p.created_at > now() - interval '30 days'
 					AND
 						post.is_related_to_post IS NULL
 					AND 
@@ -98,6 +99,7 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 					collects_count,
 					upvotes_count,
 					v,
+					age_time,
 					age_days
 			FROM
 					posts_with_stats AS stats
@@ -110,9 +112,9 @@ export const followingViralFeedWithEngagement = async (limit: number, id: string
 				following_post DESC, v DESC
 			LIMIT 5 * :limit
 		) top_posts
-		ORDER BY following_post DESC, age_days, random()
-		LIMIT :limit;
-	`, { limit, id })
+		ORDER BY following_post DESC, age_time
+		LIMIT :limit OFFSET :offset;
+	`, { limit, offset, id })
 
 	return res.rows
 }

@@ -41,7 +41,7 @@ export default class FeedRecommender {
 		}
 	}
 
-	static async getFeed(strategyName: string, limit: number): Promise<Post[]> {
+	static async getFeed(strategyName: string, limit: number, offset: number): Promise<Post[]> {
 		const strategy = FeedRecommender.getStrategy(strategyName)
 
 		console.log(`Getting feed for ${JSON.stringify(strategy)}`)
@@ -79,8 +79,8 @@ export default class FeedRecommender {
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - k3l_posts.created_at)) / (60 * 60 * 24))::integer ASC,
 				feed.v DESC
-			LIMIT :limit;
-		`, { stratName, limit })
+			LIMIT :limit OFFSET :offset;
+		`, { stratName, limit, offset })
 			
 		const feed = res.rows.map((r: any) => ({
 			...r,
