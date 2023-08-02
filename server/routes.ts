@@ -11,6 +11,9 @@ import {
 import LocalTrustContentRecommender from '../recommender/LocalTrustContentRecommender'
 import FeedRecommender from '../recommender/FeedRecommender'
 import PersonalFeedRecommender from '../recommender/PersonalFeedRecommender'
+import { config } from '../recommender/config'
+import { execSync } from 'child_process'
+
 
 export default async (app: Express) => {
 	const userRecommender = new UserRecommender()
@@ -232,5 +235,24 @@ export default async (app: Express) => {
 			console.log(`Error in ${reqUri} for strategyName: ${strategyName}`, e)
 			return res.status(500).send(`Could not get ${reqUri}`)
 		}
+	})
+
+	app.get(['/config'], async (req: Request, res: Response) => {
+		try {
+			const gitHash = execSync('git rev-parse HEAD').toString().trim();
+			const gitBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();		
+			const payload = {
+				git: {
+					gitHash,
+					gitBranch
+				},
+				config,
+			}
+			return res.send(payload)
+
+		} catch (err) {
+			console.error('An error occurred while retrieving config information:', err);
+			res.status(500).send('An error occurred while retrieving config information');
+		}		
 	})
 }

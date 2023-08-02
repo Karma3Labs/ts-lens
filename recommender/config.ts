@@ -1,4 +1,7 @@
 export const config = {
+	ogs: ["yoginth.lens", "christina.lens", "mariariivari.lens",
+		"bradorbradley.lens", "wagmi.lens", "levychain.lens", "nicolo.lens",
+		"sasicodes.lens", "stani.lens", "davidev.lens" ],
 	localtrustStrategies: [
 		'existingConnections',
 		'f6c3m8enhancedConnections',

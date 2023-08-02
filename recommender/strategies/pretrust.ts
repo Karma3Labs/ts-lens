@@ -1,4 +1,5 @@
 import { Pretrust } from '../../types'
+import { config } from '../config'
 import { getDB } from '../../utils';
 
 export type PretrustStrategy = () => Promise<Pretrust<string>>
@@ -24,11 +25,7 @@ const pretrustFirstFifty: PretrustStrategy = async () => {
 }
 
 const pretrustOGs: PretrustStrategy = async () => {
-	const ogs = ["yoginth.lens", "christina.lens", "mariariivari.lens",
-	"bradorbradley.lens", "wagmi.lens", "levychain.lens", "nicolo.lens",
-	"sasicodes.lens", "stani.lens", "davidev.lens" ]
-
-	const ids = await db('k3l_profiles').select('profile_id').whereIn('handle', ogs)
+	const ids = await db('k3l_profiles').select('profile_id').whereIn('handle', config.ogs)
 	const pretrust: Pretrust<string> = []
 
 	ids.forEach(({ profileId }: { profileId: string }) => {
