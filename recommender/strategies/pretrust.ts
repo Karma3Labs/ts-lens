@@ -32,7 +32,7 @@ const pretrustOGs: PretrustStrategy = async () => {
     "nilesh.lens",
     "kipto.lens",
     "sankalpk.lens",
-    "rohukr.lens",
+    "stani.lens",
   ];
 
   const ids = await db("k3l_profiles")
