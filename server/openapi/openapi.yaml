@@ -281,8 +281,8 @@ components:
       required: true
       schema:
         type: string
-        enum: [following, for-you]
-      description: The strategy name to use such as 'following' or 'for-you'.
+        enum: [following]
+      description: The strategy name to use such as 'following'.
     ProfileHandle:
       name: handle
       in: query
