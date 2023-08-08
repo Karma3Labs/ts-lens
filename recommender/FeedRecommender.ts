@@ -6,14 +6,15 @@ import { getDB } from '../utils'
 const db = getDB()
 
 export default class FeedRecommender {
-	static async calculateByStrategy(name: string): Promise<any> {
+	static async calculateByStrategy(name: string, limit: number): Promise<any> {
 		const strategy = FeedRecommender.getStrategy(name)
+		limit = limit || strategy.limit
 		const feedStrategy = strategies[strategy.feed]
 		if (!feedStrategy) {	
 			throw new Error("Invalid content strategy")
 		}
 
-		const content = await feedStrategy(strategy.limit)
+		const content = await feedStrategy(limit)
 		console.log(`Generated content with ${content.length} entries`)
 
 		return content
