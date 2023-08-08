@@ -50,32 +50,20 @@ export default class FeedRecommender {
 
 		const res = await db.raw(`
 			SELECT		
-				k3l_posts.post_id,
+				post_id,
 				handle,
 				rank,
-				total_amount_of_mirrors as mirrors_count,
-				total_amount_of_comments as comments_count,
-				total_amount_of_collects as collects_count,
-				total_upvotes as upvotes_count,
-				feed.v,
-				k3l_posts.created_at,
+				mirrors_count,
+				comments_count,
+				collects_count,
+				upvotes_count,
+				v,
+				created_at,
 				content_uri
 			FROM
-				feed
-				INNER JOIN k3l_posts on (k3l_posts.post_id = feed.post_id)
-				INNER JOIN publication_stats ON (feed.post_id = publication_stats.publication_id)
-				INNER JOIN k3l_profiles ON (k3l_posts.profile_id = k3l_profiles.profile_id)
-				INNER JOIN 
-					( SELECT 
-							ROW_NUMBER() OVER (ORDER BY v DESC) AS rank,
-							i as profile_id
-						FROM globaltrust
-						WHERE 
-							strategy_name = 'engagement'
-							AND date = (select max(date) from globaltrust)
-					) as gt ON (gt.profile_id = k3l_posts.profile_id)
+				k3l_feed
 			WHERE 
-				feed.strategy_name = :stratName
+				strategy_name = :stratName
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - k3l_posts.created_at)) / (60 * 60 * 24))::integer ASC,
 				feed.v DESC
