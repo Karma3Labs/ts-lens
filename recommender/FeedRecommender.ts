@@ -66,7 +66,7 @@ export default class FeedRecommender {
 				strategy_name = :stratName
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::integer ASC,
-				feed.v DESC
+				v DESC
 			LIMIT :limit OFFSET :offset;
 		`, { stratName, limit, offset })
 			
