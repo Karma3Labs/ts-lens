@@ -13,6 +13,8 @@ import FeedRecommender from '../recommender/FeedRecommender'
 import PersonalFeedRecommender from '../recommender/PersonalFeedRecommender'
 import { config } from '../recommender/config'
 import { execSync } from 'child_process'
+import * as client from 'prom-client';
+const collectDefaultMetrics = client.collectDefaultMetrics;
 
 
 export default async (app: Express) => {
@@ -250,6 +252,15 @@ export default async (app: Express) => {
 			}
 			return res.send(payload)
 
+		} catch (err) {
+			console.error('An error occurred while retrieving config information:', err);
+			res.status(500).send('An error occurred while retrieving config information');
+		}		
+	})
+
+	app.get(['/metrics'], async (req: Request, res: Response) => {
+		try {
+			return res.send(collectDefaultMetrics())
 		} catch (err) {
 			console.error('An error occurred while retrieving config information:', err);
 			res.status(500).send('An error occurred while retrieving config information');
