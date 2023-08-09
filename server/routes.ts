@@ -255,4 +255,6 @@ export default async (app: Express) => {
 			res.status(500).send('An error occurred while retrieving config information');
 		}		
 	})
+
+
 }
