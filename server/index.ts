@@ -9,13 +9,14 @@ const app = express()
 const PORT = 8080
 
 const options: cors.CorsOptions = {
-    origin: '*',
+  origin: '*',
 	allowedHeaders: ['Content-Type', 'api_key', 'Authorization'],
 }
-app.use(cors<Request>(options))
-app.use(metricsMiddleware)
 
 export default () => {
+	app.use(cors<Request>(options))
+	app.use(metricsMiddleware)
+	
 	// Sentry.init({
 	// 	dsn: process.env.SENTRY_DSN,
 	// 	integrations: [
@@ -38,6 +39,6 @@ export default () => {
 		next();
 	});
 
-	app.listen(PORT, () => console.log(`Magic is happening on port: ${PORT}`))
+	app.listen(PORT, () => console.log(`Server is listening on port: ${PORT}`))
 }
 
