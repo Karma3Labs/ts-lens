@@ -1,7 +1,7 @@
 import express, { Request } from 'express'
 import cors from 'cors'
 import getRoutes from './routes'
-import * as Sentry from "@sentry/node";
+// import * as Sentry from "@sentry/node";
 
 const app = express()
 const PORT = 8080
@@ -13,22 +13,22 @@ const options: cors.CorsOptions = {
 app.use(cors<Request>(options))
 
 export default () => {
-	Sentry.init({
-		dsn: process.env.SENTRY_DSN,
-		integrations: [
-			new Sentry.Integrations.Http({ tracing: true }),
-			...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
-		],
+	// Sentry.init({
+	// 	dsn: process.env.SENTRY_DSN,
+	// 	integrations: [
+	// 		new Sentry.Integrations.Http({ tracing: true }),
+	// 		...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
+	// 	],
 		
-		tracesSampleRate: 1.0,
-	});
+	// 	tracesSampleRate: 1.0,
+	// });
 	  
-	app.use(Sentry.Handlers.requestHandler());
-	app.use(Sentry.Handlers.tracingHandler());
+	// app.use(Sentry.Handlers.requestHandler());
+	// app.use(Sentry.Handlers.tracingHandler());
 
 	getRoutes(app)
 
-	app.use(Sentry.Handlers.errorHandler());
+	// app.use(Sentry.Handlers.errorHandler());
 
 	app.use((req, res, next) => {
 		console.log(new Date().toISOString(), req.originalUrl);
