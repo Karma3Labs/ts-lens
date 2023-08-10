@@ -65,6 +65,8 @@ export default class FeedRecommender {
 				k3l_feed
 			WHERE 
 				strategy_name = :stratName
+				AND 
+				rank < 25000
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::numeric ASC,
 				v DESC
