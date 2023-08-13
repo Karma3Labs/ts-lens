@@ -36,7 +36,7 @@ export const followingViralFeedWithEngagement = async (limit: number, offset: nu
 			WHERE r_num < 10
 			ORDER BY
 				following_post DESC, v DESC
-			LIMIT LEAST(5000, :offset + :limit)
+			LIMIT LEAST(5000, :offset::integer + :limit::integer)
 		) top_posts
 		ORDER BY following_post DESC, age_time
 		LIMIT :limit OFFSET :offset;
