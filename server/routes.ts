@@ -173,10 +173,17 @@ export default async (app: Express) => {
 	})
 
 	app.get(['/feed/personal/:profile/:strategy?'], async (req: Request, res: Response) => {
+		console.log(`Getting feed for ${JSON.stringify(req.query)}`)
 		const reqUri = req.originalUrl
 		const limit = req.query.limit ? +req.query.limit : 100
 		const offset = req.query.offset ? +req.query.offset : 0
+		let contentFocus = req.query.contentFocus as string[]
+		if (typeof req.query.contentFocus === "string") {
+			// if there is only one ContentFocus then req.query returns string instead of string[]
+			contentFocus = [req.query.contentFocus]
+		} 
 		const strategy = req.params.strategy ? req.params.strategy as string : 'following'
+		
 		let profileId: string
 
 		try {
@@ -187,7 +194,7 @@ export default async (app: Express) => {
 		}
 		console.log(`${reqUri} personalized for id: ${profileId}`)
 		try {
-			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, offset, profileId)
+			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, offset, profileId, contentFocus)
 			return res.send(feed)
 		}
 		catch (e: any) {
@@ -210,7 +217,6 @@ export default async (app: Express) => {
 		} 
 
 		const strategy_name = req.params.strategy ? req.params.strategy as string : 'popular'
-
 
 		try {
 			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset, contentFocus)

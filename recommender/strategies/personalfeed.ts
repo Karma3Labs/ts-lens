@@ -1,11 +1,31 @@
 import { getDB } from '../../utils'
 import { Post } from '../../types'
 
-export type PersonalFeedStrategy = (limit: number, offset: number, id:string) => Promise<Post[]>
+export type PersonalFeedStrategy = (
+	limit: number, 
+	offset: number, 
+	id:string, 
+	contentFocus: string[]
+	) => Promise<Post[]>
 
 const db = getDB()
 
-export const followingViralFeedWithEngagement = async (limit: number, offset: number, id: string) => {
+export const followingViralFeedWithEngagement = async (
+	limit: number, 
+	offset: number, 
+	id: string, 
+	contentFocus: string[]
+	) => {
+	let contentFocusClause: string = ''
+	if (contentFocus && contentFocus.length > 0) {
+		contentFocusClause = contentFocus.reduce((acc, cur) => { 
+				return acc.concat("'",cur,"',");
+			},
+			"AND main_content_focus IN ("
+		)
+		contentFocusClause = contentFocusClause.substring(0, contentFocusClause.length - 1) + ")";
+	}
+		
 	const res = await db.raw(`
 		SELECT 
 			* 
@@ -34,6 +54,7 @@ export const followingViralFeedWithEngagement = async (limit: number, offset: nu
 						ON (stats.profile_id = follows.to_profile_id 
 									AND follows.profile_id = :id AND follows.to_profile_id != :id)
 			WHERE r_num < 10
+			${contentFocusClause}
 			ORDER BY
 				following_post DESC, v DESC
 			LIMIT LEAST(5000, :offset::integer + :limit::integer)
