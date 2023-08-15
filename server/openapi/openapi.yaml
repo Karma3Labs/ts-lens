@@ -163,6 +163,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
+        - $ref: "#/components/parameters/ContentFocusFilter"
       responses:
         200:
           description: Query succeeded.
@@ -189,6 +190,7 @@ paths:
         - $ref: "#/components/parameters/FeedStrategyPath"
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
+        - $ref: "#/components/parameters/ContentFocusFilter"
       responses:
         200:
           description: Query succeeded.
@@ -216,6 +218,7 @@ paths:
         - $ref: "#/components/parameters/ProfilePath"
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
+        - $ref: "#/components/parameters/ContentFocusFilter"
       responses:
         200:
           description: Query succeeded.
@@ -243,6 +246,7 @@ paths:
         - $ref: "#/components/parameters/PersonalFeedStrategyPath"
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
+        - $ref: "#/components/parameters/ContentFocusFilter"
       responses:
         200:
           description: Query succeeded.
@@ -302,6 +306,15 @@ components:
       schema:
         type: string
       description: The Lens profile handle (with or without the `.lens` extension) or hex Id.
+    ContentFocusFilter:
+      name: contentFocus
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [text_only, article, audio, video, image, link]
+      description: The content focus that the posts should be filtered on.
     PaginationOffset:
       name: offset
       in: query

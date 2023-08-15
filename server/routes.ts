@@ -13,6 +13,7 @@ import FeedRecommender from '../recommender/FeedRecommender'
 import PersonalFeedRecommender from '../recommender/PersonalFeedRecommender'
 import { config } from '../recommender/config'
 import { execSync } from 'child_process'
+import { string } from 'yargs'
 
 
 export default async (app: Express) => {
@@ -197,13 +198,22 @@ export default async (app: Express) => {
 
 
 	app.get(['/feed/:strategy?'], async (req: Request, res: Response) => {
+		console.log(`Getting feed for ${JSON.stringify(req.query)}`)
 		const reqUri = req.originalUrl
+
 		const limit = req.query.limit ? +req.query.limit : 100
 		const offset = req.query.offset ? +req.query.offset : 0
+		let contentFocus = req.query.contentFocus as string[]
+		if (typeof req.query.contentFocus === "string") {
+			// if there is only one ContentFocus then req.query returns string instead of string[]
+			contentFocus = [req.query.contentFocus]
+		} 
+
 		const strategy_name = req.params.strategy ? req.params.strategy as string : 'popular'
 
+
 		try {
-			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset)
+			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset, contentFocus)
 			return res.send(feed)
 		}
 		catch (e: any) {

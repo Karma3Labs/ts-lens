@@ -42,10 +42,22 @@ export default class FeedRecommender {
 		}
 	}
 
-	static async getFeed(strategyName: string, limit: number, offset: number): Promise<Post[]> {
+	static async getFeed(strategyName: string, limit: number, offset: number, contentFocus: string[]): Promise<Post[]> {
+
+		let contentFocusClause: string = ''
+		if (contentFocus && contentFocus.length > 0) {
+			contentFocusClause = contentFocus.reduce((acc, cur) => { 
+					return acc.concat("'",cur,"',");
+				},
+				"AND main_content_focus IN ("
+			)
+			contentFocusClause = contentFocusClause.substring(0, contentFocusClause.length - 1) + ")";
+		}
+
 		const strategy = FeedRecommender.getStrategy(strategyName)
 
 		console.log(`Getting feed for ${JSON.stringify(strategy)}`)
+
 		const stratName = strategy.feed
 		limit = limit || strategy.limit
 
@@ -67,6 +79,7 @@ export default class FeedRecommender {
 				strategy_name = :stratName
 				AND 
 				rank < 25000
+				${contentFocusClause}
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::numeric ASC,
 				v DESC
