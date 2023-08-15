@@ -19,7 +19,7 @@ export const followingViralFeedWithEngagement = async (
 	let contentFocusClause: string = ''
 	if (contentFocus && contentFocus.length > 0) {
 		contentFocusClause = contentFocus.reduce((acc, cur) => { 
-				return acc.concat("'",cur,"',");
+				return acc.concat("'",cur.toUpperCase(),"',");
 			},
 			"AND main_content_focus IN ("
 		)
