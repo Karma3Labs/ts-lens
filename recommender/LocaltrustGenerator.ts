@@ -18,9 +18,13 @@ export default class LocaltrustGenerator {
 
 	async compute() {
 		for (const name of this.localtrustStrategies) {
+			console.log(`Generate localtrust for ${name}`)
 			const localtrust = await this.generateLocaltrust(name)
 
+			console.log(`Save localtrust for ${name}`)
 			await this.saveLocaltrust(name, localtrust)
+
+			console.log(`Upload localtrust for ${name}`)
 			await this.uploadLocaltrust(name, localtrust, this.ids)
 		}
 	}
