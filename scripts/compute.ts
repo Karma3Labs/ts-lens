@@ -12,7 +12,9 @@ const main = async () => {
 	for (const ltStrategy of config.localtrustStrategies) {
 		console.log(`Generating localtrust for ${ltStrategy}`)
 		const localtrust = await localtrustGenerator.generateLocaltrust(ltStrategy)
+		console.log(`Saving localtrust for ${ltStrategy}`)
 		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust)
+		console.log(`Uploading localtrust for ${ltStrategy}`)
 		await localtrustGenerator.uploadLocaltrust(ltStrategy, localtrust, ids)
 	}
 	console.timeEnd("Generated localtrust")
