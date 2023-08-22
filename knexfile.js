@@ -22,8 +22,20 @@ module.exports = {
     connection: {
       ...connection, 
       ssl: {
+        ca: fs.readFileSync('./aws/global-bundle.pem')
+      }
+    }
+  },
+  awsinvalidcert: {
+    //avoid ERR_TLS_CERT_ALTNAME_INVALID when using SSH tunnel to connect to RDS
+    client: 'pg',
+    connection: {
+      ...connection, 
+      ssl: {
         ca: fs.readFileSync('./aws/global-bundle.pem'),
+        rejectUnauthorized: false
       }
     }
   }
+
 };
