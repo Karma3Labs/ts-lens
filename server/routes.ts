@@ -177,6 +177,7 @@ export default async (app: Express) => {
 		const reqUri = req.originalUrl
 		const limit = req.query.limit ? +req.query.limit : 100
 		const offset = req.query.offset ? +req.query.offset : 0
+		const rankLimit = req.query.rankLimit ? +req.query.rankLimit : 10000
 		let contentFocus = req.query.contentFocus as string[]
 		if (typeof req.query.contentFocus === "string") {
 			// if there is only one ContentFocus then req.query returns string instead of string[]
@@ -194,7 +195,7 @@ export default async (app: Express) => {
 		}
 		console.log(`${reqUri} personalized for id: ${profileId}`)
 		try {
-			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, offset, profileId, contentFocus)
+			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, offset, rankLimit, profileId, contentFocus)
 			return res.send(feed)
 		}
 		catch (e: any) {
@@ -210,6 +211,7 @@ export default async (app: Express) => {
 
 		const limit = req.query.limit ? +req.query.limit : 100
 		const offset = req.query.offset ? +req.query.offset : 0
+		const rankLimit = req.query.rankLimit ? +req.query.rankLimit : 10000
 		let contentFocus = req.query.contentFocus as string[]
 		if (typeof req.query.contentFocus === "string") {
 			// if there is only one ContentFocus then req.query returns string instead of string[]
@@ -219,7 +221,7 @@ export default async (app: Express) => {
 		const strategy_name = req.params.strategy ? req.params.strategy as string : 'popular'
 
 		try {
-			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset, contentFocus)
+			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset, rankLimit, contentFocus)
 			return res.send(feed)
 		}
 		catch (e: any) {

@@ -42,7 +42,13 @@ export default class FeedRecommender {
 		}
 	}
 
-	static async getFeed(strategyName: string, limit: number, offset: number, contentFocus: string[]): Promise<Post[]> {
+	static async getFeed(
+		strategyName: string, 
+		limit: number, 
+		offset: number, 
+		rankLimit: number, 
+		contentFocus: string[]
+		): Promise<Post[]> {
 
 		let contentFocusClause: string = ''
 		if (contentFocus && contentFocus.length > 0) {
@@ -78,13 +84,13 @@ export default class FeedRecommender {
 			WHERE 
 				strategy_name = :stratName
 				AND 
-				rank < 25000
+				rank < :rankLimit
 				${contentFocusClause}
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::numeric ASC,
 				v DESC
 			LIMIT :limit OFFSET :offset;
-		`, { stratName, limit, offset })
+		`, { stratName, limit, offset, rankLimit })
 			
 		const feed = res.rows.map((r: any) => ({
 			...r,

@@ -4,6 +4,7 @@ import { Post } from '../../types'
 export type PersonalFeedStrategy = (
 	limit: number, 
 	offset: number, 
+	rankLimit: number,
 	id:string, 
 	contentFocus: string[]
 	) => Promise<Post[]>
@@ -13,6 +14,7 @@ const db = getDB()
 export const followingViralFeedWithEngagement = async (
 	limit: number, 
 	offset: number, 
+	rankLimit: number,
 	id: string, 
 	contentFocus: string[]
 	) => {
@@ -59,9 +61,10 @@ export const followingViralFeedWithEngagement = async (
 				following_post DESC, v DESC
 			LIMIT LEAST(5000, :offset::integer + :limit::integer)
 		) top_posts
+		WHERE following_post = 1 OR rank < :rankLimit
 		ORDER BY following_post DESC, age_time
 		LIMIT :limit OFFSET :offset;
-	`, { limit, offset, id })
+	`, { limit, offset, rankLimit, id })
 
 	return res.rows
 }

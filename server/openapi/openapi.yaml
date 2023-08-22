@@ -164,6 +164,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
           description: Query succeeded.
@@ -191,6 +192,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
           description: Query succeeded.
@@ -219,6 +221,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
           description: Query succeeded.
@@ -247,6 +250,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
           description: Query succeeded.
@@ -333,6 +337,12 @@ components:
       schema:
         type: integer
       description: Number of entries to return.  Defaults to `100`.
+    RankLimit:
+      name: rankLimit
+      in: query
+      schema:
+        type: integer
+      description: Limite to top N ranked profiles.  Defaults to `10000`.
     Backdate:
       name: date
       in: query
