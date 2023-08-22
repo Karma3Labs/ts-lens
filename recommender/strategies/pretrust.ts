@@ -38,8 +38,23 @@ const pretrustOGs: PretrustStrategy = async () => {
 	return pretrust
 }
 
+const pretrustCurated: PretrustStrategy = async () => {
+	const ids = await db('k3l_curated_profiles').select('profile_id')
+	const pretrust: Pretrust<string> = []
+
+	ids.forEach(({ profileId }: { profileId: string }) => {
+		pretrust.push({
+			i: profileId,
+			v: 1 / ids.length
+		})
+	})
+
+	return pretrust
+}
+
 export const strategies: Record<string, PretrustStrategy> = {
 	pretrustOGs,
 	pretrustFirstFifty,
-	pretrustAllEqually
+	pretrustAllEqually,
+	pretrustCurated
 }
