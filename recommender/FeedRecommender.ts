@@ -47,7 +47,8 @@ export default class FeedRecommender {
 		limit: number, 
 		offset: number, 
 		rankLimit: number, 
-		contentFocus: string[]
+		contentFocus: string[],
+		language: string
 		): Promise<Post[]> {
 
 		let contentFocusClause: string = ''
@@ -59,7 +60,10 @@ export default class FeedRecommender {
 			)
 			contentFocusClause = contentFocusClause.substring(0, contentFocusClause.length - 1) + ")";
 		}
-
+		let languageClause: string = ''
+		if (language) {
+			languageClause = `AND (language IS NULL OR language = '${language}')`
+		}
 		const strategy = FeedRecommender.getStrategy(strategyName)
 
 		console.log(`Getting feed for ${JSON.stringify(strategy)}`)
@@ -86,6 +90,7 @@ export default class FeedRecommender {
 				AND 
 				rank < :rankLimit
 				${contentFocusClause}
+				${languageClause}
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::numeric ASC,
 				v DESC

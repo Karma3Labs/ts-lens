@@ -164,6 +164,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/LanguageFilter"
         - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
@@ -192,6 +193,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/LanguageFilter"
         - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
@@ -221,6 +223,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/LanguageFilter"
         - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
@@ -250,6 +253,7 @@ paths:
         - $ref: "#/components/parameters/PaginationLimit100"
         - $ref: "#/components/parameters/PaginationOffset"
         - $ref: "#/components/parameters/ContentFocusFilter"
+        - $ref: "#/components/parameters/LanguageFilter"
         - $ref: "#/components/parameters/RankLimit"
       responses:
         200:
@@ -319,6 +323,12 @@ components:
           type: string
           enum: [text_only, article, audio, video, image, link]
       description: The content focus that the posts should be filtered on.
+    LanguageFilter:
+      name: language
+      in: query
+      schema:
+        type: string
+      description: The language of the posts to be retrieved.
     PaginationOffset:
       name: offset
       in: query

@@ -6,7 +6,8 @@ export type PersonalFeedStrategy = (
 	offset: number, 
 	rankLimit: number,
 	id:string, 
-	contentFocus: string[]
+	contentFocus: string[],
+	language: string
 	) => Promise<Post[]>
 
 const db = getDB()
@@ -16,7 +17,8 @@ export const followingViralFeedWithEngagement = async (
 	offset: number, 
 	rankLimit: number,
 	id: string, 
-	contentFocus: string[]
+	contentFocus: string[],
+	language: string
 	) => {
 	let contentFocusClause: string = ''
 	if (contentFocus && contentFocus.length > 0) {
@@ -27,7 +29,11 @@ export const followingViralFeedWithEngagement = async (
 		)
 		contentFocusClause = contentFocusClause.substring(0, contentFocusClause.length - 1) + ")";
 	}
-		
+	let languageClause: string = ''
+	if (language) {
+		languageClause = `AND (language IS NULL OR language = '${language}')`
+	}
+
 	const res = await db.raw(`
 		SELECT 
 			* 
@@ -57,6 +63,7 @@ export const followingViralFeedWithEngagement = async (
 									AND follows.profile_id = :id AND follows.to_profile_id != :id)
 			WHERE r_num < 10
 			${contentFocusClause}
+			${languageClause}
 			ORDER BY
 				following_post DESC, v DESC
 			LIMIT LEAST(5000, :offset::integer + :limit::integer)

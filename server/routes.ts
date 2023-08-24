@@ -183,6 +183,7 @@ export default async (app: Express) => {
 			// if there is only one ContentFocus then req.query returns string instead of string[]
 			contentFocus = [req.query.contentFocus]
 		} 
+		const language = req.query.language as string
 		const strategy = req.params.strategy ? req.params.strategy as string : 'following'
 		
 		let profileId: string
@@ -195,7 +196,8 @@ export default async (app: Express) => {
 		}
 		console.log(`${reqUri} personalized for id: ${profileId}`)
 		try {
-			const feed = await PersonalFeedRecommender.getFeed(strategy, limit, offset, rankLimit, profileId, contentFocus)
+			const feed = await PersonalFeedRecommender
+				.getFeed(strategy, limit, offset, rankLimit, profileId, contentFocus, language)
 			return res.send(feed)
 		}
 		catch (e: any) {
@@ -217,11 +219,12 @@ export default async (app: Express) => {
 			// if there is only one ContentFocus then req.query returns string instead of string[]
 			contentFocus = [req.query.contentFocus]
 		} 
+		const language = req.query.language as string
 
 		const strategy_name = req.params.strategy ? req.params.strategy as string : 'popular'
 
 		try {
-			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset, rankLimit, contentFocus)
+			const feed = await FeedRecommender.getFeed(strategy_name, limit, offset, rankLimit, contentFocus, language)
 			return res.send(feed)
 		}
 		catch (e: any) {
