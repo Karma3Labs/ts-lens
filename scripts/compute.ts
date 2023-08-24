@@ -7,13 +7,15 @@ import Feed from '../recommender/FeedRecommender'
 const main = async () => {
 	const ids = await getIds()
 	const localtrustGenerator = new LocaltrustGenerator()
-
-	console.time("Generated localtrust")
+	const args = process.argv.slice(2);
+	const dbSchema = args[0] || "public"; // Default to "public" if no argument is given
+	
+	console.time(`Generated localtrust in the ${dbSchema} schema`)
 	for (const ltStrategy of config.localtrustStrategies) {
 		console.log(`Generating localtrust for ${ltStrategy}`)
 		const localtrust = await localtrustGenerator.generateLocaltrust(ltStrategy)
 		console.log(`Saving localtrust for ${ltStrategy}`)
-		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust)
+		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust, dbSchema)
 		console.log(`Uploading localtrust for ${ltStrategy}`)
 		await localtrustGenerator.uploadLocaltrust(ltStrategy, localtrust, ids)
 	}

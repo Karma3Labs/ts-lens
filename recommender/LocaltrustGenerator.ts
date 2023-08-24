@@ -40,14 +40,14 @@ export default class LocaltrustGenerator {
 		return localtrust
 	}
 
-	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>) {
+	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>, dbSchema: string = "public") {
 		const CHUNK_SIZE = 10000
 		if (!localtrust.length) {
 			return
 		}
 
 		// Delete previous
-		await db('localtrust').where({ strategy_name: strategyName}).del();
+		await db(`${dbSchema}.localtrust`).where({ strategy_name: strategyName}).del();
 		console.log(`Deleted previous localtrust for strategy ${strategyName}`)
 
 		for (let i = 0; i < localtrust.length; i += CHUNK_SIZE) {
@@ -58,7 +58,7 @@ export default class LocaltrustGenerator {
 					...g
 				}));
 
-			await db('localtrust')
+			await db(`${dbSchema}.localtrust`)
 				.insert(chunk)
 		}
 		console.log(`Inserted localtrust for strategy ${strategyName}`)
@@ -97,8 +97,8 @@ export default class LocaltrustGenerator {
 		console.timeEnd("Uploading localtrust")
 	}
 
-	async getLocaltrust(strategyName: string) {
-		const localtrust = await db('localtrust')
+	async getLocaltrust(strategyName: string, dbSchema: string = "public") {
+		const localtrust = await db(`${dbSchema}.localtrust`)
 			.where({ strategyName })
 			.select('i', 'j', 'v')
 
