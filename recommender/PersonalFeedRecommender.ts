@@ -13,14 +13,16 @@ export default class PersonalFeedRecommender {
 		offset: number, 
 		rankLimit: number,
 		profileId: string,
-		contentFocus: string[]) {
+		contentFocus: string[],
+		language: string
+		) {
 
 		const strategy = config.personalFeedStrategies.find((s) => s.name === strategyName)
 		if (!strategy) {
 			throw new Error(`Invalid feed strategy ${strategyName}`)
 		}
 		const feedStrategy = strategies[strategy.feed]
-		const content = await feedStrategy(limit, offset, rankLimit, profileId, contentFocus)
+		const content = await feedStrategy(limit, offset, rankLimit, profileId, contentFocus, language)
 		console.log(`Generated content with ${content.length} entries for ${profileId} using ${strategyName} strategy`)
 
 		return content
