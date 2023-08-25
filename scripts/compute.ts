@@ -8,18 +8,18 @@ const main = async () => {
 	const ids = await getIds()
 	const localtrustGenerator = new LocaltrustGenerator()
 	const args = process.argv.slice(2);
-	const dbSchema = args[0] || "public"; // Default to "public" if no argument is given
+	const schema = args[0] || "public"; // Default to "public" if no argument is given
 	
-	console.time(`Generated localtrust in the ${dbSchema} schema`)
+	console.time(`Generated localtrust in the ${schema} schema`)
 	for (const ltStrategy of config.localtrustStrategies) {
 		console.log(`Generating localtrust for ${ltStrategy}`)
 		const localtrust = await localtrustGenerator.generateLocaltrust(ltStrategy)
 		console.log(`Saving localtrust for ${ltStrategy}`)
-		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust, dbSchema)
+		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust, schema)
 		console.log(`Uploading localtrust for ${ltStrategy}`)
-		await localtrustGenerator.uploadLocaltrust(ltStrategy, localtrust, ids)
+		await localtrustGenerator.uploadLocaltrust(ltStrategy, localtrust, ids, schema)
 	}
-	console.timeEnd("Generated localtrust")
+	console.timeEnd(`Generated localtrust in the ${schema} schema`)
 
 	console.time("Generated rankings")
 	for (const rkStrategy of config.rankingStrategies) {
@@ -35,7 +35,7 @@ const main = async () => {
 		const feed = await Feed.calculateByStrategy(fStrategy.name, 5000)
 		await Feed.saveFeed(fStrategy.feed, feed)
 	}
-	console.timeEnd("Generated rankings")
+	console.timeEnd("Generated feed")
 }
 
 main().then(() => {

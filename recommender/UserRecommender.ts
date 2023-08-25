@@ -125,8 +125,8 @@ export default class UserRecommender {
 		return f
 	}
 
-	static async getLocaltrust(ltStrategyId: number) {
-		const localtrust = await db('localtrust').where({ strategyId: ltStrategyId })
+	static async getLocaltrust(ltStrategyId: number, schema: string = "public") {
+		const localtrust = await db(`${schema}.localtrust`).where({ strategyId: ltStrategyId })
 
 		if (!localtrust.length) {
 			throw new Error(`Localtrust with id ${ltStrategyId} does not exist`)

@@ -19,28 +19,23 @@ export const config = {
 	],
 	rankingStrategies: [{
 			name: 'followship',
-			pretrust: 'pretrustOGs',
+			pretrust: 'pretrustCurated',
 			localtrust: 'existingConnections',
 			alpha: 0.5
 		}, {
 			name: 'engagement',
-			pretrust: 'pretrustOGs',
+			pretrust: 'pretrustCurated',
 			localtrust: 'f6c3m8enhancedConnections',
 			alpha: 0.5
 		}, {
 			name: 'influencer',
-			pretrust: 'pretrustOGs',
+			pretrust: 'pretrustCurated',
 			localtrust: 'f6c3m8col12enhancedConnections',
 			alpha: 0.5
 		}, {
 			name: 'creator',
-			pretrust: 'pretrustOGs',
-			localtrust: 'f6c3m8col12Price',
-			alpha: 0.5
-		}, {
-			name: 'orb_creator',
 			pretrust: 'pretrustCurated',
-			localtrust: 'f4c6m8col12Price',
+			localtrust: 'f6c3m8col12Price',
 			alpha: 0.5
 		},
 	],
