@@ -157,14 +157,9 @@ const f6c3m8col12Price: LocaltrustStrategy = async (): Promise<LocalTrust<string
 	return getLocaltrust({ followsWeight: 6, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12 }, true)
 }
 
-const f4c6m8col12Price: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
-	return getLocaltrust({ followsWeight: 4, commentsWeight: 6, mirrorsWeight: 8, collectsWeight: 12 }, true)
-}
-
 export const strategies: Record<string, LocaltrustStrategy> = {
 	existingConnections,
 	f6c3m8enhancedConnections,
 	f6c3m8col12enhancedConnections,
-	f6c3m8col12Price,
-	f4c6m8col12Price
+	f6c3m8col12Price
 }
