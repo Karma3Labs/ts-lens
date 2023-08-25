@@ -12,18 +12,18 @@ const main = async () => {
 	
 	console.time(`Generated localtrust in the ${schema} schema`)
 	for (const ltStrategy of config.localtrustStrategies) {
-		console.log(`Generating localtrust for ${ltStrategy}`)
+		console.log(`Generating localtrust for ${schema}.${ltStrategy}`)
 		const localtrust = await localtrustGenerator.generateLocaltrust(ltStrategy)
-		console.log(`Saving localtrust for ${ltStrategy}`)
+		console.log(`Saving localtrust for ${schema}.${ltStrategy}`)
 		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust, schema)
-		console.log(`Uploading localtrust for ${ltStrategy}`)
+		console.log(`Uploading localtrust for ${schema}.${ltStrategy}`)
 		await localtrustGenerator.uploadLocaltrust(ltStrategy, localtrust, ids, schema)
 	}
 	console.timeEnd(`Generated localtrust in the ${schema} schema`)
 
 	console.time("Generated rankings")
 	for (const rkStrategy of config.rankingStrategies) {
-		console.log(`Generating rankings for ${rkStrategy.name}`)
+		console.log(`Generating rankings for ${schema}.${rkStrategy.name}`)
 		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy)
 		await Rankings.saveGlobaltrust(rkStrategy.name, rankings)
 	}
@@ -31,7 +31,7 @@ const main = async () => {
 
 	console.time("Generated feed")
 	for (const fStrategy of config.sqlFeedStrategies) {
-		console.log(`Generating rankings for ${fStrategy.name}`)
+		console.log(`Generating rankings for ${schema}.${fStrategy.name}`)
 		const feed = await Feed.calculateByStrategy(fStrategy.name, 5000)
 		await Feed.saveFeed(fStrategy.feed, feed)
 	}
