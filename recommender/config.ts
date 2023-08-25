@@ -12,7 +12,7 @@ export const config = {
 		'pretrustOGs',
 		'pretrustFirstFifty',
 		'pretrustAllEqually',
-		'pretrustCurated'
+		'pretrustCurated',
 	],
 	contentStrategies: [
 		'viralPosts',

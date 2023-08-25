@@ -10,10 +10,12 @@ const db = getDB()
 export default class LocaltrustGenerator {
 	public localtrustStrategies: string[]
 	public ids: string[]
+	public schema: string
 
-	constructor(ids: string[] = []) {
+	constructor(schema: string, ids: string[] = []) {
 		this.ids = ids
 		this.localtrustStrategies = config.localtrustStrategies
+		this.schema = schema
 	}
 
 	async compute() {
@@ -22,10 +24,10 @@ export default class LocaltrustGenerator {
 			const localtrust = await this.generateLocaltrust(name)
 
 			console.log(`Save localtrust for ${name}`)
-			await this.saveLocaltrust(name, localtrust)
+			await this.saveLocaltrust(name, localtrust, this.schema)
 
 			console.log(`Upload localtrust for ${name}`)
-			await this.uploadLocaltrust(name, localtrust, this.ids)
+			await this.uploadLocaltrust(name, localtrust, this.ids, this.schema)
 		}
 	}
 
@@ -40,15 +42,15 @@ export default class LocaltrustGenerator {
 		return localtrust
 	}
 
-	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>) {
+	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>, schema: string) {
 		const CHUNK_SIZE = 10000
 		if (!localtrust.length) {
 			return
 		}
 
 		// Delete previous
-		await db('localtrust').where({ strategy_name: strategyName}).del();
-		console.log(`Deleted previous localtrust for strategy ${strategyName}`)
+		await db(`${schema}.localtrust`).where({ strategy_name: strategyName }).del();
+		console.log(`Deleted previous localtrust for strategy ${schema}.${strategyName}`)
 
 		for (let i = 0; i < localtrust.length; i += CHUNK_SIZE) {
 			const chunk = localtrust
@@ -58,13 +60,13 @@ export default class LocaltrustGenerator {
 					...g
 				}));
 
-			await db('localtrust')
+			await db(`${schema}.localtrust`)
 				.insert(chunk)
 		}
-		console.log(`Inserted localtrust for strategy ${strategyName}`)
+		console.log(`Inserted localtrust for strategy ${schema}.${strategyName}`)
 	}
 
-	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = []) {
+	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = [], schema: string) {
 		const CHUNK_SIZE = 2500000
 		if (!ids.length) {
 				ids = await getIds()
@@ -89,16 +91,16 @@ export default class LocaltrustGenerator {
 				}
 				console.log(`IDs: ${ids.length}, entries: ${chunk.length}`)
 
-				const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${strategyName}?merge=${merge}`
-				console.log(`Uploading localtrust for strategy ${strategyName} to ${eigentrustAPI}`)
+				const eigentrustAPI = `${process.env.EIGENTRUST_API}/basic/v1/local-trust/${schema}.${strategyName}?merge=${merge}`
+				console.log(`Uploading localtrust for strategy ${schema}.${strategyName} to ${eigentrustAPI}`)
 				await axios.put(eigentrustAPI, opts)
 				merge = true;
 		}
 		console.timeEnd("Uploading localtrust")
 	}
 
-	async getLocaltrust(strategyName: string) {
-		const localtrust = await db('localtrust')
+	async getLocaltrust(strategyName: string, schema: string) {
+		const localtrust = await db(`${schema}.localtrust`)
 			.where({ strategyName })
 			.select('i', 'j', 'v')
 
