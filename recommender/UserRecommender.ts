@@ -125,7 +125,7 @@ export default class UserRecommender {
 		return f
 	}
 
-	static async getLocaltrust(ltStrategyId: number, schema: string = "public") {
+	static async getLocaltrust(ltStrategyId: number, schema: string) {
 		const localtrust = await db(`${schema}.localtrust`).where({ strategyId: ltStrategyId })
 
 		if (!localtrust.length) {

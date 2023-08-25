@@ -5,10 +5,10 @@ import Rankings from '../recommender/RankingsRecommender'
 import Feed from '../recommender/FeedRecommender'
 
 const main = async () => {
-	const ids = await getIds()
-	const localtrustGenerator = new LocaltrustGenerator()
 	const args = process.argv.slice(2);
 	const schema = args[0] || "public"; // Default to "public" if no argument is given
+	const ids = await getIds()
+	const localtrustGenerator = new LocaltrustGenerator(schema)
 	
 	console.time(`Generated localtrust in the ${schema} schema`)
 	for (const ltStrategy of config.localtrustStrategies) {

@@ -12,7 +12,7 @@ export default class LocaltrustGenerator {
 	public ids: string[]
 	public schema: string
 
-	constructor(ids: string[] = [], schema: string = "public") {
+	constructor(schema: string, ids: string[] = []) {
 		this.ids = ids
 		this.localtrustStrategies = config.localtrustStrategies
 		this.schema = schema
@@ -42,7 +42,7 @@ export default class LocaltrustGenerator {
 		return localtrust
 	}
 
-	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>, schema: string = "public") {
+	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>, schema: string) {
 		const CHUNK_SIZE = 10000
 		if (!localtrust.length) {
 			return
@@ -66,7 +66,7 @@ export default class LocaltrustGenerator {
 		console.log(`Inserted localtrust for strategy ${schema}.${strategyName}`)
 	}
 
-	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = [], schema: string = "public") {
+	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = [], schema: string) {
 		const CHUNK_SIZE = 2500000
 		if (!ids.length) {
 				ids = await getIds()
@@ -99,7 +99,7 @@ export default class LocaltrustGenerator {
 		console.timeEnd("Uploading localtrust")
 	}
 
-	async getLocaltrust(strategyName: string, schema: string = "public") {
+	async getLocaltrust(strategyName: string, schema: string) {
 		const localtrust = await db(`${schema}.localtrust`)
 			.where({ strategyName })
 			.select('i', 'j', 'v')
