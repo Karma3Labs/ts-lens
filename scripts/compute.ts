@@ -5,7 +5,9 @@ import Rankings from '../recommender/RankingsRecommender'
 import Feed from '../recommender/FeedRecommender'
 
 const main = async () => {
+	// TODO import yargs for better CLI handling
 	const args = process.argv.slice(2);
+	// TODO move schema into config so we don't have to pass it around
 	const schema = args[0] || "public"; // Default to "public" if no argument is given
 	const ids = await getIds()
 	const localtrustGenerator = new LocaltrustGenerator(schema)
@@ -24,7 +26,8 @@ const main = async () => {
 	console.time("Generated rankings")
 	for (const rkStrategy of config.rankingStrategies) {
 		console.log(`Generating rankings for ${schema}.${rkStrategy.name}`)
-		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy)
+		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy, schema)
+		// TODO make GlobalTrust schema-aware
 		await Rankings.saveGlobaltrust(rkStrategy.name, rankings)
 	}
 	console.timeEnd("Generated rankings")
