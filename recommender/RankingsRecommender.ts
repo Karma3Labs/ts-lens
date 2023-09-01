@@ -10,7 +10,11 @@ const db = getDB()
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 export default class Rankings {
-	static calculateByStrategy = async (ids: string[], strategy: { pretrust: string, localtrust: string, alpha: number, name: string }, save: boolean = true): Promise<GlobalTrust<string>> => {
+	static calculateByStrategy = async (
+		ids: string[], 
+		strategy: { pretrust: string, localtrust: string, alpha: number, name: string }, 
+		schema: string,
+		save: boolean = true): Promise<GlobalTrust<string>> => {
 		const pretrustStrategy = ptStrategies[strategy.pretrust]
 
 		if (!pretrustStrategy) {
@@ -23,7 +27,8 @@ export default class Rankings {
 
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
 
-		const globaltrust = await Rankings.runEigentrust(ids, pretrust, strategy.localtrust, strategy.alpha)
+		const localtrustName = `${schema}.${strategy.localtrust}`
+		const globaltrust = await Rankings.runEigentrust(ids, pretrust, localtrustName, strategy.alpha)
 		console.log("Generated globaltrust")
 
 		return globaltrust
