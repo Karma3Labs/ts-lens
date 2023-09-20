@@ -62,7 +62,7 @@ export default class FeedRecommender {
 		}
 		let languageClause: string = ''
 		if (language) {
-			languageClause = `AND (language IS NULL OR language = '${language}')`
+			languageClause = `AND language = '${language}'`
 		}
 		const strategy = FeedRecommender.getStrategy(strategyName)
 

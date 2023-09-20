@@ -31,7 +31,7 @@ export const followingViralFeedWithEngagement = async (
 	}
 	let languageClause: string = ''
 	if (language) {
-		languageClause = `AND (language IS NULL OR language = '${language}')`
+		languageClause = `AND language = '${language}'`
 	}
 
 	const res = await db.raw(`
