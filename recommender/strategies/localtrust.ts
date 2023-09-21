@@ -1,8 +1,14 @@
-import { LocalTrust } from '../../types'
+import { LocalTrust, FollowsMap, CommentCountsMap, MirrorCountsMap, CollectsCountsMap, CollectsPriceMap } from '../../types'
 import { getDB } from '../../utils';
 
 export type LocaltrustStrategy = () => Promise<LocalTrust<string>>
 const db = getDB()
+
+let cachedFollows: FollowsMap | null = null;
+let cachedCommentCounts: CommentCountsMap | null = null;
+let cachedMirrorCounts: MirrorCountsMap | null = null;
+let cachedCollectsCounts: CollectsCountsMap | null = null;
+let cachedCollectsPrice: CollectsPriceMap | null = null;
 
 type LocaltrustPrams = {
 	followsWeight?: number,
@@ -16,56 +22,87 @@ type LocaltrustPrams = {
  * Generates basic localtrust by transforming all existing connections
 */
 
-const getFollows = async () => {
-	const  { totalCount } = await db('k3l_follows').count('profile_id as totalCount').first()
+const getFollows = async (): Promise<FollowsMap> => {
+	if (cachedFollows) {
+		console.log('Returning cachedFollows')
+		return cachedFollows
+	}
 
+	console.time('getFollows')
+	const  { totalCount } = await db('k3l_follows').count('profile_id as totalCount').first()
 	const follows = await db('k3l_follows')
 		.select('profile_id', 'to_profile_id')
 
-	console.time('parsing follows')
-	let followsMap: any = {}
+	let followsMap: FollowsMap = {}
 	for (const { profileId, toProfileId } of follows) {
 		followsMap[profileId] = followsMap[profileId] || []
 		followsMap[profileId][toProfileId] = 1 / totalCount
 	}
-	console.timeEnd('parsing follows')
 
+	console.log('Length of follows', follows.length)
+	cachedFollows = followsMap;
+
+	console.timeEnd('getFollows')
 	return followsMap
 }
 
-const getCommentCounts = async () => {
+const getCommentCounts = async (): Promise<CommentCountsMap> => {
+	if (cachedCommentCounts) {
+		console.log('Returning cachedCommentCounts')
+		return cachedCommentCounts
+	}
+
+	console.time('getCommentCounts')
 	const { totalCount } = await db('k3l_comments').count('profile_id as totalCount').first()
 	const comments = await db('k3l_comments')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
 	
-	let commentsMap: any = {}
+	let commentsMap: CommentCountsMap = {}
 	for (const { profileId, toProfileId, count } of comments) {
 		commentsMap[profileId] = commentsMap[profileId] || {}
 		commentsMap[profileId][toProfileId] = +count / totalCount
 	}
 
-	console.log('length of comments', comments.length)
+	console.log('Length of comments', comments.length)
+	cachedFollows = commentsMap;
+
+	console.timeEnd('getCommentCounts')
 	return commentsMap
 }
 
-const getMirrorCounts = async () => {
+const getMirrorCounts = async (): Promise<MirrorCountsMap> => {
+    if (cachedMirrorCounts) {
+		console.log('Returning cachedMirrorCounts')
+        return cachedMirrorCounts;
+    }
+
+	console.time('getMirrorCounts')
 	const { totalCount } = await db('k3l_mirrors').count('profile_id as totalCount').first()
 	const mirrors = await db('k3l_mirrors')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
 		.groupBy('profile_id', 'to_profile_id')
 
-	let mirrorsMap: any = {}
+	let mirrorsMap: MirrorCountsMap = {}
 	for (const { profileId, toProfileId, count } of mirrors) {
 		mirrorsMap[profileId] = mirrorsMap[profileId] || {}
 		mirrorsMap[profileId][toProfileId] = +count / totalCount
 	}
 
-	console.log('length of mirrors', mirrors.length)
+	console.log('Length of mirrors', mirrors.length)
+    cachedMirrorCounts = mirrorsMap;
+
+	console.timeEnd('getMirrorCounts')
 	return mirrorsMap
 }
 
 const getCollectCounts = async () => {
+    if (cachedCollectsCounts) {
+		console.log('Returning cachedCollectsCounts')
+        return cachedCollectsCounts;
+    }
+
+	console.time('getCollectCounts')
 	const { totalCount } = await db('k3l_collect_nft').count('profile_id as totalCount').first()
 	const collects = await db('k3l_collect_nft')
 		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
@@ -77,11 +114,20 @@ const getCollectCounts = async () => {
 		collectsMap[profileId][toProfileId] = +count / totalCount
 	}
 
-	console.log('length of collects', collects.length)
+	console.log('Length of collects', collects.length)
+    cachedCollectsCounts = collectsMap;
+
+	console.timeEnd('getCollectCounts')
 	return collectsMap
 }
 
 const getCollectsPrice = async () => {
+    if (cachedCollectsPrice) {
+		console.log('Returning cachedCollectsPrice')
+        return cachedCollectsPrice;
+    }
+
+	console.time('getCollectsPrice')
 	const { avg } = await db('k3l_collect_nft').avg('matic_price as avg').first()
 	const collects = await db('k3l_collect_nft').select('profile_id', 'to_profile_id', 'matic_price')
 
@@ -92,7 +138,11 @@ const getCollectsPrice = async () => {
 		collectsMap[profileId][toProfileId] = collectsMap[profileId][toProfileId] + price || +price
 	}
 
-	return collectsMap
+	console.log('Length of collects price', collects.length)
+    cachedCollectsPrice = collectsMap;
+
+	console.timeEnd('getCollectsPrice')
+	return collectsMap;
 }
 
 const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, collectsWeight}: LocaltrustPrams, withPrice = false): Promise<LocalTrust<string>> => {

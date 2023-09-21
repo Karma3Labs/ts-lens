@@ -11,24 +11,32 @@ const generateLocaltrust = async (schema: string, ids: string[]) => {
 	const localtrustGenerator = new LocaltrustGenerator(schema)
 	for (const ltStrategy of config.localtrustStrategies) {
 		console.log(`Generating localtrust for ${schema}.${ltStrategy}`)
+		console.time(`Generate localtrust for ${schema}.${ltStrategy}`)
 		const localtrust = await localtrustGenerator.generateLocaltrust(ltStrategy)
+		console.timeEnd(`Generate localtrust for ${schema}.${ltStrategy}`)
+
 		console.log(`Saving localtrust for ${schema}.${ltStrategy}`)
+		console.time(`Save localtrust for ${schema}.${ltStrategy}`)
 		await localtrustGenerator.saveLocaltrust(ltStrategy, localtrust, schema)
+		console.timeEnd(`Save localtrust for ${schema}.${ltStrategy}`)
+
 		console.log(`Uploading localtrust for ${schema}.${ltStrategy}`)
+		console.time(`Upload localtrust for ${schema}.${ltStrategy}`)
 		await localtrustGenerator.uploadLocaltrust(ltStrategy, localtrust, ids, schema)
+		console.timeEnd(`Upload localtrust for ${schema}.${ltStrategy}`)
 	}
-	console.timeEnd(`Generated localtrust in the ${schema} schema`)
+	console.timeEnd(`Upload localtrust in the ${schema} schema`)
 }
 
 const generateRankings = async (schema: string, ids: string[]) => {
-	console.time("Generated rankings")
+	console.time(`Generated rankings for ${schema}`)
 	for (const rkStrategy of config.rankingStrategies) {
 		console.log(`Generating rankings for ${schema}.${rkStrategy.name}`)
 		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy, schema)
 		// TODO make GlobalTrust schema-aware
 		await Rankings.saveGlobaltrust(rkStrategy.name, rankings)
 	}
-	console.timeEnd("Generated rankings")
+	console.timeEnd(`Generated rankings for ${schema}`)
 }
 
 const generateFeed = async () => {
