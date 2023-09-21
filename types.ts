@@ -32,6 +32,12 @@ export type Mirror = {
 	timestamp: Date
 }
 
+export type FollowsMap = Record<string, Record<string, number>>;
+export type CommentCountsMap = Record<string, Record<string, number>>;
+export type MirrorCountsMap = Record<string, Record<string, number>>;
+export type CollectsCountsMap = Record<string, Record<string, number>>;
+export type CollectsPriceMap = Record<string, Record<string, number>>;
+
 export type EthAddress = string
 export type Pretrust<T> = { i: T, v: number }[]
 export type GlobalTrust<T> = { i: T, v: number, rank?: number }[]

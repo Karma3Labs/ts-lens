@@ -52,6 +52,7 @@ export default class LocaltrustGenerator {
 		await db(`${schema}.localtrust`).where({ strategy_name: strategyName }).del();
 		console.log(`Deleted previous localtrust for strategy ${schema}.${strategyName}`)
 
+		console.time(`Inserted localtrust for strategy ${schema}.${strategyName}`)
 		for (let i = 0; i < localtrust.length; i += CHUNK_SIZE) {
 			const chunk = localtrust
 				.slice(i, i + CHUNK_SIZE)
@@ -63,7 +64,7 @@ export default class LocaltrustGenerator {
 			await db(`${schema}.localtrust`)
 				.insert(chunk)
 		}
-		console.log(`Inserted localtrust for strategy ${schema}.${strategyName}`)
+		console.timeEnd(`Inserted localtrust for strategy ${schema}.${strategyName}`)
 	}
 
 	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = [], schema: string) {

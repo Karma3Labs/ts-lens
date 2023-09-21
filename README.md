@@ -83,8 +83,9 @@ tailored specifically to each user's preferences and interests.
 
 ## Running
 
-- `yarn compute`. Generates localtrust using different strategies speicified in the configuration, stores it in the database and uploads it on the go-eigentrust service. Subsequently, generates and saves in the database both global rankings and the feed. This script is made to be run on interval (e.g once every couple of hours)
-
+- `yarn compute [schema] [command]`. Generates localtrust using different strategies speicified in the configuration, stores it in the database and uploads it on the go-eigentrust service. Subsequently, generates and saves in the database both global rankings and the feed. This script is made to be run on interval (e.g once every couple of hours)
+  - [schema] - Database schema to use [default: "public"]
+  - [command] - To compute either rank or feed, if not specified, it will be both [choices: "rank", "feed"]
 - `yarn serve`. Considering that the localtrust is uploaded to the go-eigentrust service and that the database is populated with global rankings and the cached feed, a server is being started that contains endpoints for every recommendation. The endpoints can be found [here](https://openapi.lens.k3l.io)
 
 ## Adding a new strategy
