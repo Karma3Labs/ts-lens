@@ -1,5 +1,3 @@
-import fs from 'fs';
-import * as fastcsv from 'fast-csv';
 import axios from "axios"
 import { config }from './config'
 import { strategies } from './strategies/localtrust'
@@ -45,52 +43,28 @@ export default class LocaltrustGenerator {
 	}
 
 	async saveLocaltrust(strategyName: string, localtrust: LocalTrust<string>, schema: string) {
-		// Delete previous records
-		await db(`${schema}.localtrust`).where({ strategy_name: strategyName }).del();
-		console.log(`Deleted previous localtrust for strategy ${schema}.${strategyName}`);
-
-		// Generate CSV File
-		const timestamp = new Date().toISOString();
-		const csvFileName = `/tmp/localtrust_${strategyName}_${timestamp}.csv`;
-		const csvStream = fastcsv.write([], { headers: ['i', 'j', 'v'] });
-		const writableStream = fs.createWriteStream(csvFileName);
-
-		csvStream.pipe(writableStream);
-
-		for (const record of localtrust) {
-			csvStream.write({ i: record.i, j: record.j, v: record.v });
+		const CHUNK_SIZE = 10000
+		if (!localtrust.length) {
+			return
 		}
-		csvStream.end();
 
-		// Wait for CSV to be fully written
-		writableStream.on('finish', async () => {
-			try {
-				// Read the CSV file line by line and insert into DB
-				const stream = fs.createReadStream(csvFileName);
-				const csvData: any[] = [];
-				fastcsv
-					.parseStream(stream, { headers: true })
-					.on('data', function (record) {
-						csvData.push({ strategyName, ...record });
-					})
-					.on('end', async function () {
-						// Now you have csvData populated, insert it in chunks into the database
-						const CHUNK_SIZE = 10000;
-						for (let i = 0; i < csvData.length; i += CHUNK_SIZE) {
-							const chunk = csvData.slice(i, i + CHUNK_SIZE);
-							await db(`${schema}.localtrust`).insert(chunk);
-						}
-						console.log('Insert completed');
+		// Delete previous
+		await db(`${schema}.localtrust`).where({ strategy_name: strategyName }).del();
+		console.log(`Deleted previous localtrust for strategy ${schema}.${strategyName}`)
 
-						// Remove temporary CSV file after operation
-						fs.unlinkSync(csvFileName);
-					});
-			} catch (err) {
-				console.error('Error in saving data:', err);
-				// Remove temporary CSV file in case of an error
-				fs.unlinkSync(csvFileName);
-			}
-		});
+		console.time(`Inserted localtrust for strategy ${schema}.${strategyName}`)
+		for (let i = 0; i < localtrust.length; i += CHUNK_SIZE) {
+			const chunk = localtrust
+				.slice(i, i + CHUNK_SIZE)
+				.map(g => ({
+					strategyName,
+					...g
+				}));
+
+			await db(`${schema}.localtrust`)
+				.insert(chunk)
+		}
+		console.timeEnd(`Inserted localtrust for strategy ${schema}.${strategyName}`)
 	}
 
 	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = [], schema: string) {
