@@ -7,7 +7,7 @@
     "build": "tsc && cp .env dist/",
     "scrape": "yarn build && node dist/scraper/index.js",
     "populate": "node dist/scraper/index.js",
-    "compute": "yarn build && node dist/scripts/compute.js",
+    "compute": "yarn build && node --max-old-space-size=8192 dist/scripts/compute.js",
     "serve": "yarn build && node dist/scripts/startServer.js",
     "global-trust": "yarn build && node dist/scripts/getGlobalTrust.js"
   },
@@ -23,6 +23,7 @@
     "csv-parse": "^5.3.3",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "fast-csv": "^4.3.6",
     "graphql": "^16.6.0",
     "graphql-request": "^5.1.0",
     "humps": "^2.0.1",

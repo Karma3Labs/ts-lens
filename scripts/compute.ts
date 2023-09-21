@@ -25,7 +25,7 @@ const generateLocaltrust = async (schema: string, ids: string[]) => {
 		await localtrustGenerator.uploadLocaltrust(ltStrategy, localtrust, ids, schema)
 		console.timeEnd(`Upload localtrust for ${schema}.${ltStrategy}`)
 	}
-	console.timeEnd(`Upload localtrust in the ${schema} schema`)
+	console.timeEnd(`Generated localtrust in the ${schema} schema`)
 }
 
 const generateRankings = async (schema: string, ids: string[]) => {
