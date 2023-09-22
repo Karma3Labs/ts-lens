@@ -65,7 +65,7 @@ const getCommentCounts = async (): Promise<CommentCountsMap> => {
 	}
 
 	console.log('Length of comments', comments.length)
-	cachedFollows = commentsMap;
+	cachedCommentCounts = commentsMap;
 
 	console.timeEnd('getCommentCounts')
 	return commentsMap
