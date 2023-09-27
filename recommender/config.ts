@@ -7,7 +7,8 @@ export const config = {
 		'f6c3m8enhancedConnections',
 		'f6c3m8col12enhancedConnections',
 		'f6c3m8col12Price',
-		'f0c3m8col12enhancedConnections'
+		'f0c3m8col12enhancedConnections',
+		'f1c3m8col12enhancedConnections'
 	],
 	pretrustStrategies: [
 		'pretrustOGs',
@@ -53,6 +54,11 @@ export const config = {
 			pretrust: 'pretrustOGs',
 			localtrust: 'f0c3m8col12enhancedConnections',
 			alpha: 0.9
+		}, {
+			name: 'og_01_f1c3m8col12enh',
+			pretrust: 'pretrustOGs',
+			localtrust: 'f1c3m8col12enhancedConnections',
+			alpha: 0.1
 		}
 	],
 	sqlFeedStrategies: [{
