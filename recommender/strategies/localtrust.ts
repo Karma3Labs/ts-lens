@@ -15,137 +15,157 @@ type LocaltrustPrams = {
 	commentsWeight?: number,
 	mirrorsWeight?: number,
 	collectsWeight?: number,
-	collectPriceWeight?: number
+	withPrice?: boolean,
+	withTimeDecay?: boolean
 }
+
+// TODO define a proper type instead of any
+let ijfollows:any
+let ijcomments:any
+let ijmirrors:any
+let ijcollects:any
+let ijprices:any
 
 /**
  * Generates basic localtrust by transforming all existing connections
 */
 
-const getFollows = async (): Promise<FollowsMap> => {
-	if (cachedFollows) {
-		console.log('Returning cachedFollows')
-		return cachedFollows
+
+const getFollows = async () => {
+
+	if (ijfollows) {
+		return ijfollows
+	} 
+
+	console.time('fetching follows')
+	const res = await db.raw(`
+		SELECT 
+			f.profile_id,
+			f.to_profile_id,
+			POWER(1-(1/52::numeric),
+							(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - TO_TIMESTAMP(max(p.source_timestamp)/1000))) / (60 * 60 * 24))::numeric
+							) AS v
+		FROM k3l_follows AS f
+		INNER JOIN profile_post AS p ON (p.profile_id=f.to_profile_id)
+		GROUP BY f.profile_id, f.to_profile_id
+		LIMIT 10
+	`)
+	const follows = res.rows
+	console.timeEnd('fetching follows')
+
+	console.time('parsing follows')
+	// // const follows = await db('k3l_follows')
+	// // 	.select('profile_id', 'to_profile_id', db)
+
+	ijfollows = {}
+	for (const { profileId, toProfileId, v } of follows) {
+		ijfollows[profileId] = ijfollows[profileId] || []
+		ijfollows[profileId][toProfileId] = {v: +v}
 	}
+	console.timeEnd('parsing follows')
 
-	console.time('getFollows')
-	const  { totalCount } = await db('k3l_follows').count('profile_id as totalCount').first()
-	const follows = await db('k3l_follows')
-		.select('profile_id', 'to_profile_id')
-
-	let followsMap: FollowsMap = {}
-	for (const { profileId, toProfileId } of follows) {
-		followsMap[profileId] = followsMap[profileId] || []
-		followsMap[profileId][toProfileId] = 1 / totalCount
-	}
-
-	console.log('Length of follows', follows.length)
-	cachedFollows = followsMap;
-
-	console.timeEnd('getFollows')
-	return followsMap
+	return ijfollows
 }
 
-const getCommentCounts = async (): Promise<CommentCountsMap> => {
-	if (cachedCommentCounts) {
-		console.log('Returning cachedCommentCounts')
-		return cachedCommentCounts
-	}
+const getIJCounts = async (ijTableName: string) => {
+	console.time(`fetching ${ijTableName}`)
+	const res = await db.raw(`
+		SELECT 
+			profile_id, to_profile_id,
+			SUM(power(1-(1/52::numeric),
+							(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::numeric)) as v,
+			count(1) as count
+		FROM ${ijTableName} 
+		GROUP BY profile_id, to_profile_id
+		LIMIT 10
+	`)
+	const reactions = res.rows
+	console.timeEnd(`fetching ${ijTableName}`)
 
-	console.time('getCommentCounts')
-	const { totalCount } = await db('k3l_comments').count('profile_id as totalCount').first()
-	const comments = await db('k3l_comments')
-		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
-		.groupBy('profile_id', 'to_profile_id')
+	console.time(`parsing ${ijTableName}`)
+	// const comments = await db('k3l_comments')
+	// 	.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
+	// 	.groupBy('profile_id', 'to_profile_id')
 	
-	let commentsMap: CommentCountsMap = {}
-	for (const { profileId, toProfileId, count } of comments) {
-		commentsMap[profileId] = commentsMap[profileId] || {}
-		commentsMap[profileId][toProfileId] = +count / totalCount
+	const ijreactions:any = {}
+	for (const { profileId, toProfileId, v, count } of reactions) {
+		ijreactions[profileId] = ijreactions[profileId] || {}
+		ijreactions[profileId][toProfileId] = {v: +v, count: +count }
 	}
+	console.timeEnd(`parsing ${ijTableName}`)
 
-	console.log('Length of comments', comments.length)
-	cachedCommentCounts = commentsMap;
+	console.log(`length of ${ijTableName}`, reactions.length)
+	return ijreactions
 
-	console.timeEnd('getCommentCounts')
-	return commentsMap
 }
 
-const getMirrorCounts = async (): Promise<MirrorCountsMap> => {
-    if (cachedMirrorCounts) {
-		console.log('Returning cachedMirrorCounts')
-        return cachedMirrorCounts;
-    }
-
-	console.time('getMirrorCounts')
-	const { totalCount } = await db('k3l_mirrors').count('profile_id as totalCount').first()
-	const mirrors = await db('k3l_mirrors')
-		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
-		.groupBy('profile_id', 'to_profile_id')
-
-	let mirrorsMap: MirrorCountsMap = {}
-	for (const { profileId, toProfileId, count } of mirrors) {
-		mirrorsMap[profileId] = mirrorsMap[profileId] || {}
-		mirrorsMap[profileId][toProfileId] = +count / totalCount
+const getCommentCounts = async () => {
+	if (ijcomments) {
+		return ijcomments
 	}
+	ijcomments = await getIJCounts('k3l_comments')
+	return ijcomments
+}
 
-	console.log('Length of mirrors', mirrors.length)
-    cachedMirrorCounts = mirrorsMap;
-
-	console.timeEnd('getMirrorCounts')
-	return mirrorsMap
+const getMirrorCounts = async () => {
+	if (ijmirrors) {
+		return ijmirrors
+	}
+	ijmirrors = await getIJCounts('k3l_mirrors')
+	return ijmirrors
 }
 
 const getCollectCounts = async () => {
-    if (cachedCollectsCounts) {
-		console.log('Returning cachedCollectsCounts')
-        return cachedCollectsCounts;
-    }
-
-	console.time('getCollectCounts')
-	const { totalCount } = await db('k3l_collect_nft').count('profile_id as totalCount').first()
-	const collects = await db('k3l_collect_nft')
-		.select('profile_id', 'to_profile_id', db.raw('count(1) as count'))
-		.groupBy('profile_id', 'to_profile_id')
-
-	let collectsMap: any = {}
-	for (const { profileId, toProfileId, count } of collects) {
-		collectsMap[profileId] = collectsMap[profileId] || {}
-		collectsMap[profileId][toProfileId] = +count / totalCount
+	if (ijcollects) {
+		return ijcollects
 	}
-
-	console.log('Length of collects', collects.length)
-    cachedCollectsCounts = collectsMap;
-
-	console.timeEnd('getCollectCounts')
-	return collectsMap
+	ijcollects = await getIJCounts('k3l_collect_nft')
+	return ijcollects
 }
 
 const getCollectsPrice = async () => {
-    if (cachedCollectsPrice) {
-		console.log('Returning cachedCollectsPrice')
-        return cachedCollectsPrice;
-    }
 
-	console.time('getCollectsPrice')
-	const { avg } = await db('k3l_collect_nft').avg('matic_price as avg').first()
-	const collects = await db('k3l_collect_nft').select('profile_id', 'to_profile_id', 'matic_price')
-
-	let collectsMap: any = {}
-	for (const { profileId, toProfileId, maticPrice } of collects) {
-		const price = +maticPrice || +avg
-		collectsMap[profileId] = collectsMap[profileId] || {}
-		collectsMap[profileId][toProfileId] = collectsMap[profileId][toProfileId] + price || +price
+	if (ijprices) {
+		return ijprices
 	}
 
-	console.log('Length of collects price', collects.length)
-    cachedCollectsPrice = collectsMap;
+	console.time('fetching prices')
+	const res = await db.raw(`
+		SELECT 
+			profile_id, to_profile_id,
+			SUM(CASE WHEN (matic_price IS NULL OR matic_price = 0) 
+						THEN 1e-20 
+						ELSE matic_price
+					END) AS v,
+			count(1) as count
+		FROM k3l_collect_nft 
+		GROUP BY profile_id, to_profile_id
+		LIMIT 10
+	`)
+	const prices = res.rows
+	console.timeEnd('fetching prices')
 
-	console.timeEnd('getCollectsPrice')
-	return collectsMap;
+	console.time('parsing prices')
+	ijprices = {}
+	for (const { profileId, toProfileId, v, count } of prices) {
+		ijprices[profileId] = ijprices[profileId] || {}
+		ijprices[profileId][toProfileId] = {v: +v, count: +count }
+	}
+	console.timeEnd('parsing prices')
+	console.log('length of prices', prices.length)
+	return ijprices
 }
 
-const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, collectsWeight}: LocaltrustPrams, withPrice = false): Promise<LocalTrust<string>> => {
+const getLocaltrust = async (
+		{
+			followsWeight, 
+			commentsWeight, 
+			mirrorsWeight, 
+			collectsWeight, 
+			withPrice, 
+			withTimeDecay}: LocaltrustPrams
+	): Promise<LocalTrust<string>> => {
+
 	const follows = followsWeight ? await getFollows() : null
 	const commentsMap = commentsWeight ? await getCommentCounts() : null
 	const mirrorsMap = mirrorsWeight ? await getMirrorCounts() : null
@@ -170,15 +190,22 @@ const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, coll
 
 		for (const j of to) {
 			if (i === j) continue
-			const follow = follows && follows[i] && follows[i][j] || 0
-			const commentsCount = commentsMap && commentsMap[i] && commentsMap[i][j] || 0
-			const mirrorsCount = mirrorsMap && mirrorsMap[i] && mirrorsMap[i][j] || 0
-			const collectsCount = collectsMap && collectsMap[i] && collectsMap[i][j] || 0
+			const followsCount = 
+				follows && follows[i] && follows[i][j] ? (withTimeDecay ? follows[i][j].v : 1) : 0
+			const commentsCount = 
+				commentsMap && commentsMap[i] && commentsMap[i][j] ? 
+					(withTimeDecay ? commentsMap[i][j].v : commentsMap[i][j].count) : 0
+			const mirrorsCount = 
+				mirrorsMap && mirrorsMap[i] && mirrorsMap[i][j] ?
+					(withTimeDecay ? mirrorsMap[i][j].v : mirrorsMap[i][j].count) : 0
+			const collectsCount = 
+				collectsMap && collectsMap[i] && collectsMap[i][j] ?
+					(withTimeDecay || withPrice ? collectsMap[i][j].v : collectsMap[i][j].count) : 0
 			
 			localtrust.push({
 				i,
 				j,
-				v: (followsWeight || 0) * follow +
+				v: (followsWeight || 0) * followsCount +
 				(commentsWeight || 0) * commentsCount +
 				(mirrorsWeight || 0) * mirrorsCount + 
 				(collectsWeight || 0) * collectsCount
@@ -191,35 +218,17 @@ const getLocaltrust = async ({followsWeight, commentsWeight, mirrorsWeight, coll
 	return localtrust
 }
 
-const existingConnections: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
-	return getLocaltrust({ followsWeight: 1 })
+const f1c3m8col12PriceTimed: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
+	return getLocaltrust(
+		{ followsWeight: 1, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12, withPrice: true, withTimeDecay: true })
 }
 
-const f6c3m8enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
-	return getLocaltrust({ followsWeight: 6, commentsWeight: 3, mirrorsWeight: 8 })
-}
-
-const f6c3m8col12enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
-	return getLocaltrust({ followsWeight: 6, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12 })
-}
-
-const f6c3m8col12Price: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
-	return getLocaltrust({ followsWeight: 6, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12 }, true)
-}
-
-const f0c3m8col12enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
-	return getLocaltrust({ commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12 })
-}
-
-const f1c3m8col12enhancedConnections: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
-	return getLocaltrust({ followsWeight: 1, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12 })
+const f1c8m3col12PriceTimed: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
+	return getLocaltrust(
+		{ followsWeight: 1, commentsWeight: 8, mirrorsWeight: 3, collectsWeight: 12, withPrice: true, withTimeDecay: true })
 }
 
 export const strategies: Record<string, LocaltrustStrategy> = {
-	existingConnections,
-	f6c3m8enhancedConnections,
-	f6c3m8col12enhancedConnections,
-	f6c3m8col12Price,
-	f0c3m8col12enhancedConnections,
-	f1c3m8col12enhancedConnections
+	f1c3m8col12PriceTimed, 
+	f1c8m3col12PriceTimed
 }

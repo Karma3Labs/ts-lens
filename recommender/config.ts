@@ -1,14 +1,12 @@
 export const config = {
-	ogs: ["yoginth.lens", "christina.lens", "mariariivari.lens",
+	ogs: [
+		"yoginth.lens", "christina.lens", "mariariivari.lens",
 		"bradorbradley.lens", "wagmi.lens", "levychain.lens", "nicolo.lens",
-		"sasicodes.lens", "stani.lens", "davidev.lens" ],
+		"sasicodes.lens", "stani.lens", "davidev.lens" 
+	],
 	localtrustStrategies: [
-		'existingConnections',
-		'f6c3m8enhancedConnections',
-		'f6c3m8col12enhancedConnections',
-		'f6c3m8col12Price',
-		'f0c3m8col12enhancedConnections',
-		'f1c3m8col12enhancedConnections'
+		'f1c3m8col12PriceTimed',
+		'f1c8m3col12PriceTimed',
 	],
 	pretrustStrategies: [
 		'pretrustOGs',
@@ -20,46 +18,46 @@ export const config = {
 		'viralPosts',
 	],
 	rankingStrategies: [{
-			name: 'followship',
-			pretrust: 'pretrustCurated',
-			localtrust: 'existingConnections',
-			alpha: 0.5
-		}, {
-			name: 'engagement',
-			pretrust: 'pretrustCurated',
-			localtrust: 'f6c3m8enhancedConnections',
-			alpha: 0.5
-		}, {
-			name: 'influencer',
-			pretrust: 'pretrustCurated',
-			localtrust: 'f6c3m8col12enhancedConnections',
-			alpha: 0.5
-		}, {
-			name: 'creator',
-			pretrust: 'pretrustCurated',
-			localtrust: 'f6c3m8col12Price',
-			alpha: 0.5
-		}, {
-			name: 'og_01_f0c3m8col12enh',
+			name: 'og01f1c8m3col12PriceTimed',
 			pretrust: 'pretrustOGs',
-			localtrust: 'f0c3m8col12enhancedConnections',
+			localtrust: 'f1c8m3col12PriceTimed',
 			alpha: 0.1
 		}, {
-			name: 'og_05_f0c3m8col12enh',
+			name: 'og05f1c8m3col12PriceTimed',
 			pretrust: 'pretrustOGs',
-			localtrust: 'f0c3m8col12enhancedConnections',
+			localtrust: 'f1c8m3col12PriceTimed',
 			alpha: 0.5
 		}, {
-			name: 'og_09_f0c3m8col12enh',
-			pretrust: 'pretrustOGs',
-			localtrust: 'f0c3m8col12enhancedConnections',
-			alpha: 0.9
-		}, {
-			name: 'og_01_f1c3m8col12enh',
-			pretrust: 'pretrustOGs',
-			localtrust: 'f1c3m8col12enhancedConnections',
+			name: 'cur01f1c8m3col12PriceTimed',
+			pretrust: 'pretrustCurated',
+			localtrust: 'f1c8m3col12PriceTimed',
 			alpha: 0.1
-		}
+		}, {
+			name: 'cur05f1c8m3col12PriceTimed',
+			pretrust: 'pretrustCurated',
+			localtrust: 'f1c8m3col12PriceTimed',
+			alpha: 0.5
+		}, {
+			name: 'og01f1c3m8col12PriceTimed',
+			pretrust: 'pretrustOGs',
+			localtrust: 'f1c3m8col12PriceTimed',
+			alpha: 0.1
+		}, {
+			name: 'og05f1c3m8col12PriceTimed',
+			pretrust: 'pretrustOGs',
+			localtrust: 'f1c3m8col12PriceTimed',
+			alpha: 0.5
+		}, {
+			name: 'cur01f1c3m8col12PriceTimed',
+			pretrust: 'pretrustCurated',
+			localtrust: 'f1c3m8col12PriceTimed',
+			alpha: 0.1
+		}, {
+			name: 'cur05f1c3m8col12PriceTimed',
+			pretrust: 'pretrustCurated',
+			localtrust: 'f1c3m8col12PriceTimed',
+			alpha: 0.5
+		},
 	],
 	sqlFeedStrategies: [{
 		name: "popular",
@@ -84,7 +82,7 @@ export const config = {
 		feed: "followingViralFeedWithEngagement",
 		limit: 100,
 	}],
-	personalization: {
+	personalization: { // for personalized EigenTrust
 		globaltrust: 'followship',
 		ltStrategyName: 'existingConnections',
 		limitGlobaltrust: 100
