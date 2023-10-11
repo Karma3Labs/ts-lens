@@ -48,7 +48,6 @@ const getFollows = async () => {
 		FROM k3l_follows AS f
 		INNER JOIN profile_post AS p ON (p.profile_id=f.to_profile_id)
 		GROUP BY f.profile_id, f.to_profile_id
-		LIMIT 10
 	`)
 	const follows = res.rows
 	console.timeEnd('fetching follows')
@@ -77,7 +76,6 @@ const getIJCounts = async (ijTableName: string) => {
 			count(1) as count
 		FROM ${ijTableName} 
 		GROUP BY profile_id, to_profile_id
-		LIMIT 10
 	`)
 	const reactions = res.rows
 	console.timeEnd(`fetching ${ijTableName}`)
@@ -140,7 +138,6 @@ const getCollectsPrice = async () => {
 			count(1) as count
 		FROM k3l_collect_nft 
 		GROUP BY profile_id, to_profile_id
-		LIMIT 10
 	`)
 	const prices = res.rows
 	console.timeEnd('fetching prices')
