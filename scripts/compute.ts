@@ -76,7 +76,7 @@ yargs(hideBin(process.argv))
 				await generateRankings(schema, ids)
 			}
 
-			if (!command || command === 'feed') {
+			if (command && command === 'feed') {
 				await generateFeed()
 			}
 
