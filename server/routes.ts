@@ -78,18 +78,23 @@ export default async (app: Express) => {
 	app.get(['/profile_count', '/profile/count'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
 		let strategyName: string, date: string
-
 		try {
+			console.time("getStrategyNameFromQueryParams")
 			strategyName = await getStrategyNameFromQueryParams(req.query)
+			console.timeEnd("getStrategyNameFromQueryParams")
+			console.log(`${reqUri} for strategyName: ${strategyName}`)
+			console.time("getLatestDateByStrategyName")
 			date = req.query.date && isValidDate(req.query.date as string) ? req.query.date as string : await Rankings.getLatestDateByStrategyName(strategyName)
+			console.timeEnd("getLatestDateByStrategyName")
 		}
 		catch (e: any) {
 			return res.status(400).send(e.message)
 		}
-		console.log(`${reqUri} for strategyName: ${strategyName}`)
 
 		try {
+			console.time("getGlobaltrustLength")
 			const count = await Rankings.getGlobaltrustLength(strategyName, date)
+			console.timeEnd("getGlobaltrustLength")
 			return res.send({ count })
 		}
 		catch (e: any) {
