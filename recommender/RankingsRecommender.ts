@@ -156,15 +156,25 @@ export default class Rankings {
 	}
 
 	static async getGlobaltrustLength(strategyName: string, date?: string): Promise<number> {
-		date = date || await Rankings.getLatestDateByStrategyName(strategyName)
+		let dateClause: string = ''
+		if (date) {
+			dateClause = 'date=:date'
+		} else {
+			dateClause = 'date=(select max(date) from globaltrust where strategy_name = :strategyName)'
+		}
 
-		// TODO: Investigate why count is different without joins
-		const { count } = await db('globaltrust')
-			.where({ strategyName, date })
-			.innerJoin('k3l_profiles', 'k3l_profiles.profile_id', 'globaltrust.i')
-			.innerJoin('k3l_follow_counts', 'k3l_follow_counts.to_profile_id', 'k3l_profiles.profile_id')
-			.count()
-			.first()
+		const res = await db.raw(`
+			select 
+				count(*) 
+			from globaltrust 
+				inner join k3l_profiles on (k3l_profiles.profile_id = globaltrust.i)
+				inner join k3l_follow_counts on (k3l_follow_counts.to_profile_id = k3l_profiles.profile_id)
+			where 
+				strategy_name = :strategyName
+				and ${dateClause}
+			`, { strategyName, date })
+
+		const { count } = res.rows[0]
 
 		return +count
 	}	
