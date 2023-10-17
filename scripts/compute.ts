@@ -31,10 +31,10 @@ const generateLocaltrust = async (schema: string, ids: string[]) => {
 const generateRankings = async (schema: string, ids: string[]) => {
 	console.time(`Generated rankings for ${schema}`)
 	for (const rkStrategy of config.rankingStrategies) {
-		console.log(`Generating rankings for ${schema}.${rkStrategy.name}`)
+		console.log(`Generating rankings for ${schema}.${rkStrategy.strategyName}`)
 		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy, schema)
 		// TODO make GlobalTrust schema-aware
-		await Rankings.saveGlobaltrust(rkStrategy.name, rankings)
+		await Rankings.saveGlobaltrust(rkStrategy.strategyName, rankings)
 	}
 	console.timeEnd(`Generated rankings for ${schema}`)
 }

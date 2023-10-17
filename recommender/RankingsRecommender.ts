@@ -12,7 +12,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 export default class Rankings {
 	static calculateByStrategy = async (
 		ids: string[], 
-		strategy: { pretrust: string, localtrust: string, alpha: number, name: string }, 
+		strategy: { pretrust: string, localtrust: string, alpha: number, strategyName: string }, 
 		schema: string,
 		save: boolean = true): Promise<GlobalTrust<string>> => {
 		const pretrustStrategy = ptStrategies[strategy.pretrust]
@@ -116,7 +116,7 @@ export default class Rankings {
 
 		await db(`${schema}.globaltrust_config`)
 			.insert(globaltrustConfig)
-			.onConflict(['name', 'date']).merge()
+			.onConflict(['strategy_name', 'date']).merge()
 
 	}
 
