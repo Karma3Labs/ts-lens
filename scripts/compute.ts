@@ -49,6 +49,12 @@ const generateFeed = async () => {
 	console.timeEnd("Generated feed")
 }
 
+const saveGlobaltrustConfig = async (schema: string) => {
+	console.time(`Save GlobaltrustConfig for ${schema}`)
+	await Rankings.saveGlobaltrustConfig(config.rankingStrategies, schema)
+	console.timeEnd(`Save GlobaltrustConfig for ${schema}`)
+}
+
 yargs(hideBin(process.argv))
 	.command(
 		'$0 [schema] [command]',
@@ -72,6 +78,7 @@ yargs(hideBin(process.argv))
 			const ids = await getIds()
 
 			if (!command || command === 'rank') {
+				await saveGlobaltrustConfig(schema)
 				await generateLocaltrust(schema, ids)
 				await generateRankings(schema, ids)
 			}

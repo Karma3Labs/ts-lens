@@ -1,6 +1,6 @@
 import  path from 'path'
 import axios from "axios"
-import { Pretrust, GlobalTrust } from '../types'
+import { Pretrust, GlobalTrust, GlobalTrustConfig } from '../types'
 import { objectFlip } from "./utils"
 import { strategies as ptStrategies  } from './strategies/pretrust'
 import { getDB } from '../utils'
@@ -107,6 +107,17 @@ export default class Rankings {
 				.insert(chunk)
 				.onConflict(['strategy_name', 'date', 'i']).merge()
 		}
+	}
+
+	static async saveGlobaltrustConfig(globaltrustConfig: GlobalTrustConfig, schema: string) {
+		if (!globaltrustConfig.length) {
+			return
+		}
+
+		await db(`${schema}.globaltrust_config`)
+			.insert(globaltrustConfig)
+			.onConflict(['name', 'date']).merge()
+
 	}
 
 	// TODO: Type that
@@ -220,4 +231,5 @@ export default class Rankings {
 
 		return globaltrust
 	}
+	
 }
