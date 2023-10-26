@@ -93,6 +93,36 @@ paths:
           $ref: "#/components/responses/HTTP400ErrorMessage"
         500:
           $ref: "#/components/responses/HTTP500ErrorMessage"
+  /profile/suggest:
+    get:
+      summary: Return a list of profiles to be suggested to user
+      description: |
+        Returns a list of profiles that the user has engaged with but not followed, 
+        ordered by the highest scoring profiles, 
+        according to a given strategy.
+      operationId: getScores
+      parameters:
+        - $ref: "#/components/parameters/Strategy"
+          required: true
+        - $ref: "#/components/parameters/ProfileHandle"
+          required: true
+        - $ref: "#/components/parameters/PaginationLimit"
+      responses:
+        200:
+          description: Query succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+                description: |
+                  The requested profiles, whose scores are
+                  within the `[0, limit]` range.
+        400:
+          $ref: "#/components/responses/HTTP400ErrorMessage"
+        500:
+          $ref: "#/components/responses/HTTP500ErrorMessage"
   /profile/count:
     get:
       summary: Return the total population size of profiles scored

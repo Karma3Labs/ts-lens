@@ -12,16 +12,13 @@ const options: cors.CorsOptions = {
 }
 app.use(cors<Request>(options))
 app.use(apiMetrics())
+app.use((req, res, next) => {
+	console.log(new Date().toISOString(), req.originalUrl);
+	next();
+});
 
 export default () => {
-	
 	getRoutes(app)
-
-	app.use((req, res, next) => {
-		console.log(new Date().toISOString(), req.originalUrl);
-		next();
-	});
-
 	app.listen(PORT, () => console.log(`Server is listening on port: ${PORT}`))
 }
 

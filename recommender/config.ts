@@ -1,12 +1,16 @@
 export const config = {
-	ogs: ["yoginth.lens", "christina.lens", "mariariivari.lens",
+	ogs: [
+		"yoginth.lens", "christina.lens", "mariariivari.lens",
 		"bradorbradley.lens", "wagmi.lens", "levychain.lens", "nicolo.lens",
-		"sasicodes.lens", "stani.lens", "davidev.lens" ],
+		"sasicodes.lens", "stani.lens", "davidev.lens" 
+	],
 	localtrustStrategies: [
-		'existingConnections',
-		'f6c3m8enhancedConnections',
-		'f6c3m8col12enhancedConnections',
+		'f1',
+		'f6c3m8',
+		'f6c3m8col12',
 		'f6c3m8col12Price',
+		'f1c3m8col12PriceTimed',
+		'f1c8m3col12PriceTimed',
 	],
 	pretrustStrategies: [
 		'pretrustOGs',
@@ -20,18 +24,18 @@ export const config = {
 	rankingStrategies: [{
 			strategyName: 'followship',
 			pretrust: 'pretrustOGs',
-			localtrust: 'existingConnections',
+			localtrust: 'f1',
 			alpha: 0.5
 		}, {
-			strategyName: 'engagement',
+			strategyName: 'engagement',  //WARNING: this feed is used by Feeds including Popular, HnA, ML
 			pretrust: 'pretrustOGs',
-			localtrust: 'f6c3m8enhancedConnections',
+			localtrust: 'f6c3m8',
 			alpha: 0.5
 		}, {
 			strategyName: 'influencer',
 			pretrust: 'pretrustOGs',
-			localtrust: 'f6c3m8col12enhancedConnections',
-			alpha: 0.5
+			localtrust: 'f6c3m8col12',
+			alpha: 0.1
 		}, {
 			strategyName: 'creator',
 			pretrust: 'pretrustOGs',
@@ -62,7 +66,7 @@ export const config = {
 		feed: "followingViralFeedWithEngagement",
 		limit: 100,
 	}],
-	personalization: {
+	personalization: { // for personalized EigenTrust
 		globaltrust: 'followship',
 		ltStrategyName: 'existingConnections',
 		limitGlobaltrust: 100

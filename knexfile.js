@@ -24,7 +24,15 @@ module.exports = {
       ssl: {
         ca: fs.readFileSync('./aws/global-bundle.pem')
       }
-    }
+    },
+    pool: {
+      min: 2,
+      max: 5,
+      afterCreate: (conn, done) => {
+        console.log("Connection Established.");
+        done();
+      },
+    },
   },
   awsinvalidcert: {
     //avoid ERR_TLS_CERT_ALTNAME_INVALID when using SSH tunnel to connect to RDS
@@ -35,7 +43,15 @@ module.exports = {
         ca: fs.readFileSync('./aws/global-bundle.pem'),
         rejectUnauthorized: false
       }
-    }
+    },
+    pool: {
+      min: 2,
+      max: 5,
+      afterCreate: (conn, done) => {
+        console.log("Connection Established.");
+        done();
+      },
+    },
   }
 
 };

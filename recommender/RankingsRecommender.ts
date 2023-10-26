@@ -1,6 +1,6 @@
 import  path from 'path'
 import axios from "axios"
-import { Pretrust, GlobalTrust, GlobalTrustConfig } from '../types'
+import { Profile, Pretrust, GlobalTrust, GlobalTrustConfig } from '../types'
 import { objectFlip } from "./utils"
 import { strategies as ptStrategies  } from './strategies/pretrust'
 import { getDB } from '../utils'
@@ -26,6 +26,7 @@ export default class Rankings {
 		console.timeEnd('pretrust_generation')
 
 		console.log(`Generated pretrust with ${pretrust.length} entries`)
+		console.log(`Slice of pretrust: ${JSON.stringify(pretrust.slice(0,10))}`)
 
 		const localtrustName = `${schema}.${strategy.localtrust}`
 		const globaltrust = await Rankings.runEigentrust(ids, pretrust, localtrustName, strategy.alpha)
@@ -76,6 +77,7 @@ export default class Rankings {
 				},
 				alpha: alpha,
 				epsilon: 1.0,
+				maxIterations: 50,
 				flatTail: 2
 			}
 
@@ -167,15 +169,25 @@ export default class Rankings {
 	}
 
 	static async getGlobaltrustLength(strategyName: string, date?: string): Promise<number> {
-		date = date || await Rankings.getLatestDateByStrategyName(strategyName)
+		let dateClause: string = ''
+		if (date) {
+			dateClause = 'date=:date'
+		} else {
+			dateClause = 'date=(select max(date) from globaltrust where strategy_name = :strategyName)'
+		}
 
-		// TODO: Investigate why count is different without joins
-		const { count } = await db('globaltrust')
-			.where({ strategyName, date })
-			.innerJoin('k3l_profiles', 'k3l_profiles.profile_id', 'globaltrust.i')
-			.innerJoin('k3l_follow_counts', 'k3l_follow_counts.to_profile_id', 'k3l_profiles.profile_id')
-			.count()
-			.first()
+		const res = await db.raw(`
+			select 
+				count(*) 
+			from globaltrust 
+				inner join k3l_profiles on (k3l_profiles.profile_id = globaltrust.i)
+				inner join k3l_follow_counts on (k3l_follow_counts.to_profile_id = k3l_profiles.profile_id)
+			where 
+				strategy_name = :strategyName
+				and ${dateClause}
+			`, { strategyName, date })
+
+		const { count } = res.rows[0]
 
 		return +count
 	}	
@@ -204,6 +216,36 @@ export default class Rankings {
 		return res && res.score
 	}
 
+	static async getFollowSuggestions(strategyName: string, id: number, limit: number): Promise<Profile[]> {
+
+		const res = await db.raw(`
+			WITH
+			suggested AS (
+							SELECT
+											lt.j as profile_id,
+											max(lt.date) as date,
+											max(lt.v) as v
+											FROM localtrust AS lt
+											WHERE lt.i=:id
+											AND lt.j NOT IN (SELECT f.to_profile_id FROM k3l_follows as f WHERE f.profile_id=:id)
+											GROUP BY lt.j
+											ORDER BY v
+											LIMIT :limit
+							) 
+							SELECT
+											prof.profile_id as profileid,
+											prof.handle as handle,
+											r.rank as rank
+							FROM suggested
+							INNER JOIN k3l_profiles as prof ON (prof.profile_id=suggested.profile_id)
+							INNER JOIN k3l_rank as r ON (r.profile_id=suggested.profile_id
+																																																															AND r.strategy_name=:strategyName
+																																																															AND r.date=suggested.date)
+							ORDER BY r.rank 
+	`, { strategyName, id, limit})
+
+		return res.rows
+	}
 	static async getLatestDateByStrategyName(strategyName: string): Promise<string> {
 		const { date } = await db('globaltrust')
 			.where('strategy_name', strategyName)

@@ -92,14 +92,11 @@ export const getStrategyNameFromQueryParams = async (query: any): Promise<string
 		throw Error('strategy is required')
 	}
 
-	const strategies = await db('globaltrust').distinct('strategy_name')
-	const names = strategies.map((strategy: any) => strategy.strategyName)
+	const record = await db('globaltrust').select('strategy_name').where({ strategy_name: query.strategy }).first()
+	if (record) return query.strategy
 
-	if (!names.includes(query.strategy)) {
-		throw Error('Invalid strategy')	
-	}
+	throw Error('Invalid strategy')
 
-	return query.strategy
 }
 
 export const isValidDate = (date: string): boolean => {
