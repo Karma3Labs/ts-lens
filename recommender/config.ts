@@ -39,7 +39,7 @@ export const config = {
 		}, {
 			strategyName: 'creator',
 			pretrust: 'pretrustOGs',
-			localtrust: 'f6c3m8col12Price',
+			localtrust: 'f1c3m8col12PriceTimed',
 			alpha: 0.5
 		},
 	],
