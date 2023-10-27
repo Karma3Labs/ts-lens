@@ -48,6 +48,7 @@ const getFollows = async () => {
 							) AS v
 		FROM k3l_follows AS f
 		INNER JOIN profile_stats AS p ON (p.profile_id=f.to_profile_id)
+		WHERE f.profile_id IS NOT NULL AND f.to_profile_id IS NOT NULL
 		GROUP BY f.profile_id, f.to_profile_id
 	`)
 	const follows = res.rows
