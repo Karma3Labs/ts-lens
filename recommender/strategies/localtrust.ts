@@ -38,6 +38,7 @@ const getFollows = async () => {
 	} 
 
 	console.time('fetching follows')
+	//decay the follow trust based on when the followed profile was last active
 	const res = await db.raw(`
 		SELECT 
 			f.profile_id,
@@ -46,7 +47,7 @@ const getFollows = async () => {
 							(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - TO_TIMESTAMP(max(p.source_timestamp)/1000))) / (60 * 60 * 24))::numeric
 							) AS v
 		FROM k3l_follows AS f
-		INNER JOIN profile_post AS p ON (p.profile_id=f.to_profile_id)
+		INNER JOIN profile_stats AS p ON (p.profile_id=f.to_profile_id)
 		GROUP BY f.profile_id, f.to_profile_id
 	`)
 	const follows = res.rows
