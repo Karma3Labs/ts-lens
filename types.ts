@@ -43,5 +43,6 @@ export type Pretrust<T> = { i: T, v: number }[]
 export type GlobalTrust<T> = { i: T, v: number, rank?: number }[]
 export type LocalTrust<T> =  { i: T, j: T, v: number }[]
 export type GlobalTrustEntries = [string, number][]
+export type GlobalTrustConfig = {strategyName: string, pretrust: string, localtrust: string, alpha: number}[]
 export type Entry = [ number, number ] 
 export type AdjacencyMap = Record<number, Set<number>>

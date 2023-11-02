@@ -5,6 +5,10 @@ export const config = {
 		"sasicodes.lens", "stani.lens", "davidev.lens" 
 	],
 	localtrustStrategies: [
+		'f1',
+		'f6c3m8',
+		'f6c3m8col12',
+		'f6c3m8col12Price',
 		'f1c3m8col12PriceTimed',
 		'f1c8m3col12PriceTimed',
 	],
@@ -18,44 +22,24 @@ export const config = {
 		'viralPosts',
 	],
 	rankingStrategies: [{
-			name: 'og01f1c8m3col12PriceTimed',
+			strategyName: 'followship',
 			pretrust: 'pretrustOGs',
-			localtrust: 'f1c8m3col12PriceTimed',
-			alpha: 0.1
-		}, {
-			name: 'og05f1c8m3col12PriceTimed',
-			pretrust: 'pretrustOGs',
-			localtrust: 'f1c8m3col12PriceTimed',
+			localtrust: 'f1',
 			alpha: 0.5
 		}, {
-			name: 'cur01f1c8m3col12PriceTimed',
-			pretrust: 'pretrustCurated',
-			localtrust: 'f1c8m3col12PriceTimed',
-			alpha: 0.1
-		}, {
-			name: 'cur05f1c8m3col12PriceTimed',
-			pretrust: 'pretrustCurated',
-			localtrust: 'f1c8m3col12PriceTimed',
+			strategyName: 'engagement',  //WARNING: this feed is used by Feeds including Popular, HnA, ML
+			pretrust: 'pretrustOGs',
+			localtrust: 'f6c3m8',
 			alpha: 0.5
 		}, {
-			name: 'og01f1c3m8col12PriceTimed',
+			strategyName: 'influencer',
 			pretrust: 'pretrustOGs',
-			localtrust: 'f1c3m8col12PriceTimed',
+			localtrust: 'f6c3m8col12',
 			alpha: 0.1
 		}, {
-			name: 'og05f1c3m8col12PriceTimed',
+			strategyName: 'creator',
 			pretrust: 'pretrustOGs',
-			localtrust: 'f1c3m8col12PriceTimed',
-			alpha: 0.5
-		}, {
-			name: 'cur01f1c3m8col12PriceTimed',
-			pretrust: 'pretrustCurated',
-			localtrust: 'f1c3m8col12PriceTimed',
-			alpha: 0.1
-		}, {
-			name: 'cur05f1c3m8col12PriceTimed',
-			pretrust: 'pretrustCurated',
-			localtrust: 'f1c3m8col12PriceTimed',
+			localtrust: 'f1c8m3col12PriceTimed',
 			alpha: 0.5
 		},
 	],

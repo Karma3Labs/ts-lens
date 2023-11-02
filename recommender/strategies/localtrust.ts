@@ -38,6 +38,7 @@ const getFollows = async () => {
 	} 
 
 	console.time('fetching follows')
+	//decay the follow trust based on when the followed profile was last active
 	const res = await db.raw(`
 		SELECT 
 			f.profile_id,
@@ -46,7 +47,8 @@ const getFollows = async () => {
 							(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - TO_TIMESTAMP(max(p.source_timestamp)/1000))) / (60 * 60 * 24))::numeric
 							) AS v
 		FROM k3l_follows AS f
-		INNER JOIN profile_post AS p ON (p.profile_id=f.to_profile_id)
+		INNER JOIN profile_stats AS p ON (p.profile_id=f.to_profile_id)
+		WHERE f.profile_id IS NOT NULL AND f.to_profile_id IS NOT NULL
 		GROUP BY f.profile_id, f.to_profile_id
 	`)
 	const follows = res.rows
@@ -215,6 +217,26 @@ const getLocaltrust = async (
 	return localtrust
 }
 
+const f1: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
+	return getLocaltrust(
+		{ followsWeight: 1 })
+}
+
+const f6c3m8: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
+	return getLocaltrust(
+		{ followsWeight: 1, commentsWeight: 3, mirrorsWeight: 8})
+}
+
+const f6c3m8col12: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
+	return getLocaltrust(
+		{ followsWeight: 1, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12})
+}
+
+const f6c3m8col12Price: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
+	return getLocaltrust(
+		{ followsWeight: 1, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12, withPrice: true})
+}
+
 const f1c3m8col12PriceTimed: LocaltrustStrategy = async (): Promise<LocalTrust<string>> => {
 	return getLocaltrust(
 		{ followsWeight: 1, commentsWeight: 3, mirrorsWeight: 8, collectsWeight: 12, withPrice: true, withTimeDecay: true })
@@ -226,6 +248,10 @@ const f1c8m3col12PriceTimed: LocaltrustStrategy = async (): Promise<LocalTrust<s
 }
 
 export const strategies: Record<string, LocaltrustStrategy> = {
+	f1,
+	f6c3m8,
+	f6c3m8col12,
+	f6c3m8col12Price,
 	f1c3m8col12PriceTimed, 
 	f1c8m3col12PriceTimed
 }

@@ -13,6 +13,7 @@ const generateLocaltrust = async (schema: string, ids: string[]) => {
 		console.log(`Generating localtrust for ${schema}.${ltStrategy}`)
 		console.time(`Generate localtrust for ${schema}.${ltStrategy}`)
 		const localtrust = await localtrustGenerator.generateLocaltrust(ltStrategy)
+		console.log(`Slice of localtrust: ${JSON.stringify(localtrust.slice(0,10))}`)
 		console.timeEnd(`Generate localtrust for ${schema}.${ltStrategy}`)
 
 		console.log(`Saving localtrust for ${schema}.${ltStrategy}`)
@@ -31,10 +32,11 @@ const generateLocaltrust = async (schema: string, ids: string[]) => {
 const generateRankings = async (schema: string, ids: string[]) => {
 	console.time(`Generated rankings for ${schema}`)
 	for (const rkStrategy of config.rankingStrategies) {
-		console.log(`Generating rankings for ${schema}.${rkStrategy.name}`)
+		console.log(`Generating rankings for ${schema}.${rkStrategy.strategyName}`)
 		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy, schema)
+		console.log(`Slice of rankings: ${JSON.stringify(rankings.slice(0,10))}`)
 		// TODO make GlobalTrust schema-aware
-		await Rankings.saveGlobaltrust(rkStrategy.name, rankings)
+		await Rankings.saveGlobaltrust(rkStrategy.strategyName, rankings)
 	}
 	console.timeEnd(`Generated rankings for ${schema}`)
 }
@@ -47,6 +49,12 @@ const generateFeed = async () => {
 		await Feed.saveFeed(fStrategy.feed, feed)
 	}
 	console.timeEnd("Generated feed")
+}
+
+const saveGlobaltrustConfig = async (schema: string) => {
+	console.time(`Save GlobaltrustConfig for ${schema}`)
+	await Rankings.saveGlobaltrustConfig(config.rankingStrategies, schema)
+	console.timeEnd(`Save GlobaltrustConfig for ${schema}`)
 }
 
 yargs(hideBin(process.argv))
@@ -72,6 +80,7 @@ yargs(hideBin(process.argv))
 			const ids = await getIds()
 
 			if (!command || command === 'rank') {
+				await saveGlobaltrustConfig(schema)
 				await generateLocaltrust(schema, ids)
 				await generateRankings(schema, ids)
 			}
