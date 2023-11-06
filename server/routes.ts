@@ -1,6 +1,5 @@
 import { Express, Request, Response } from 'express'
 import Rankings from '../recommender/RankingsRecommender'
-import UserRecommender from '../recommender/UserRecommender'
 import { 
 	getIdFromQueryParams, 
 	getProfileIdFromParam, 
@@ -8,7 +7,6 @@ import {
 	getProfilesFromIdsOrdered, 
 	getStrategyNameFromQueryParams, 
 	isValidDate } from './utils'
-import LocalTrustContentRecommender from '../recommender/LocalTrustContentRecommender'
 import FeedRecommender from '../recommender/FeedRecommender'
 import PersonalFeedRecommender from '../recommender/PersonalFeedRecommender'
 import { config } from '../recommender/config'
@@ -17,63 +15,10 @@ import { string } from 'yargs'
 
 
 export default async (app: Express) => {
-	// TODO removing personalized profile recommendations for now as not being used or maintained
-	// const userRecommender = new UserRecommender()
-	// const localTrustContentRecommender = new LocalTrustContentRecommender(userRecommender)
-	// await userRecommender.init()
 
 	app.get('/_health', async (req: Request, res: Response) => {
 		res.status(200).json({ status: 'ok' });
 	});	
-
-	// app.get('/suggest', async (req: Request, res: Response) => {
-	// 	const reqUri = req.originalUrl.split("?").shift()
-	// 	let id: number
-
-	// 	try {
-	// 		id = await getIdFromQueryParams(req.query)
-	// 	}
-	// 	catch (e: any) {
-	// 		return res.status(400).send(e.message)
-	// 	}
-	// 	console.log(`${reqUri} personalized for id: ${id}`)
-
-	// 	try {
-	// 		const re = await userRecommender.recommend(id)
-	// 		const profiles = await getProfilesFromIdsOrdered(re)
-	// 		profiles.map((profile: any, i: number) => {
-	// 			profile.rank = i + 1
-	// 		})
-	// 		return res.send(profiles)
-	// 	}
-	// 	catch (e: any) {
-	// 		console.error(`Error in ${reqUri} for id: ${id}`, e)
-	// 		res.status(500).send(`Could not get ${reqUri}`)
-	// 	}
-	// })
-
-	// app.get('/suggest_posts', async (req: Request, res: Response) => {
-	// 	const reqUri = req.originalUrl.split("?").shift()
-	// 	const limit = req.query.limit ? +req.query.limit : 50
-	// 	let id: number
-
-	// 	try {
-	// 		id = await getIdFromQueryParams(req.query)
-	// 	}
-	// 	catch (e: any) {
-	// 		return res.status(400).send(e.message)
-	// 	}
-	// 	console.log(`${reqUri} personalized for id: ${id}`)
-
-	// 	try {
-	// 		const ids = await localTrustContentRecommender.recommend(id, limit)
-	// 		return res.send(ids)
-	// 	}
-	// 	catch (e: any) {
-	// 		console.error(`Error in ${reqUri} for id: ${id}`, e)
-	// 		res.status(500).send(`Could not get ${reqUri}`)	
-	// 	}
-	// })
 
 	app.get(['/profile_count', '/profile/count'], async (req: Request, res: Response) => {
 		const reqUri = req.originalUrl.split("?").shift()
