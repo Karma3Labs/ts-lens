@@ -68,20 +68,19 @@ export const viralFeedWithStrategy = async (strategyName:string, limit: number) 
 						) max_values,
 							k3l_posts p
 					INNER JOIN publication_stats ps 
-						ON (ps.publication_id = p.post_id AND 
-									(ps.total_amount_of_mirrors + ps.total_amount_of_comments + ps.total_amount_of_collects) > 0)
-					INNER JOIN profile_post post ON post.post_id = p.post_id
-					INNER JOIN globaltrust gt ON gt.i = p.profile_id
-					WHERE
-						gt.strategy_name = :strategyName
-					AND
-						gt.date = (select max(date) from globaltrust)
-					AND
-						p.created_at > now() - interval '14 days'
-					AND
-						post.is_related_to_post IS NULL
-					AND 
-						post.is_related_to_comment IS NULL
+						ON (ps.publication_id = p.post_id 
+									AND (ps.total_amount_of_mirrors + ps.total_amount_of_comments + ps.total_amount_of_collects) > 0
+									AND p.created_at > now() - interval '14 days')
+					INNER JOIN profile_post post 
+						ON (post.post_id = p.post_id
+								AND p.created_at > now() - interval '14 days'
+								AND post.is_related_to_post IS NULL
+								AND post.is_related_to_comment IS NULL)
+					INNER JOIN globaltrust gt 
+						ON (gt.i = p.profile_id
+								AND p.created_at > now() - interval '14 days'
+								AND gt.strategy_name = :strategyName
+								AND gt.date = (select max(date) from globaltrust))
 					ORDER BY p.profile_id, v DESC
 				) AS pstats)
 		SELECT
