@@ -17,6 +17,7 @@ export const config = {
 		'pretrustFirstFifty',
 		'pretrustAllEqually',
 		'pretrustCurated',
+		'pretrustPhotoArt',
 	],
 	contentStrategies: [
 		'viralPosts',
@@ -41,17 +42,27 @@ export const config = {
 			pretrust: 'pretrustOGs',
 			localtrust: 'f1c8m3col12PriceTimed',
 			alpha: 0.5
+		}, {
+			strategyName: 'photoart',
+			pretrust: 'pretrustPhotoArt',
+			localtrust: 'f1c8m3col12PriceTimed',
+			alpha: 0.5
 		},
 	],
 	sqlFeedStrategies: [{
-		name: "popular",
-		feed: "viralFeedWithEngagement",
-		limit: 100,
-	}, {
-		name: "recent",
-		feed: "latestFeed",
-		limit: 100,
-	}],
+			name: "popular",
+			feed: "viralFeedWithEngagement",
+			limit: 100,
+		}, {
+			name: "recent",
+			feed: "latestFeed",
+			limit: 100,
+		}, {
+			name: "photoart",
+			feed: "viralFeedWithPhotoArt",
+			limit: 100,
+		}
+	],
 	algoFeedStrategies: [{
 		name: "recommended",
 		feed: "ml-xgb-followship",

@@ -5,7 +5,23 @@ export type FeedStrategy = (limit: number) => Promise<Post[]>
 
 const db = getDB()
 
-export const viralFeedWithEngagement = async (limit: number) => {
+export const viralFeedWithEngagement:FeedStrategy = 
+	async (limit: number) => viralFeedWithStrategy('engagement', limit)
+
+export const viralFeedWithPhotoArt:FeedStrategy = 
+	async (limit: number) => viralFeedWithStrategy('photoart', limit)
+
+
+export const viralFeedWithStrategy = async (strategyName:string, limit: number) => {
+	/* 
+	Find the max number of comments, collects and mirrors of all posts withing the last 14 days.
+	Find the max age of all posts within the last 14 days. (redundant)
+	Compute a score v that combines the globaltrust score of the author with the 
+	normalized (over max) number of comments, collects nad mirrors of the posts.
+	Compute a row number r_num for all posts for each author. 
+	This r_num will be used to ensure we don't return more than 10 posts per author.
+	Return posts ordered by v making sure we don't return more than 10 posts per author.
+	*/
 	const res = await db.raw(`
 		WITH posts_with_stats AS (	
 			SELECT
@@ -57,7 +73,7 @@ export const viralFeedWithEngagement = async (limit: number) => {
 					INNER JOIN profile_post post ON post.post_id = p.post_id
 					INNER JOIN globaltrust gt ON gt.i = p.profile_id
 					WHERE
-						gt.strategy_name = 'engagement'
+						gt.strategy_name = :strategyName
 					AND
 						gt.date = (select max(date) from globaltrust)
 					AND
@@ -85,12 +101,12 @@ export const viralFeedWithEngagement = async (limit: number) => {
 		ORDER BY
 				v DESC
 		LIMIT :limit;
-	`, { limit })
+	`, { strategyName, limit })
 
 	return res.rows
 }
 
-export const latestFeed = async (limit: number) => {
+export const latestFeed:FeedStrategy = async (limit: number) => {
 	const res = await db.raw(`
 		WITH posts_with_stats AS (
 			SELECT
@@ -129,5 +145,6 @@ export const latestFeed = async (limit: number) => {
 
 export const strategies: Record<string, FeedStrategy> = {
 	viralFeedWithEngagement,
+	viralFeedWithPhotoArt,
 	latestFeed,
 }
