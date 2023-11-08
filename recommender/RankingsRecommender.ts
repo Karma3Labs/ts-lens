@@ -221,27 +221,27 @@ export default class Rankings {
 		const res = await db.raw(`
 			WITH
 			suggested AS (
-							SELECT
-											lt.j as profile_id,
-											max(lt.date) as date,
-											max(lt.v) as v
-											FROM localtrust AS lt
-											WHERE lt.i=:id
-											AND lt.j NOT IN (SELECT f.to_profile_id FROM k3l_follows as f WHERE f.profile_id=:id)
-											GROUP BY lt.j
-											ORDER BY v
-											LIMIT :limit
-							) 
-							SELECT
-											prof.profile_id as profileid,
-											prof.handle as handle,
-											r.rank as rank
-							FROM suggested
-							INNER JOIN k3l_profiles as prof ON (prof.profile_id=suggested.profile_id)
-							INNER JOIN k3l_rank as r ON (r.profile_id=suggested.profile_id
-																																																															AND r.strategy_name=:strategyName
-																																																															AND r.date=suggested.date)
-							ORDER BY r.rank 
+				SELECT
+					lt.j as profile_id,
+					max(lt.date) as date,
+					max(lt.v) as v
+					FROM localtrust AS lt
+					WHERE lt.i=:id
+					AND lt.j NOT IN (SELECT f.to_profile_id FROM k3l_follows as f WHERE f.profile_id=:id)
+					GROUP BY lt.j
+					ORDER BY v
+					LIMIT :limit
+				) 
+				SELECT
+					prof.profile_id as profileid,
+					prof.handle as handle,
+					r.rank as rank
+				FROM suggested
+				INNER JOIN k3l_profiles as prof ON (prof.profile_id=suggested.profile_id)
+				INNER JOIN k3l_rank as r ON (r.profile_id=suggested.profile_id
+																		AND r.strategy_name=:strategyName
+																		AND r.date=suggested.date)
+				ORDER BY r.rank 
 	`, { strategyName, id, limit})
 
 		return res.rows
