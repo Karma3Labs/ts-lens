@@ -18,6 +18,7 @@ export const viralFeedWithStrategy = async (strategyName:string, limit: number) 
 	Find the max age of all posts within the last 14 days. (redundant)
 	Compute a score v that combines the globaltrust score of the author with the 
 	normalized (over max) number of comments, collects nad mirrors of the posts.
+	Note: we use the inverse of the log of globaltrust score to deal with very small numbers (e-93)
 	Compute a row number r_num for all posts for each author. 
 	This r_num will be used to ensure we don't return more than 10 posts per author.
 	Return posts ordered by v making sure we don't return more than 10 posts per author.
@@ -41,7 +42,7 @@ export const viralFeedWithStrategy = async (strategyName:string, limit: number) 
 									2 * (ps.total_amount_of_comments::numeric / max_values.max_comments_count) +
 									5 * (ps.total_amount_of_mirrors::numeric / max_values.max_mirrors_count) +
 									3 * (ps.total_amount_of_collects::numeric / max_values.max_collects_count) +
-									10 * gt.v -
+									10 * 1/abs(log(gt.v)) -
 									2 * ((EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::integer
 																														/ max_values.max_age_days)
 							) AS v,
