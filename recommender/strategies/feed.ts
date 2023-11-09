@@ -143,8 +143,60 @@ export const latestFeed:FeedStrategy = async (limit: number) => {
 	return res.rows
 }
 
+export const spamFeed:FeedStrategy = async (limit: number) => {
+	const res = await db.raw(`
+		select 
+			post.post_id,
+			acts.score as v,
+			(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - post.block_timestamp)) / (60 * 60 * 24))::integer AS age_days
+		from profile_post as post
+			inner join publication_stats as ps on (post.post_id=ps.publication_id)
+			inner join k3l_interactions as acts on (post.profile_id=acts.pid)
+		where 
+			post.is_related_to_post IS NULL
+			and post.is_related_to_comment IS NULL
+			and acts.rank > 50000
+			and acts.action_score >= 1 
+			and acts.interaction_score < 1
+		order by age_days asc
+		limit :limit
+	`, { limit })
+
+	return res.rows
+}
+
+export const newcomerFeed:FeedStrategy = async (limit: number) => {
+	const res = await db.raw(`
+		select 
+			post.post_id,
+			(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - post.block_timestamp)) / (60 * 60 * 24))::integer AS age_days,
+			( (4 * ps.total_amount_of_comments::numeric +
+				2 * ps.total_amount_of_mirrors::numeric +
+				8 * ps.total_amount_of_collects::numeric) *
+				power(1-(1/52::numeric), acts.profile_age_in_days)
+			) AS v
+		from profile_post as post
+		inner join publication_stats as ps on (post.post_id=ps.publication_id)
+		inner join k3l_interactions as acts on (post.profile_id=acts.pid)
+		where 
+			post.is_related_to_post IS NULL
+			and post.is_related_to_comment IS NULL
+			and acts.action_score < 1 
+			and acts.interaction_score < 1
+			and acts.num_posts_actions < acts.median_posts_actions
+			and acts.profile_age_in_days <= 30
+		order by age_days asc, v desc
+		limit :limit
+	`, { limit })
+
+	return res.rows
+}
+
+
 export const strategies: Record<string, FeedStrategy> = {
 	viralFeedWithEngagement,
 	viralFeedWithPhotoArt,
 	latestFeed,
+	spamFeed, 
+	newcomerFeed
 }

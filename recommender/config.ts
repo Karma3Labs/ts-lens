@@ -61,6 +61,14 @@ export const config = {
 			name: "photoart",
 			feed: "viralFeedWithPhotoArt",
 			limit: 100,
+		}, {
+			name: "spam",
+			feed: "spamFeed",
+			limit: 100,
+		}, {
+			name: "newcomer",
+			feed: "newcomerFeed",
+			limit: 100,
 		}
 	],
 	algoFeedStrategies: [{
