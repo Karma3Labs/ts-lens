@@ -39,9 +39,9 @@ export const viralFeedWithStrategy = async (strategyName:string, limit: number) 
 							ps.total_amount_of_collects AS collects_count,
 							(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::integer AS age_days,
 							(
-									2 * (ps.total_amount_of_comments::numeric / max_values.max_comments_count) +
-									5 * (ps.total_amount_of_mirrors::numeric / max_values.max_mirrors_count) +
-									3 * (ps.total_amount_of_collects::numeric / max_values.max_collects_count) +
+									4 * (ps.total_amount_of_comments::numeric / max_values.max_comments_count) +
+									2 * (ps.total_amount_of_mirrors::numeric / max_values.max_mirrors_count) +
+									8 * (ps.total_amount_of_collects::numeric / max_values.max_collects_count) +
 									10 * 1/abs(log(gt.v)) -
 									2 * ((EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - p.created_at)) / (60 * 60 * 24))::integer
 																														/ max_values.max_age_days)
