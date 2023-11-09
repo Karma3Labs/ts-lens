@@ -1,8 +1,8 @@
 export const config = {
 	ogs: [
-		"yoginth", "christina", "mariariivari",
-		"bradorbradley", "wagmi", "levychain", "nicolo",
-		"sasicodes", "stani", "davidev" 
+		"yoginth.lens", "christina.lens", "mariariivari.lens",
+		"bradorbradley.lens", "wagmi.lens", "levychain.lens", "nicolo.lens",
+		"sasicodes.lens", "stani.lens", "davidev.lens" 
 	],
 	localtrustStrategies: [
 		'f1',
