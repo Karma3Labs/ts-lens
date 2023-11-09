@@ -46,7 +46,7 @@ export const config = {
 			strategyName: 'photoart',
 			pretrust: 'pretrustPhotoArt',
 			localtrust: 'f1c8m3col12PriceTimed',
-			alpha: 0.5
+			alpha: 0.8
 		},
 	],
 	sqlFeedStrategies: [{
