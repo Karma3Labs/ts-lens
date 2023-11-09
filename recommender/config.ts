@@ -1,8 +1,8 @@
 export const config = {
 	ogs: [
-		"yoginth.lens", "christina.lens", "mariariivari.lens",
-		"bradorbradley.lens", "wagmi.lens", "levychain.lens", "nicolo.lens",
-		"sasicodes.lens", "stani.lens", "davidev.lens" 
+		"yoginth", "christina", "mariariivari",
+		"bradorbradley", "wagmi", "levychain", "nicolo",
+		"sasicodes", "stani", "davidev" 
 	],
 	localtrustStrategies: [
 		'f1',
@@ -60,6 +60,14 @@ export const config = {
 		}, {
 			name: "photoart",
 			feed: "viralFeedWithPhotoArt",
+			limit: 100,
+		}, {
+			name: "spam",
+			feed: "spamFeed",
+			limit: 100,
+		}, {
+			name: "newcomer",
+			feed: "newcomerFeed",
 			limit: 100,
 		}
 	],
