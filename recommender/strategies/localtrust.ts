@@ -55,8 +55,6 @@ const getFollows = async () => {
 	console.timeEnd('fetching follows')
 
 	console.time('parsing follows')
-	// // const follows = await db('k3l_follows')
-	// // 	.select('profile_id', 'to_profile_id', db)
 
 	ijfollows = {}
 	for (const { profileId, toProfileId, v } of follows) {

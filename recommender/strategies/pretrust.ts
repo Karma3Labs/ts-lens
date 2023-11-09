@@ -1,6 +1,8 @@
 import { Pretrust } from '../../types'
 import { config } from '../config'
 import { getDB } from '../../utils';
+import { readFile } from 'fs/promises';
+import  path from 'path'
 
 export type PretrustStrategy = () => Promise<Pretrust<string>>
 
@@ -52,9 +54,28 @@ const pretrustCurated: PretrustStrategy = async () => {
 	return pretrust
 }
 
+const pretrustCommunity = async(pretrustFile?: string) => {
+	const data = await readFile(path.resolve(__dirname, pretrustFile!), 'utf-8')
+	const json = JSON.parse(data);
+	const profiles = json.data.items
+	const pretrust: Pretrust<string> = []
+
+	profiles.forEach(({ profileId }: { profileId: string }) => {
+		pretrust.push({
+			i: profileId,
+			v: 1 / profiles.length
+		})		
+	})
+	return pretrust
+}
+
+const pretrustPhotoArt: PretrustStrategy = 
+	async(pretrustFile?: string) => pretrustCommunity('../../pretrusts/photoart.json')
+
 export const strategies: Record<string, PretrustStrategy> = {
 	pretrustOGs,
 	pretrustFirstFifty,
 	pretrustAllEqually,
-	pretrustCurated
+	pretrustCurated,
+	pretrustPhotoArt
 }
