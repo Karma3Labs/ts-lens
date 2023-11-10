@@ -91,7 +91,7 @@ export default class FeedRecommender {
 															AND k3l_rank.rank < :rankLimit
 															AND k3l_rank.date=(select max(date) from k3l_rank where strategy_name=:rankName))
 			WHERE 
-				strategy_name = :stratName
+			k3l_feed.strategy_name = :stratName
 				${contentFocusClause}
 				${languageClause}
 			ORDER BY
