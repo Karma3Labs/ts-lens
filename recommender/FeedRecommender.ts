@@ -69,13 +69,14 @@ export default class FeedRecommender {
 		console.log(`Getting feed for ${JSON.stringify(strategy)}`)
 
 		const stratName = strategy.feed
+		const rankName = strategy.ranking || 'engagement'
 		limit = limit || strategy.limit
 
 		const res = await db.raw(`
 			SELECT		
 				post_id,
 				handle,
-				rank,
+				k3l_rank.rank,
 				mirrors_count,
 				comments_count,
 				collects_count,
@@ -85,17 +86,19 @@ export default class FeedRecommender {
 				content_uri
 			FROM
 				k3l_feed
+			INNER JOIN k3l_rank on (k3l_rank.profile_id=k3l_feed.profile_id 
+															AND k3l_rank.strategy_name=:rankName
+															AND k3l_rank.rank < :rankLimit
+															AND k3l_rank.date=(select max(date) from k3l_rank where strategy_name=:rankName))
 			WHERE 
 				strategy_name = :stratName
-				AND 
-				rank < :rankLimit
 				${contentFocusClause}
 				${languageClause}
 			ORDER BY
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::numeric ASC,
 				v DESC
 			LIMIT :limit OFFSET :offset;
-		`, { stratName, limit, offset, rankLimit })
+		`, { stratName, rankName, limit, offset, rankLimit })
 			
 		const feed = res.rows.map((r: any) => ({
 			...r,
@@ -122,4 +125,5 @@ export default class FeedRecommender {
 		}
 		return strategy
 	}
+ 
 }

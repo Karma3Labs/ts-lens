@@ -3,6 +3,7 @@ dist/
 .env*
 log.txt
 globaltrust.csv
+.vscode/
 
 # --- BEGIN https://raw.githubusercontent.com/github/gitignore/cdde85a36ecb48a162385829d198a7a5bf429a63/Global/JetBrains.gitignore ---
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
