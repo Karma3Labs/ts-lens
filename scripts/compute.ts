@@ -33,10 +33,14 @@ const generateRankings = async (schema: string, ids: string[]) => {
 	console.time(`Generated rankings for ${schema}`)
 	for (const rkStrategy of config.rankingStrategies) {
 		console.log(`Generating rankings for ${schema}.${rkStrategy.strategyName}`)
+		console.time(`Rankings for ${schema}.${rkStrategy.strategyName}`)
 		const rankings = await Rankings.calculateByStrategy(ids, rkStrategy, schema)
+		console.timeEnd(`Rankings for ${schema}.${rkStrategy.strategyName}`)
 		console.log(`Slice of rankings: ${JSON.stringify(rankings.slice(0,10))}`)
 		// TODO make GlobalTrust schema-aware
+		console.time(`Save Globaltrust for ${schema}.${rkStrategy.strategyName}`)
 		await Rankings.saveGlobaltrust(rkStrategy.strategyName, rankings)
+		console.timeEnd(`Save Globaltrust for ${schema}.${rkStrategy.strategyName}`)
 	}
 	console.timeEnd(`Generated rankings for ${schema}`)
 }
@@ -45,8 +49,12 @@ const generateFeed = async () => {
 	console.time("Generated feed")
 	for (const fStrategy of config.sqlFeedStrategies) {
 		console.log(`Generating feed for ${fStrategy.name}`)
+		console.time(`Feed for ${fStrategy.name}`)
 		const feed = await Feed.calculateByStrategy(fStrategy.name, 5000)
+		console.timeEnd(`Feed for ${fStrategy.name}`)
+		console.time(`Save Feed for ${fStrategy.name}`)
 		await Feed.saveFeed(fStrategy.feed, feed)
+		console.timeEnd(`Save Feed for ${fStrategy.name}`)
 	}
 	console.timeEnd("Generated feed")
 }
