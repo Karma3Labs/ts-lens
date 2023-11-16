@@ -81,7 +81,7 @@ export const viralFeedWithStrategy = async (strategyName:string, limit: number) 
 						ON (gt.i = p.profile_id
 								AND p.created_at > now() - interval '14 days'
 								AND gt.strategy_name = :strategyName
-								AND gt.date = (select max(date) from globaltrust))
+								AND gt.date = (select max(date) from globaltrust where strategy_name = :strategyName))
 					ORDER BY p.profile_id, v DESC
 				) AS pstats)
 		SELECT

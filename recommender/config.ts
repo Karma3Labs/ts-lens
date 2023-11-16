@@ -46,43 +46,51 @@ export const config = {
 			strategyName: 'photoart',
 			pretrust: 'pretrustPhotoArt',
 			localtrust: 'f1c8m3col12PriceTimed',
-			alpha: 0.5
+			alpha: 0.8
 		},
 	],
 	sqlFeedStrategies: [{
 			name: "popular",
 			feed: "viralFeedWithEngagement",
+			ranking: "engagement",
 			limit: 100,
 		}, {
 			name: "recent",
 			feed: "latestFeed",
+			ranking: undefined,
 			limit: 100,
 		}, {
 			name: "photoart",
 			feed: "viralFeedWithPhotoArt",
+			ranking: "photoart",
 			limit: 100,
 		}, {
 			name: "spam",
 			feed: "spamFeed",
+			ranking: "engagement",
 			limit: 100,
 		}, {
 			name: "newcomer",
 			feed: "newcomerFeed",
+			ranking: undefined,
 			limit: 100,
 		}
 	],
 	algoFeedStrategies: [{
 		name: "recommended",
 		feed: "ml-xgb-followship",
+		ranking: undefined,
 		limit: 100,
 	},{
 		name: "crowdsourced",
 		feed: "hubs-and-authorities",
+		ranking: undefined,
 		limit: 100,
 	}],
 	personalFeedStrategies: [{
 		name: "following",
 		feed: "followingViralFeedWithEngagement",
+		ranking: undefined,
 		limit: 100,
 	}],
 	personalization: { // for personalized EigenTrust
