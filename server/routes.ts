@@ -148,6 +148,32 @@ export default async (app: Express) => {
 		}
 	})
 
+	app.get(['/profile_similar', '/profile/similar'], async (req: Request, res: Response) => {
+		const reqUri = req.originalUrl.split("?").shift()
+		const limit = req.query.limit ? +req.query.limit : 100
+		let id: number, strategyName: string
+		
+		try {
+			id = await getIdFromQueryParams(req.query)
+			strategyName = await getStrategyNameFromQueryParams(req.query)
+		}
+		catch (e: any) {
+			console.log(`Error in ${reqUri}`, e)
+			return res.status(400).send(e.message)
+		}
+		console.log(`${reqUri} for id: ${id} and strategyName: ${strategyName}`)
+
+		try {
+			const profiles = await Rankings.getSimilarSuggestions(strategyName, id, limit);
+			return res.send(profiles)
+		}
+		catch (e: any) {
+			console.error(`Error in ${reqUri} for handle: ${id} and strategyName: ${strategyName}`, e)
+			res.status(500).send(`Could not get ${reqUri}`)
+		}
+	})
+
+
 	app.get(['/feed/personal/:profile/:strategy?'], async (req: Request, res: Response) => {
 		console.log(`Getting feed for ${JSON.stringify(req.query)}`)
 		const reqUri = req.originalUrl
