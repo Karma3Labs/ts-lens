@@ -52,17 +52,17 @@ export default class FeedRecommender {
 		): Promise<Post[]> {
 
 		let contentFocusClause: string = ''
+		let cf_array: string[][] = []
 		if (contentFocus && contentFocus.length > 0) {
-			contentFocusClause = contentFocus.reduce((acc, cur) => { 
-					return acc.concat("'",cur.toUpperCase(),"',");
-				},
-				"AND main_content_focus IN ("
-			)
-			contentFocusClause = contentFocusClause.substring(0, contentFocusClause.length - 1) + ")";
+			cf_array = [contentFocus.map(function(x){return x.toUpperCase()})]
+			contentFocusClause = "AND main_content_focus = ANY ( :cf_array::text[] )"
+			console.log(`cf_array: ${cf_array}`)
+			console.log(`contentFocusClause: ${contentFocusClause}`)
 		}
 		let languageClause: string = ''
 		if (language) {
-			languageClause = `AND language = '${language}'`
+			languageClause = `AND language = :language`
+			console.log(`languageClause: ${languageClause}`)
 		}
 		const strategy = FeedRecommender.getStrategy(strategyName)
 
@@ -98,7 +98,7 @@ export default class FeedRecommender {
 				(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / (60 * 60 * 24))::numeric ASC,
 				v DESC
 			LIMIT :limit OFFSET :offset;
-		`, { stratName, rankName, limit, offset, rankLimit })
+		`, { stratName, rankName, rankLimit, cf_array, language, limit, offset })
 			
 		const feed = res.rows.map((r: any) => ({
 			...r,

@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  ts-lens:
+    container_name: ts-lens
+    image: ts-lens:latest
+    ports:
+      - 8080:8080
