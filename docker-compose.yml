@@ -5,3 +5,6 @@ services:
     image: ts-lens:latest
     ports:
       - 8080:8080
+    restart: "no"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
