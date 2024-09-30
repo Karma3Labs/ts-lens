@@ -8,16 +8,18 @@ export const config = {
 		'f1',
 		'f6c3m8',
 		'f6c3m8col12',
-		'f6c3m8col12Price',
-		'f1c3m8col12PriceTimed',
+		// 'f6c3m8col12Price',
+		// 'f1c3m8col12PriceTimed',
 		'f1c8m3col12PriceTimed',
+		'colPrice'
 	],
 	pretrustStrategies: [
 		'pretrustOGs',
-		'pretrustFirstFifty',
-		'pretrustAllEqually',
-		'pretrustCurated',
+		// 'pretrustFirstFifty',
+		// 'pretrustAllEqually',
+		// 'pretrustCurated',
 		'pretrustPhotoArt',
+		'pretrustBonsai'
 	],
 	contentStrategies: [
 		'viralPosts',
@@ -39,8 +41,8 @@ export const config = {
 			alpha: 0.1
 		}, {
 			strategyName: 'creator',
-			pretrust: 'pretrustOGs',
-			localtrust: 'f1c8m3col12PriceTimed',
+			pretrust: 'pretrustBonsai',
+			localtrust: 'colPrice',
 			alpha: 0.5
 		}, {
 			strategyName: 'photoart',

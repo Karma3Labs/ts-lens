@@ -72,10 +72,16 @@ const pretrustCommunity = async(pretrustFile?: string) => {
 const pretrustPhotoArt: PretrustStrategy = 
 	async(pretrustFile?: string) => pretrustCommunity('../../pretrusts/photoart.json')
 
+const pretrustBonsai: PretrustStrategy = 
+	async(pretrustFile?: string) => pretrustCommunity('../../pretrusts/bonsai_influencers.json')
+
+
+
 export const strategies: Record<string, PretrustStrategy> = {
 	pretrustOGs,
 	pretrustFirstFifty,
 	pretrustAllEqually,
 	pretrustCurated,
-	pretrustPhotoArt
+	pretrustPhotoArt,
+	pretrustBonsai
 }
