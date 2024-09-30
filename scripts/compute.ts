@@ -76,7 +76,7 @@ yargs(hideBin(process.argv))
 					default: 'public',
 				})
 				.positional('command', {
-					describe: 'To compute either rank or feed, if not specified, it will be both',
+					describe: 'To compute either rank or feed, if not specified, it will be rank',
 					choices: ['rank', 'feed'],
 				})
 		},
