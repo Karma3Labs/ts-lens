@@ -109,6 +109,12 @@ export default class Rankings {
 				.insert(chunk)
 				.onConflict(['strategy_name', 'date', 'i']).merge()
 		}
+		if (global.gc) {
+			console.log('Garbage collecting after inserting globaltrust')
+			console.time('Garbage collecting')
+			global.gc()
+			console.timeEnd('Garbage collecting')
+		}
 	}
 
 	static async saveGlobaltrustConfig(globaltrustConfig: GlobalTrustConfig, schema: string) {

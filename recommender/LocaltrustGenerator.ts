@@ -65,6 +65,12 @@ export default class LocaltrustGenerator {
 				.insert(chunk)
 		}
 		console.timeEnd(`Inserted localtrust for strategy ${schema}.${strategyName}`)
+		if (global.gc) {
+			console.log('Garbage collecting after inserting localtrust')
+			console.time('Garbage collecting')
+			global.gc()
+			console.timeEnd('Garbage collecting')
+		}
 	}
 
 	async uploadLocaltrust(strategyName: string, localtrust: LocalTrust<string>, ids: string[] = [], schema: string) {
@@ -96,6 +102,13 @@ export default class LocaltrustGenerator {
 				console.log(`Uploading localtrust for strategy ${schema}.${strategyName} to ${eigentrustAPI}`)
 				await axios.put(eigentrustAPI, opts)
 				merge = true;
+		}
+
+		if (global.gc) {
+			console.log('Garbage collecting after uploading localtrust')
+			console.time('Garbage collecting')
+			global.gc()
+			console.timeEnd('Garbage collecting')
 		}
 		console.timeEnd("Uploading localtrust")
 	}
